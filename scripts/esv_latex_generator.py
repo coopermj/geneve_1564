@@ -1,0 +1,404 @@
+"""Convert fetched ESV HTML to LaTeX using the scripture package, with full footnotes."""
+
+import json
+import os
+import re
+from html import unescape
+
+from bible_config import BookInfo, BOOKS
+
+
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = os.path.dirname(_SCRIPT_DIR)
+_POETRY_PATH = os.path.join(_SCRIPT_DIR, "poetry_sections.json")
+
+_poetry_config: dict | None = None
+
+
+def _load_poetry_config() -> dict:
+    global _poetry_config
+    if _poetry_config is None:
+        with open(_POETRY_PATH, "r", encoding="utf-8") as f:
+            _poetry_config = json.load(f)
+    return _poetry_config
+
+
+def _is_poetry_chapter(book_dir: str, chapter: int) -> bool:
+    config = _load_poetry_config()
+    entry = config.get(book_dir)
+    if entry is None:
+        return False
+    if entry.get("full_book"):
+        return True
+    for start, end in entry.get("chapters", []):
+        if start <= chapter <= end:
+            return True
+    return False
+
+
+# ── LaTeX escaping ──────────────────────────────────────────────────────
+
+_LATEX_SPECIAL = {
+    "&": r"\&",
+    "%": r"\%",
+    "$": r"\$",
+    "#": r"\#",
+    "_": r"\_",
+    "~": r"\textasciitilde{}",
+    "^": r"\textasciicircum{}",
+}
+
+
+def _escape_latex(text: str) -> str:
+    result = []
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        if ch == "\\":
+            result.append(ch)
+            i += 1
+        elif ch in _LATEX_SPECIAL:
+            result.append(_LATEX_SPECIAL[ch])
+            i += 1
+        else:
+            result.append(ch)
+            i += 1
+    return "".join(result)
+
+
+def _convert_smart_quotes(text: str) -> str:
+    text = text.replace("\u201c", "``")
+    text = text.replace("\u201d", "''")
+    text = text.replace("\u2018", "`")
+    text = text.replace("\u2019", "'")
+    text = text.replace("\u2014", "---")
+    text = text.replace("\u2013", "--")
+    return text
+
+
+def _apply_divine_names(text: str) -> str:
+    r"""Replace LORD/GOD with \textsc{Lord}/\textsc{God}."""
+    text = re.sub(r'\bLORD\b', r'\\textsc{Lord}', text)
+    text = re.sub(r'\bGOD\b', r'\\textsc{God}', text)
+    return text
+
+
+# ── Heading images ──────────────────────────────────────────────────────
+
+_HEADING_IMAGES = {
+    "genesis": "images/genese_heading",
+}
+
+
+def _find_heading_image(book_dir: str) -> str | None:
+    if book_dir in _HEADING_IMAGES:
+        img_path = _HEADING_IMAGES[book_dir]
+        if os.path.isfile(os.path.join(_PROJECT_ROOT, img_path + ".pdf")):
+            return img_path
+    convention_path = f"images/{book_dir}_heading"
+    if os.path.isfile(os.path.join(_PROJECT_ROOT, convention_path + ".pdf")):
+        return convention_path
+    return None
+
+
+# ── Lettrine ────────────────────────────────────────────────────────────
+
+def _make_lettrine(text: str, lettrine_lines: int | None = None,
+                   color: str | None = None) -> str:
+    text = text.lstrip()
+    prefix = ""
+    if text.startswith("``"):
+        prefix = "``"
+        text = text[2:]
+    elif text.startswith("`") and not text.startswith("``"):
+        prefix = "`"
+        text = text[1:]
+    text = text.lstrip()
+    if not text:
+        return prefix + text
+
+    first_letter = text[0]
+    after_first = text[1:]
+    match = re.match(r'([A-Za-z]*)(.*)', after_first, re.DOTALL)
+    if match:
+        rest_of_word = match.group(1)
+        remainder = match.group(2)
+    else:
+        rest_of_word = ""
+        remainder = after_first
+
+    opts = f"[lines={lettrine_lines}]" if lettrine_lines else ""
+    first_arg = f"\\color{{{color}}}{first_letter}" if color else first_letter
+    second_arg = f"\\textsc{{{rest_of_word}}}" if rest_of_word else ""
+
+    return f"{prefix}\\lettrine{opts}{{{first_arg}}}{{{second_arg}}}{remainder}"
+
+
+# ── ESV HTML parsing ───────────────────────────────────────────────────
+
+def _parse_footnotes(html: str) -> dict[str, str]:
+    """Extract footnotes from the footnotes div, keyed by back-ref id (e.g. 'fb1-1')."""
+    fn_div = re.search(r'<div class="footnotes[^"]*">(.*?)</div>', html, re.DOTALL)
+    if not fn_div:
+        return {}
+
+    fn_html = fn_div.group(1)
+    footnotes: dict[str, str] = {}
+
+    # Each footnote entry has: <a href="#fbN-C" id="fN-C">[N]</a> ... <note ...>text</note>
+    for m in re.finditer(
+        r'<a[^>]*href="#(fb\d+-\d+)"[^>]*>\[\d+\]</a></span>'
+        r'\s*<span class="footnote-ref">[^<]*</span>\s*'
+        r'(.*?)(?=<br\s*/?>|\n<span class="footnote">|</p>)',
+        fn_html,
+        re.DOTALL,
+    ):
+        back_id = m.group(1)  # e.g. "fb1-1"
+        fn_text = _clean_footnote_text(m.group(2))
+        footnotes[back_id] = fn_text
+
+    return footnotes
+
+
+def _clean_footnote_text(text: str) -> str:
+    """Convert footnote HTML to LaTeX-safe text."""
+    text = re.sub(r'</?note[^>]*>', '', text)
+    text = re.sub(r'<i[^>]*>(.*?)</i>', r'\\textit{\1}', text)
+    text = re.sub(r'<span[^>]*>(.*?)</span>', r'\1', text)
+    text = re.sub(r'<[^>]+>', '', text)
+    text = unescape(text).strip()
+    text = _convert_smart_quotes(text)
+    text = _escape_latex(text)
+    return text
+
+
+def _strip_footnote_div(html: str) -> str:
+    """Remove the footnotes div and copyright line from the end."""
+    html = re.sub(r'<div class="footnotes.*', '', html, flags=re.DOTALL)
+    html = re.sub(r'<p>\s*\(<a[^>]*>ESV</a>\)\s*</p>', '', html)
+    return html
+
+
+def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
+                          is_first_chapter: bool) -> list[str]:
+    """Convert one chapter's body HTML into LaTeX lines.
+
+    Returns a list of LaTeX lines for this chapter.
+    """
+    footnotes = _parse_footnotes(html)
+    body = _strip_footnote_div(html)
+
+    lines: list[str] = []
+    is_poetry = _is_poetry_chapter(book.directory, ch_num)
+
+    # Mark for running headers (verse 1 set here; subsequent verses inline)
+    lines.append(f"\\markboth{{{book.name}~{ch_num}:1}}{{{book.name}~{ch_num}:1}}")
+
+    if is_poetry:
+        lines.append("\\begin{poetry}")
+
+    # Replace inline footnote markers with \marginnote{text}
+    def _replace_fn(m: re.Match) -> str:
+        back_id = m.group(1)  # id="fbN-C" -> the back-ref
+        fn_text = footnotes.get(back_id, "")
+        if fn_text:
+            return f"\\marginnote{{\\tiny\\itshape {fn_text}}}"
+        return ""
+
+    body = re.sub(
+        r'<sup class="footnote">\s*<a[^>]*id="(fb\d+-\d+)"[^>]*>\d+</a>\s*</sup>',
+        _replace_fn,
+        body,
+    )
+
+    # Split into block-level elements (h3 headings and p paragraphs)
+    blocks = re.split(r'(?=<h3\b|<p\b)', body)
+
+    first_verse_seen = False
+
+    for block in blocks:
+        block = block.strip()
+        if not block:
+            continue
+
+        # Section heading
+        h3 = re.match(r'<h3[^>]*>(.*?)</h3>', block)
+        if h3:
+            heading_text = re.sub(r'<[^>]+>', '', h3.group(1))
+            heading_text = unescape(heading_text).strip()
+            if heading_text.lower() == "footnotes":
+                continue
+            heading_text = _convert_smart_quotes(heading_text)
+            heading_text = _escape_latex(heading_text)
+            lines.append("")
+            lines.append(
+                f"\\begingroup\\parshape=0\\everypar{{}}"
+                f"\\smallskip\\noindent"
+                f"{{\\centering\\spacedfont\\scshape\\small {heading_text}\\par}}"
+                f"\\nobreak\\smallskip\\endgroup"
+            )
+            continue
+
+        # Paragraph
+        if not re.match(r'<p\b', block):
+            continue
+
+        # Check if this is a new paragraph (not the very first verse of ch)
+        is_chapter_start = "starts-chapter" in block
+
+        # Extract chapter number marker
+        ch_match = re.search(
+            r'<b class="chapter-num[^"]*"[^>]*>\s*\d+:\s*(\d+)[^<]*</b>',
+            block,
+        )
+
+        # Strip all remaining HTML tags except our \footnotemain insertions
+        # First, handle verse-num markers -> \vs{N}
+        def _replace_verse(m: re.Match) -> str:
+            vnum = m.group(1).strip()
+            mark = f"\\markboth{{{book.name}~{ch_num}:{vnum}}}{{{book.name}~{ch_num}:{vnum}}}"
+            return f"{mark}\\vs{{{vnum}}} "
+
+        para_text = block
+        # Remove <p> and </p>
+        para_text = re.sub(r'</?p[^>]*>', '', para_text)
+        # Remove chapter-num <b> tag (we handle it separately)
+        para_text = re.sub(r'<b class="chapter-num[^"]*"[^>]*>.*?</b>', '', para_text)
+        # Replace verse-num <b> tags
+        para_text = re.sub(
+            r'<b class="verse-num[^"]*"[^>]*>\s*(\d+)[^<]*</b>',
+            _replace_verse,
+            para_text,
+        )
+        # Remove any remaining HTML tags (but preserve \footnotemain)
+        para_text = re.sub(r'<[^>]+>', '', para_text)
+        para_text = unescape(para_text)
+        para_text = _convert_smart_quotes(para_text)
+        para_text = _apply_divine_names(para_text)
+        para_text = _escape_latex(para_text)
+        para_text = re.sub(r'\s+', ' ', para_text).strip()
+
+        if not para_text:
+            continue
+
+        if is_chapter_start and ch_match:
+            # Chapter start — emit \ch{N} + lettrine
+            if is_first_chapter and ch_num == 1:
+                lettrine_text = _make_lettrine(
+                    para_text, lettrine_lines=5, color=book.group)
+            else:
+                lettrine_text = _make_lettrine(para_text, color=book.group)
+            lines.append(f"\\ch{{{ch_num}}} {lettrine_text}")
+            first_verse_seen = True
+        else:
+            if first_verse_seen:
+                lines.append("")
+                lines.append("\\parshape=0")
+            lines.append(para_text)
+            first_verse_seen = True
+
+    if is_poetry:
+        lines.append("\\end{poetry}")
+
+    return lines
+
+
+# ── Book-level generation ──────────────────────────────────────────────
+
+def generate_book_tex(
+    book: BookInfo,
+    chapters_html: dict[int, str],
+) -> str:
+    """Generate the complete .tex content for an ESV book.
+
+    Args:
+        book: BookInfo metadata.
+        chapters_html: {chapter_num: raw_html_string} from the fetcher.
+    """
+    lines = []
+    lines.append(f"% {book.name} — Generated by generate_esv.py")
+    lines.append(f"% ESV Bible text, scripture package formatting")
+
+    heading_img = _find_heading_image(book.directory)
+    escaped_title = book.long_title
+    escaped_sub = book.subtitle
+    if heading_img:
+        lines.append(f"\\bbook[{heading_img}]{{{escaped_title}}}{{{escaped_sub}}}")
+    else:
+        lines.append(f"\\bbook{{{escaped_title}}}{{{escaped_sub}}}")
+
+    lines.append("")
+    lines.append("\\begin{scripture}")
+
+    sorted_chapters = sorted(chapters_html.keys())
+
+    for ch_num in sorted_chapters:
+        html = chapters_html[ch_num]
+        is_first = (ch_num == sorted_chapters[0])
+        ch_lines = _process_chapter_html(html, ch_num, book, is_first)
+        lines.append("")
+        lines.extend(ch_lines)
+
+    lines.append("")
+    lines.append("\\end{scripture}")
+    lines.append("")
+
+    return "\n".join(lines)
+
+
+# ── Color index & testament files ──────────────────────────────────────
+
+_GROUP_INFO = [
+    ("pentateuch", "The Pentateuch"),
+    ("historical", "Historical Books"),
+    ("wisdom", "Wisdom \\& Poetry"),
+    ("majorprophets", "Major Prophets"),
+    ("minorprophets", "Minor Prophets"),
+    ("gospels", "The Gospels"),
+    ("acts", "Acts"),
+    ("pauline", "Pauline Epistles"),
+    ("general", "General Epistles"),
+    ("revelation", "Revelation"),
+]
+
+
+def generate_color_index_tex() -> str:
+    lines = []
+    lines.append("% Color Index — Generated by generate_esv.py")
+    lines.append("\\clearpage")
+    lines.append("\\thispagestyle{empty}")
+    lines.append("\\hypertarget{toc}{}")
+    lines.append("\\twocolumn[%")
+    lines.append("  \\vspace*{20pt}%")
+    lines.append("  {\\centering\\huge\\booktitlefont\\scshape Index of Books"
+                  "\\\\\\char\"2766\\par}%")
+    lines.append("  \\vspace{10pt}%")
+    lines.append("]")
+    lines.append("")
+
+    group_books: dict[str, list[BookInfo]] = {}
+    for book in BOOKS:
+        group_books.setdefault(book.group, []).append(book)
+
+    for group_key, group_label in _GROUP_INFO:
+        books = group_books.get(group_key, [])
+        if not books:
+            continue
+        lines.append(f"\\noindent{{\\bfseries\\color{{{group_key}}}{group_label}}}\\\\")
+        for book in books:
+            lines.append(f"\\hspace{{1em}}{book.name}\\\\")
+        lines.append("\\medskip")
+        lines.append("")
+
+    lines.append("")
+    return "\n".join(lines)
+
+
+def generate_testament_tex(books: list, testament_label: str,
+                           subdir: str = "livres_esv") -> str:
+    lines = []
+    lines.append(f"% {testament_label} — Generated by generate_esv.py")
+    for book in books:
+        lines.append(f"\\input{{{subdir}/{book.directory}/{book.directory}}}")
+    lines.append("")
+    return "\n".join(lines)

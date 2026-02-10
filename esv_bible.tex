@@ -1,0 +1,169 @@
+\documentclass[twocolumn,paper=a4,pagesize=auto,12pt,headinclude=on,openany,oneside]{scrbook}
+\areaset[1in]{5in}{11in}
+
+\usepackage{ragged2e}
+
+\usepackage{fontspec}
+\setmainfont[
+  Path=fonts/,
+  Extension=.otf,
+  UprightFont=EBGaramond-Regular,
+  ItalicFont=EBGaramond-Italic,
+  BoldFont=EBGaramond-Bold,
+  BoldItalicFont=EBGaramond-BoldItalic,
+  Numbers=OldStyle,
+  RawFeature={+dlig},
+]{EB Garamond}
+\newfontfamily\booktitlefont[
+  Path=fonts/,
+  Extension=.otf,
+  UprightFont=EBGaramond-Regular,
+  ItalicFont=EBGaramond-Italic,
+  BoldFont=EBGaramond-Bold,
+  BoldItalicFont=EBGaramond-BoldItalic,
+  RawFeature={-ss02},
+  LetterSpace=40,
+  WordSpace=6,
+]{EB Garamond}
+\newfontfamily\spacedfont[
+  Path=fonts/,
+  Extension=.otf,
+  UprightFont=EBGaramond-Regular,
+  ItalicFont=EBGaramond-Italic,
+  BoldFont=EBGaramond-Bold,
+  BoldItalicFont=EBGaramond-BoldItalic,
+  RawFeature={-ss02},
+  LetterSpace=20,
+  WordSpace=3,
+]{EB Garamond}
+\newfontfamily\lettrinefont[Path=fonts/,Extension=.otf,UprightFont=EBGaramond-Initials]{EB Garamond Initials}
+\newfontfamily\headerfont[
+  Path=fonts/,
+  Extension=.otf,
+  UprightFont=EBGaramond-Regular,
+  ItalicFont=EBGaramond-Italic,
+  BoldFont=EBGaramond-Bold,
+  BoldItalicFont=EBGaramond-BoldItalic,
+]{EB Garamond}
+
+\usepackage{graphicx}
+\usepackage{lettrine}
+
+\renewcommand{\LettrineFontHook}{\lettrinefont}
+
+% Colors — eInk-optimized palette for Remarkable Paper Pro (Gallery 3)
+\usepackage{xcolor}
+\definecolor{pentateuch}{HTML}{8B4513}
+\definecolor{historical}{HTML}{B22222}
+\definecolor{wisdom}{HTML}{2E8B57}
+\definecolor{majorprophets}{HTML}{4B0082}
+\definecolor{minorprophets}{HTML}{8B0000}
+\definecolor{gospels}{HTML}{00008B}
+\definecolor{acts}{HTML}{006400}
+\definecolor{pauline}{HTML}{4169E1}
+\definecolor{general}{HTML}{800080}
+\definecolor{revelation}{HTML}{DC143C}
+
+% Scripture package for verse/chapter markup
+\usepackage{scripture}
+\scripturesetup{
+  chapter/drop=false,
+  chapter/para=true,
+  chapter/font=\booktitlefont\scshape,
+  chapter/format=Chapter~#1,
+  chapter/para/aboveskip=\medskipamount,
+  chapter/para/belowskip=\smallskipamount,
+  verse/format=\textsuperscript{#1},
+  verse/sep=0.1em,
+  verse/first=false,
+  indent=true,
+}
+
+% Environments
+\usepackage{setspace}
+\newenvironment{bookcomment}
+  {\begin{spacing}{0.8}\itshape\scriptsize\hspace{-1em}}
+  {\end{spacing}}
+
+% Margin notes (like Geneva 1564 original)
+\usepackage{marginnote}
+\setlength{\marginparwidth}{4.3em}
+\setlength{\marginparsep}{0.5em}
+
+% Bible books
+\usepackage{titlesec}
+\usepackage{fourier-orns}
+
+\newsavebox{\bbookimgbox}
+\makeatletter
+\newcommand{\bbook}[3][]{%
+  \clearpage
+  \thispagestyle{scrheadings}%
+  \ifx\relax#1\relax
+    \savebox{\bbookimgbox}{}%
+  \else
+    \savebox{\bbookimgbox}{\makebox[\textwidth][c]{\includegraphics[width=6in]{#1}}}%
+  \fi
+  \twocolumn[%
+    \usebox{\bbookimgbox}\par\nobreak
+    \vspace*{-10pt}%
+    {\centering\huge\booktitlefont\scshape #2%
+      \def\@bbook@sub{#3}%
+      \ifx\@bbook@sub\empty\else
+        ,\\\large #3%
+      \fi
+      \\\char"2766\par}%
+    \vspace{5pt}%
+  ]%
+}
+\makeatother
+\titleformat{\chapter}[hang]%
+   {\centering\huge\booktitlefont\scshape}%
+   {}%
+   {0pt}%
+   {}
+\titlespacing*{\chapter}
+  {0pt}{0pt}{5pt}
+
+
+% Headings — running book+chapter headers, home-icon footer
+\usepackage{scrlayer-scrpage}
+\clearpairofpagestyles
+\ihead[\headerfont\scshape\rightmark]{\headerfont\scshape\rightmark}
+\ohead[\headerfont\scshape\leftmark]{\headerfont\scshape\leftmark}
+\cfoot[\hyperlink{toc}{\faHome}]{\hyperlink{toc}{\faHome}}
+
+\pagestyle{scrheadings}
+\renewcommand*{\chapterpagestyle}{scrheadings}
+
+
+% Paragraphs
+\setlength{\parindent}{1em}
+\setlength{\parskip}{0pt}
+
+\linespread{0.9}
+\setlength{\columnsep}{6mm}
+
+% Language
+\usepackage[english]{babel}
+
+\usepackage{fontawesome5}
+\usepackage[hidelinks]{hyperref}
+
+
+\begin{document}
+
+\input{livres_esv/color_index}
+\input{livres_esv/genesis/genesis}
+
+\vfill
+\begin{center}
+\small
+Scripture quotations are from the ESV\textregistered\ Bible\\
+(The Holy Bible, English Standard Version\textregistered),\\
+copyright \textcopyright\ 2001 by Crossway,\\
+a publishing ministry of Good News Publishers.\\
+Used by permission. All rights reserved.
+\end{center}
+
+\end{document}

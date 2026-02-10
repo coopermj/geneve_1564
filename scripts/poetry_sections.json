@@ -1,0 +1,63 @@
+{
+  "_comment": "Defines which chapters/verse ranges are poetry. 'full_book' means the entire book is poetry. 'chapters' lists specific chapter ranges that are poetry.",
+  "psalms": {
+    "full_book": true
+  },
+  "proverbs": {
+    "full_book": true
+  },
+  "songofsolomon": {
+    "full_book": true
+  },
+  "lamentations": {
+    "full_book": true
+  },
+  "job": {
+    "chapters": [[3, 41]]
+  },
+  "ecclesiastes": {
+    "chapters": [[1, 12]]
+  },
+  "isaiah": {
+    "chapters": [[1, 5], [9, 14], [23, 35], [40, 66]]
+  },
+  "jeremiah": {
+    "chapters": [[2, 6], [8, 10], [14, 17], [23, 23], [25, 25], [30, 31], [46, 51]]
+  },
+  "ezekiel": {
+    "chapters": [[17, 17], [19, 19], [21, 21], [26, 28], [31, 32]]
+  },
+  "hosea": {
+    "full_book": true
+  },
+  "joel": {
+    "full_book": true
+  },
+  "amos": {
+    "full_book": true
+  },
+  "obadiah": {
+    "full_book": true
+  },
+  "micah": {
+    "full_book": true
+  },
+  "nahum": {
+    "full_book": true
+  },
+  "habakkuk": {
+    "full_book": true
+  },
+  "zephaniah": {
+    "full_book": true
+  },
+  "haggai": {
+    "chapters": [[1, 2]]
+  },
+  "zechariah": {
+    "chapters": [[9, 10]]
+  },
+  "malachi": {
+    "full_book": true
+  }
+}
