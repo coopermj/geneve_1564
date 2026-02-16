@@ -185,14 +185,15 @@ def _make_lettrine(text: str, lettrine_lines: int | None = None,
     text = text.lstrip()
 
     prefix = ""
-    # Handle LaTeX opening double quotes
-    if text.startswith("``"):
-        prefix = "``"
-        text = text[2:]
-    # Handle LaTeX opening single quote
-    elif text.startswith("`") and not text.startswith("``"):
-        prefix = "`"
-        text = text[1:]
+    # Strip all leading LaTeX opening quotes (`` and/or `)
+    # Handles nested quotes like ``\`You... (double-then-single)
+    while text.startswith("``") or text.startswith("`"):
+        if text.startswith("``"):
+            prefix += "``"
+            text = text[2:]
+        else:
+            prefix += "`"
+            text = text[1:]
 
     # Skip any leading whitespace after quotes
     text = text.lstrip()
@@ -306,9 +307,15 @@ def generate_book_tex(
                     lettrine_text = _make_lettrine(text, lettrine_lines=5, color=book.group)
                     lettrine_char_budget = 5 * 80
                 lettrine_char_budget -= len(text)
-                lines.append(f"\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}")
                 lines.append(f"\\markboth{{{book.name} {ch_num}:1}}{{{book.name} {ch_num}:1}}")
-                lines.append(f"\\ch{{{ch_num}}} {lettrine_text}\\everypar{{}}")
+                # Ensure enough vertical space for the chapter heading +
+                # lettrine before starting.  Without this, the scripture
+                # package's \nobreak glues heading to verse 1, and when the
+                # lettrine is too tall for the remaining column TeX pushes
+                # the whole block out, leaving large blank gaps.
+                if ch_num > 1:
+                    lines.append("\\Needspace*{8\\baselineskip}")
+                lines.append(f"\\ch{{{ch_num}}} \\allowchapbreak\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{lettrine_text}\\everypar{{}}")
             else:
                 lettrine_char_budget -= len(text)
                 mark = f"\\markboth{{{book.name} {ch_num}:{verse_num}}}{{{book.name} {ch_num}:{verse_num}}}"

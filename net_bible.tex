@@ -86,6 +86,14 @@
   verse/first=false,
   indent=true,
 }
+% Allow column/page breaks between chapter heading and first verse.
+% The scripture package puts \nobreak + \@afterheading after the heading
+% paragraph, gluing heading to verse 1.  With large lettrines in a
+% two-column layout this forces the whole block to the next column,
+% leaving large blank gaps.  \allowchapbreak cancels both mechanisms.
+\makeatletter
+\newcommand{\allowchapbreak}{\penalty\z@\@nobreakfalse}
+\makeatother
 
 % Environments
 \usepackage{setspace}
@@ -168,6 +176,7 @@
 \usepackage[english]{babel}
 
 \usepackage{fontawesome5}
+\usepackage{needspace}
 \usepackage{amssymb}
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric}
