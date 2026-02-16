@@ -1,5 +1,5 @@
-\documentclass[twocolumn,paper=a4,pagesize=auto,12pt,headinclude=on,openany,oneside]{scrbook}
-\areaset[1in]{5in}{11in}
+\documentclass[twocolumn,paper=179mm:239mm,pagesize=auto,11pt,headinclude=on,openany,oneside]{scrbook}
+\areaset[8mm]{130mm}{210mm}
 
 \usepackage{ragged2e}
 
@@ -46,6 +46,13 @@
   BoldItalicFont=EBGaramond-BoldItalic,
 ]{EB Garamond}
 
+\usepackage[
+  protrusion=true,
+  expansion=true,
+  tracking=true,
+  final
+]{microtype}
+
 \usepackage{graphicx}
 \usepackage{lettrine}
 
@@ -71,8 +78,8 @@
   chapter/para=true,
   chapter/font=\booktitlefont\scshape,
   chapter/format=Chapter~#1,
-  chapter/para/aboveskip=\medskipamount,
-  chapter/para/belowskip=\smallskipamount,
+  chapter/para/aboveskip=\baselineskip,
+  chapter/para/belowskip=0pt,
   verse/format=\textsuperscript{#1},
   verse/sep=0.1em,
   verse/first=false,
@@ -87,8 +94,8 @@
 
 % Margin notes (like Geneva 1564 original)
 \usepackage{marginnote}
-\setlength{\marginparwidth}{4.3em}
-\setlength{\marginparsep}{0.5em}
+\setlength{\marginparwidth}{3.5em}
+\setlength{\marginparsep}{0.3em}
 
 % Bible books
 \usepackage{titlesec}
@@ -96,13 +103,14 @@
 
 \newsavebox{\bbookimgbox}
 \makeatletter
-\newcommand{\bbook}[3][]{%
+\newcommand{\bbook}[5][]{%
   \clearpage
   \thispagestyle{scrheadings}%
+  \hypertarget{book-#5}{}%
   \ifx\relax#1\relax
     \savebox{\bbookimgbox}{}%
   \else
-    \savebox{\bbookimgbox}{\makebox[\textwidth][c]{\includegraphics[width=6in]{#1}}}%
+    \savebox{\bbookimgbox}{\makebox[\textwidth][c]{\includegraphics[width=\textwidth]{#1}}}%
   \fi
   \twocolumn[%
     \usebox{\bbookimgbox}\par\nobreak
@@ -113,6 +121,13 @@
         ,\\\large #3%
       \fi
       \\\char"2766\par}%
+    \def\@bbook@arg{#4}%
+    \ifx\@bbook@arg\empty\else
+      {\centering\booktitlefont\textsc{the argument.}\par}%
+      \vspace{2pt}%
+      {\centering\parbox{\dimexpr\textwidth-2em}{\itshape\scriptsize #4\par}\par}%
+      \vspace{5pt}%
+    \fi
     \vspace{5pt}%
   ]%
 }
@@ -129,8 +144,8 @@
 % Headings — running book+chapter headers, home-icon footer
 \usepackage{scrlayer-scrpage}
 \clearpairofpagestyles
-\ihead[\headerfont\scshape\rightmark]{\headerfont\scshape\rightmark}
-\ohead[\headerfont\scshape\leftmark]{\headerfont\scshape\leftmark}
+\ihead[\headerfont\small\upshape\rightmark]{\headerfont\small\upshape\rightmark}
+\ohead[\headerfont\small\upshape\leftmark]{\headerfont\small\upshape\leftmark}
 \cfoot[\hyperlink{toc}{\faHome}]{\hyperlink{toc}{\faHome}}
 
 \pagestyle{scrheadings}
@@ -155,6 +170,8 @@
 
 \input{livres_esv/color_index}
 \input{livres_esv/genesis/genesis}
+\input{livres_esv/exodus/exodus}
+\input{livres_esv/john/john}
 
 \vfill
 \begin{center}

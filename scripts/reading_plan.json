@@ -1,0 +1,5226 @@
+[
+  {
+    "index": 0,
+    "raw": "Gen 1-3",
+    "segments": [
+      {
+        "book_dir": "genesis",
+        "start_ch": 1,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 1,
+    "raw": "Gen 4-7",
+    "segments": [
+      {
+        "book_dir": "genesis",
+        "start_ch": 4,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "raw": "Gen 8-11",
+    "segments": [
+      {
+        "book_dir": "genesis",
+        "start_ch": 8,
+        "end_ch": 11
+      }
+    ]
+  },
+  {
+    "index": 3,
+    "raw": "Job 1-4",
+    "segments": [
+      {
+        "book_dir": "job",
+        "start_ch": 1,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 4,
+    "raw": "Job 5-9",
+    "segments": [
+      {
+        "book_dir": "job",
+        "start_ch": 5,
+        "end_ch": 9
+      }
+    ]
+  },
+  {
+    "index": 5,
+    "raw": "Job 10-13",
+    "segments": [
+      {
+        "book_dir": "job",
+        "start_ch": 10,
+        "end_ch": 13
+      }
+    ]
+  },
+  {
+    "index": 6,
+    "raw": "Job 14-19",
+    "segments": [
+      {
+        "book_dir": "job",
+        "start_ch": 14,
+        "end_ch": 19
+      }
+    ]
+  },
+  {
+    "index": 7,
+    "raw": "Job 20-24",
+    "segments": [
+      {
+        "book_dir": "job",
+        "start_ch": 20,
+        "end_ch": 24
+      }
+    ]
+  },
+  {
+    "index": 8,
+    "raw": "Job 25-30",
+    "segments": [
+      {
+        "book_dir": "job",
+        "start_ch": 25,
+        "end_ch": 30
+      }
+    ]
+  },
+  {
+    "index": 9,
+    "raw": "Job 31-34",
+    "segments": [
+      {
+        "book_dir": "job",
+        "start_ch": 31,
+        "end_ch": 34
+      }
+    ]
+  },
+  {
+    "index": 10,
+    "raw": "Luke 1",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 1,
+        "end_ch": 1
+      }
+    ]
+  },
+  {
+    "index": 11,
+    "raw": "Luke 2",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 2,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 12,
+    "raw": "Matt 1-2",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 13,
+    "raw": "John 1",
+    "segments": [
+      {
+        "book_dir": "john",
+        "start_ch": 1,
+        "end_ch": 1
+      }
+    ]
+  },
+  {
+    "index": 14,
+    "raw": "Matt 3-4",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 3,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 15,
+    "raw": "Job 35-39",
+    "segments": [
+      {
+        "book_dir": "job",
+        "start_ch": 35,
+        "end_ch": 39
+      }
+    ]
+  },
+  {
+    "index": 16,
+    "raw": "Job 40-42",
+    "segments": [
+      {
+        "book_dir": "job",
+        "start_ch": 40,
+        "end_ch": 42
+      }
+    ]
+  },
+  {
+    "index": 17,
+    "raw": "Gen 12-14",
+    "segments": [
+      {
+        "book_dir": "genesis",
+        "start_ch": 12,
+        "end_ch": 14
+      }
+    ]
+  },
+  {
+    "index": 18,
+    "raw": "Gen 15-18",
+    "segments": [
+      {
+        "book_dir": "genesis",
+        "start_ch": 15,
+        "end_ch": 18
+      }
+    ]
+  },
+  {
+    "index": 19,
+    "raw": "Gen 19-21",
+    "segments": [
+      {
+        "book_dir": "genesis",
+        "start_ch": 19,
+        "end_ch": 21
+      }
+    ]
+  },
+  {
+    "index": 20,
+    "raw": "Gen 22-23",
+    "segments": [
+      {
+        "book_dir": "genesis",
+        "start_ch": 22,
+        "end_ch": 23
+      }
+    ]
+  },
+  {
+    "index": 21,
+    "raw": "Gen 24-25",
+    "segments": [
+      {
+        "book_dir": "genesis",
+        "start_ch": 24,
+        "end_ch": 25
+      }
+    ]
+  },
+  {
+    "index": 22,
+    "raw": "Gen 26-27",
+    "segments": [
+      {
+        "book_dir": "genesis",
+        "start_ch": 26,
+        "end_ch": 27
+      }
+    ]
+  },
+  {
+    "index": 23,
+    "raw": "Gen 28-30",
+    "segments": [
+      {
+        "book_dir": "genesis",
+        "start_ch": 28,
+        "end_ch": 30
+      }
+    ]
+  },
+  {
+    "index": 24,
+    "raw": "Gen 31-32",
+    "segments": [
+      {
+        "book_dir": "genesis",
+        "start_ch": 31,
+        "end_ch": 32
+      }
+    ]
+  },
+  {
+    "index": 25,
+    "raw": "Mark 1",
+    "segments": [
+      {
+        "book_dir": "mark",
+        "start_ch": 1,
+        "end_ch": 1
+      }
+    ]
+  },
+  {
+    "index": 26,
+    "raw": "Luke 3",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 3,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 27,
+    "raw": "Luke 4",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 4,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 28,
+    "raw": "Luke 5",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 5,
+        "end_ch": 5
+      }
+    ]
+  },
+  {
+    "index": 29,
+    "raw": "John 2-4",
+    "segments": [
+      {
+        "book_dir": "john",
+        "start_ch": 2,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 30,
+    "raw": "Gen 33-35",
+    "segments": [
+      {
+        "book_dir": "genesis",
+        "start_ch": 33,
+        "end_ch": 35
+      }
+    ]
+  },
+  {
+    "index": 31,
+    "raw": "Gen 36-37",
+    "segments": [
+      {
+        "book_dir": "genesis",
+        "start_ch": 36,
+        "end_ch": 37
+      }
+    ]
+  },
+  {
+    "index": 32,
+    "raw": "Gen 38-40",
+    "segments": [
+      {
+        "book_dir": "genesis",
+        "start_ch": 38,
+        "end_ch": 40
+      }
+    ]
+  },
+  {
+    "index": 33,
+    "raw": "Gen 41-42",
+    "segments": [
+      {
+        "book_dir": "genesis",
+        "start_ch": 41,
+        "end_ch": 42
+      }
+    ]
+  },
+  {
+    "index": 34,
+    "raw": "Gen 43-44",
+    "segments": [
+      {
+        "book_dir": "genesis",
+        "start_ch": 43,
+        "end_ch": 44
+      }
+    ]
+  },
+  {
+    "index": 35,
+    "raw": "Gen 45-47",
+    "segments": [
+      {
+        "book_dir": "genesis",
+        "start_ch": 45,
+        "end_ch": 47
+      }
+    ]
+  },
+  {
+    "index": 36,
+    "raw": "Gen 48-50",
+    "segments": [
+      {
+        "book_dir": "genesis",
+        "start_ch": 48,
+        "end_ch": 50
+      }
+    ]
+  },
+  {
+    "index": 37,
+    "raw": "Ex 1-3",
+    "segments": [
+      {
+        "book_dir": "exodus",
+        "start_ch": 1,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 38,
+    "raw": "Ex 4-6",
+    "segments": [
+      {
+        "book_dir": "exodus",
+        "start_ch": 4,
+        "end_ch": 6
+      }
+    ]
+  },
+  {
+    "index": 39,
+    "raw": "Ex 7-9",
+    "segments": [
+      {
+        "book_dir": "exodus",
+        "start_ch": 7,
+        "end_ch": 9
+      }
+    ]
+  },
+  {
+    "index": 40,
+    "raw": "Matt 5",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 5,
+        "end_ch": 5
+      }
+    ]
+  },
+  {
+    "index": 41,
+    "raw": "Matt 6-7",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 6,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 42,
+    "raw": "Matt 8",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 8,
+        "end_ch": 8
+      }
+    ]
+  },
+  {
+    "index": 43,
+    "raw": "Mark 2-3",
+    "segments": [
+      {
+        "book_dir": "mark",
+        "start_ch": 2,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 44,
+    "raw": "John 5",
+    "segments": [
+      {
+        "book_dir": "john",
+        "start_ch": 5,
+        "end_ch": 5
+      }
+    ]
+  },
+  {
+    "index": 45,
+    "raw": "Ex 10-12",
+    "segments": [
+      {
+        "book_dir": "exodus",
+        "start_ch": 10,
+        "end_ch": 12
+      }
+    ]
+  },
+  {
+    "index": 46,
+    "raw": "Ex 13-15",
+    "segments": [
+      {
+        "book_dir": "exodus",
+        "start_ch": 13,
+        "end_ch": 15
+      }
+    ]
+  },
+  {
+    "index": 47,
+    "raw": "Ex 16-18",
+    "segments": [
+      {
+        "book_dir": "exodus",
+        "start_ch": 16,
+        "end_ch": 18
+      }
+    ]
+  },
+  {
+    "index": 48,
+    "raw": "Ex 19-20",
+    "segments": [
+      {
+        "book_dir": "exodus",
+        "start_ch": 19,
+        "end_ch": 20
+      }
+    ]
+  },
+  {
+    "index": 49,
+    "raw": "Ex 21-22",
+    "segments": [
+      {
+        "book_dir": "exodus",
+        "start_ch": 21,
+        "end_ch": 22
+      }
+    ]
+  },
+  {
+    "index": 50,
+    "raw": "Ex 23-25",
+    "segments": [
+      {
+        "book_dir": "exodus",
+        "start_ch": 23,
+        "end_ch": 25
+      }
+    ]
+  },
+  {
+    "index": 51,
+    "raw": "Ex 26-28",
+    "segments": [
+      {
+        "book_dir": "exodus",
+        "start_ch": 26,
+        "end_ch": 28
+      }
+    ]
+  },
+  {
+    "index": 52,
+    "raw": "Ex 29-30",
+    "segments": [
+      {
+        "book_dir": "exodus",
+        "start_ch": 29,
+        "end_ch": 30
+      }
+    ]
+  },
+  {
+    "index": 53,
+    "raw": "Ex 31-33",
+    "segments": [
+      {
+        "book_dir": "exodus",
+        "start_ch": 31,
+        "end_ch": 33
+      }
+    ]
+  },
+  {
+    "index": 54,
+    "raw": "Ex 34-35",
+    "segments": [
+      {
+        "book_dir": "exodus",
+        "start_ch": 34,
+        "end_ch": 35
+      }
+    ]
+  },
+  {
+    "index": 55,
+    "raw": "Luke 6",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 6,
+        "end_ch": 6
+      }
+    ]
+  },
+  {
+    "index": 56,
+    "raw": "Luke 7",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 7,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 57,
+    "raw": "Matt 9",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 9,
+        "end_ch": 9
+      }
+    ]
+  },
+  {
+    "index": 58,
+    "raw": "Matt 10-11",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 10,
+        "end_ch": 11
+      }
+    ]
+  },
+  {
+    "index": 59,
+    "raw": "Matt 12",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 12,
+        "end_ch": 12
+      }
+    ]
+  },
+  {
+    "index": 60,
+    "raw": "Ex 36-38",
+    "segments": [
+      {
+        "book_dir": "exodus",
+        "start_ch": 36,
+        "end_ch": 38
+      }
+    ]
+  },
+  {
+    "index": 61,
+    "raw": "Ex 39-40",
+    "segments": [
+      {
+        "book_dir": "exodus",
+        "start_ch": 39,
+        "end_ch": 40
+      }
+    ]
+  },
+  {
+    "index": 62,
+    "raw": "Lev 1-4",
+    "segments": [
+      {
+        "book_dir": "leviticus",
+        "start_ch": 1,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 63,
+    "raw": "Lev 5-7",
+    "segments": [
+      {
+        "book_dir": "leviticus",
+        "start_ch": 5,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 64,
+    "raw": "Lev 8-10",
+    "segments": [
+      {
+        "book_dir": "leviticus",
+        "start_ch": 8,
+        "end_ch": 10
+      }
+    ]
+  },
+  {
+    "index": 65,
+    "raw": "Lev 11-13",
+    "segments": [
+      {
+        "book_dir": "leviticus",
+        "start_ch": 11,
+        "end_ch": 13
+      }
+    ]
+  },
+  {
+    "index": 66,
+    "raw": "Lev 14-15",
+    "segments": [
+      {
+        "book_dir": "leviticus",
+        "start_ch": 14,
+        "end_ch": 15
+      }
+    ]
+  },
+  {
+    "index": 67,
+    "raw": "Lev 16-18",
+    "segments": [
+      {
+        "book_dir": "leviticus",
+        "start_ch": 16,
+        "end_ch": 18
+      }
+    ]
+  },
+  {
+    "index": 68,
+    "raw": "Lev 19-21",
+    "segments": [
+      {
+        "book_dir": "leviticus",
+        "start_ch": 19,
+        "end_ch": 21
+      }
+    ]
+  },
+  {
+    "index": 69,
+    "raw": "Lev 22-23",
+    "segments": [
+      {
+        "book_dir": "leviticus",
+        "start_ch": 22,
+        "end_ch": 23
+      }
+    ]
+  },
+  {
+    "index": 70,
+    "raw": "Matt 13",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 13,
+        "end_ch": 13
+      }
+    ]
+  },
+  {
+    "index": 71,
+    "raw": "Mark 4",
+    "segments": [
+      {
+        "book_dir": "mark",
+        "start_ch": 4,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 72,
+    "raw": "Luke 8",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 8,
+        "end_ch": 8
+      }
+    ]
+  },
+  {
+    "index": 73,
+    "raw": "Mark 5",
+    "segments": [
+      {
+        "book_dir": "mark",
+        "start_ch": 5,
+        "end_ch": 5
+      }
+    ]
+  },
+  {
+    "index": 74,
+    "raw": "Mark 6",
+    "segments": [
+      {
+        "book_dir": "mark",
+        "start_ch": 6,
+        "end_ch": 6
+      }
+    ]
+  },
+  {
+    "index": 75,
+    "raw": "Lev 24-25",
+    "segments": [
+      {
+        "book_dir": "leviticus",
+        "start_ch": 24,
+        "end_ch": 25
+      }
+    ]
+  },
+  {
+    "index": 76,
+    "raw": "Lev 26-27",
+    "segments": [
+      {
+        "book_dir": "leviticus",
+        "start_ch": 26,
+        "end_ch": 27
+      }
+    ]
+  },
+  {
+    "index": 77,
+    "raw": "Ps 1-9",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 1,
+        "end_ch": 9
+      }
+    ]
+  },
+  {
+    "index": 78,
+    "raw": "Ps 10-15",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 10,
+        "end_ch": 15
+      }
+    ]
+  },
+  {
+    "index": 79,
+    "raw": "Ps 16-19",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 16,
+        "end_ch": 19
+      }
+    ]
+  },
+  {
+    "index": 80,
+    "raw": "Num 1-3",
+    "segments": [
+      {
+        "book_dir": "numbers",
+        "start_ch": 1,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 81,
+    "raw": "Num 4-5",
+    "segments": [
+      {
+        "book_dir": "numbers",
+        "start_ch": 4,
+        "end_ch": 5
+      }
+    ]
+  },
+  {
+    "index": 82,
+    "raw": "Num 6-7",
+    "segments": [
+      {
+        "book_dir": "numbers",
+        "start_ch": 6,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 83,
+    "raw": "Num 8-10",
+    "segments": [
+      {
+        "book_dir": "numbers",
+        "start_ch": 8,
+        "end_ch": 10
+      }
+    ]
+  },
+  {
+    "index": 84,
+    "raw": "Num 11-13",
+    "segments": [
+      {
+        "book_dir": "numbers",
+        "start_ch": 11,
+        "end_ch": 13
+      }
+    ]
+  },
+  {
+    "index": 85,
+    "raw": "Matt 14",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 14,
+        "end_ch": 14
+      }
+    ]
+  },
+  {
+    "index": 86,
+    "raw": "Luke 9",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 9,
+        "end_ch": 9
+      }
+    ]
+  },
+  {
+    "index": 87,
+    "raw": "John 6",
+    "segments": [
+      {
+        "book_dir": "john",
+        "start_ch": 6,
+        "end_ch": 6
+      }
+    ]
+  },
+  {
+    "index": 88,
+    "raw": "Matt 15-16",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 15,
+        "end_ch": 16
+      }
+    ]
+  },
+  {
+    "index": 89,
+    "raw": "Mark 7",
+    "segments": [
+      {
+        "book_dir": "mark",
+        "start_ch": 7,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 90,
+    "raw": "Num 14-15",
+    "segments": [
+      {
+        "book_dir": "numbers",
+        "start_ch": 14,
+        "end_ch": 15
+      }
+    ]
+  },
+  {
+    "index": 91,
+    "raw": "Num 16-17",
+    "segments": [
+      {
+        "book_dir": "numbers",
+        "start_ch": 16,
+        "end_ch": 17
+      }
+    ]
+  },
+  {
+    "index": 92,
+    "raw": "Num 18-19",
+    "segments": [
+      {
+        "book_dir": "numbers",
+        "start_ch": 18,
+        "end_ch": 19
+      }
+    ]
+  },
+  {
+    "index": 93,
+    "raw": "Ps 20-25",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 20,
+        "end_ch": 25
+      }
+    ]
+  },
+  {
+    "index": 94,
+    "raw": "Ps 26-32",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 26,
+        "end_ch": 32
+      }
+    ]
+  },
+  {
+    "index": 95,
+    "raw": "Num 20-22",
+    "segments": [
+      {
+        "book_dir": "numbers",
+        "start_ch": 20,
+        "end_ch": 22
+      }
+    ]
+  },
+  {
+    "index": 96,
+    "raw": "Num 23-24",
+    "segments": [
+      {
+        "book_dir": "numbers",
+        "start_ch": 23,
+        "end_ch": 24
+      }
+    ]
+  },
+  {
+    "index": 97,
+    "raw": "Num 25-26",
+    "segments": [
+      {
+        "book_dir": "numbers",
+        "start_ch": 25,
+        "end_ch": 26
+      }
+    ]
+  },
+  {
+    "index": 98,
+    "raw": "Num 27-28",
+    "segments": [
+      {
+        "book_dir": "numbers",
+        "start_ch": 27,
+        "end_ch": 28
+      }
+    ]
+  },
+  {
+    "index": 99,
+    "raw": "Num 29-30",
+    "segments": [
+      {
+        "book_dir": "numbers",
+        "start_ch": 29,
+        "end_ch": 30
+      }
+    ]
+  },
+  {
+    "index": 100,
+    "raw": "Mark 8",
+    "segments": [
+      {
+        "book_dir": "mark",
+        "start_ch": 8,
+        "end_ch": 8
+      }
+    ]
+  },
+  {
+    "index": 101,
+    "raw": "Matt 17",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 17,
+        "end_ch": 17
+      }
+    ]
+  },
+  {
+    "index": 102,
+    "raw": "Mark 9",
+    "segments": [
+      {
+        "book_dir": "mark",
+        "start_ch": 9,
+        "end_ch": 9
+      }
+    ]
+  },
+  {
+    "index": 103,
+    "raw": "Matt 18-19",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 18,
+        "end_ch": 19
+      }
+    ]
+  },
+  {
+    "index": 104,
+    "raw": "Luke 10",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 10,
+        "end_ch": 10
+      }
+    ]
+  },
+  {
+    "index": 105,
+    "raw": "Num 31-33",
+    "segments": [
+      {
+        "book_dir": "numbers",
+        "start_ch": 31,
+        "end_ch": 33
+      }
+    ]
+  },
+  {
+    "index": 106,
+    "raw": "Num 34-36",
+    "segments": [
+      {
+        "book_dir": "numbers",
+        "start_ch": 34,
+        "end_ch": 36
+      }
+    ]
+  },
+  {
+    "index": 107,
+    "raw": "Deut 1-2",
+    "segments": [
+      {
+        "book_dir": "deuteronomy",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 108,
+    "raw": "Deut 3-4",
+    "segments": [
+      {
+        "book_dir": "deuteronomy",
+        "start_ch": 3,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 109,
+    "raw": "Deut 5-7",
+    "segments": [
+      {
+        "book_dir": "deuteronomy",
+        "start_ch": 5,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 110,
+    "raw": "Deut 8-10",
+    "segments": [
+      {
+        "book_dir": "deuteronomy",
+        "start_ch": 8,
+        "end_ch": 10
+      }
+    ]
+  },
+  {
+    "index": 111,
+    "raw": "Deut 11-12",
+    "segments": [
+      {
+        "book_dir": "deuteronomy",
+        "start_ch": 11,
+        "end_ch": 12
+      }
+    ]
+  },
+  {
+    "index": 112,
+    "raw": "Deut 13-16",
+    "segments": [
+      {
+        "book_dir": "deuteronomy",
+        "start_ch": 13,
+        "end_ch": 16
+      }
+    ]
+  },
+  {
+    "index": 113,
+    "raw": "Ps 33-35",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 33,
+        "end_ch": 35
+      }
+    ]
+  },
+  {
+    "index": 114,
+    "raw": "Ps 36-40",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 36,
+        "end_ch": 40
+      }
+    ]
+  },
+  {
+    "index": 115,
+    "raw": "Luke 11",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 11,
+        "end_ch": 11
+      }
+    ]
+  },
+  {
+    "index": 116,
+    "raw": "John 7",
+    "segments": [
+      {
+        "book_dir": "john",
+        "start_ch": 7,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 117,
+    "raw": "John 8",
+    "segments": [
+      {
+        "book_dir": "john",
+        "start_ch": 8,
+        "end_ch": 8
+      }
+    ]
+  },
+  {
+    "index": 118,
+    "raw": "John 9-10",
+    "segments": [
+      {
+        "book_dir": "john",
+        "start_ch": 9,
+        "end_ch": 10
+      }
+    ]
+  },
+  {
+    "index": 119,
+    "raw": "Luke 12",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 12,
+        "end_ch": 12
+      }
+    ]
+  },
+  {
+    "index": 120,
+    "raw": "Deut 17-18",
+    "segments": [
+      {
+        "book_dir": "deuteronomy",
+        "start_ch": 17,
+        "end_ch": 18
+      }
+    ]
+  },
+  {
+    "index": 121,
+    "raw": "Deut 19-20",
+    "segments": [
+      {
+        "book_dir": "deuteronomy",
+        "start_ch": 19,
+        "end_ch": 20
+      }
+    ]
+  },
+  {
+    "index": 122,
+    "raw": "Deut 21-23",
+    "segments": [
+      {
+        "book_dir": "deuteronomy",
+        "start_ch": 21,
+        "end_ch": 23
+      }
+    ]
+  },
+  {
+    "index": 123,
+    "raw": "Deut 24-26",
+    "segments": [
+      {
+        "book_dir": "deuteronomy",
+        "start_ch": 24,
+        "end_ch": 26
+      }
+    ]
+  },
+  {
+    "index": 124,
+    "raw": "Deut 27-28",
+    "segments": [
+      {
+        "book_dir": "deuteronomy",
+        "start_ch": 27,
+        "end_ch": 28
+      }
+    ]
+  },
+  {
+    "index": 125,
+    "raw": "Deut 29-31",
+    "segments": [
+      {
+        "book_dir": "deuteronomy",
+        "start_ch": 29,
+        "end_ch": 31
+      }
+    ]
+  },
+  {
+    "index": 126,
+    "raw": "Deut 32",
+    "segments": [
+      {
+        "book_dir": "deuteronomy",
+        "start_ch": 32,
+        "end_ch": 32
+      }
+    ]
+  },
+  {
+    "index": 127,
+    "raw": "Deut 33-34",
+    "segments": [
+      {
+        "book_dir": "deuteronomy",
+        "start_ch": 33,
+        "end_ch": 34
+      }
+    ]
+  },
+  {
+    "index": 128,
+    "raw": "Ps 41-43",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 41,
+        "end_ch": 43
+      }
+    ]
+  },
+  {
+    "index": 129,
+    "raw": "Josh 1-4",
+    "segments": [
+      {
+        "book_dir": "joshua",
+        "start_ch": 1,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 130,
+    "raw": "Luke 13",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 13,
+        "end_ch": 13
+      }
+    ]
+  },
+  {
+    "index": 131,
+    "raw": "Luke 14",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 14,
+        "end_ch": 14
+      }
+    ]
+  },
+  {
+    "index": 132,
+    "raw": "Luke 15-16",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 15,
+        "end_ch": 16
+      }
+    ]
+  },
+  {
+    "index": 133,
+    "raw": "Luke 17",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 17,
+        "end_ch": 17
+      }
+    ]
+  },
+  {
+    "index": 134,
+    "raw": "John 11",
+    "segments": [
+      {
+        "book_dir": "john",
+        "start_ch": 11,
+        "end_ch": 11
+      }
+    ]
+  },
+  {
+    "index": 135,
+    "raw": "Josh 5-7",
+    "segments": [
+      {
+        "book_dir": "joshua",
+        "start_ch": 5,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 136,
+    "raw": "Josh 8-9",
+    "segments": [
+      {
+        "book_dir": "joshua",
+        "start_ch": 8,
+        "end_ch": 9
+      }
+    ]
+  },
+  {
+    "index": 137,
+    "raw": "Josh 10-11",
+    "segments": [
+      {
+        "book_dir": "joshua",
+        "start_ch": 10,
+        "end_ch": 11
+      }
+    ]
+  },
+  {
+    "index": 138,
+    "raw": "Josh 12-14",
+    "segments": [
+      {
+        "book_dir": "joshua",
+        "start_ch": 12,
+        "end_ch": 14
+      }
+    ]
+  },
+  {
+    "index": 139,
+    "raw": "Josh 15-17",
+    "segments": [
+      {
+        "book_dir": "joshua",
+        "start_ch": 15,
+        "end_ch": 17
+      }
+    ]
+  },
+  {
+    "index": 140,
+    "raw": "Josh 18-21",
+    "segments": [
+      {
+        "book_dir": "joshua",
+        "start_ch": 18,
+        "end_ch": 21
+      }
+    ]
+  },
+  {
+    "index": 141,
+    "raw": "Josh 22-24",
+    "segments": [
+      {
+        "book_dir": "joshua",
+        "start_ch": 22,
+        "end_ch": 24
+      }
+    ]
+  },
+  {
+    "index": 142,
+    "raw": "Judg 1-2",
+    "segments": [
+      {
+        "book_dir": "judges",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 143,
+    "raw": "Judg 3-5",
+    "segments": [
+      {
+        "book_dir": "judges",
+        "start_ch": 3,
+        "end_ch": 5
+      }
+    ]
+  },
+  {
+    "index": 144,
+    "raw": "Judg 6-7",
+    "segments": [
+      {
+        "book_dir": "judges",
+        "start_ch": 6,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 145,
+    "raw": "Matt 20",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 20,
+        "end_ch": 20
+      }
+    ]
+  },
+  {
+    "index": 146,
+    "raw": "Mark 10",
+    "segments": [
+      {
+        "book_dir": "mark",
+        "start_ch": 10,
+        "end_ch": 10
+      }
+    ]
+  },
+  {
+    "index": 147,
+    "raw": "Luke 18-19",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 18,
+        "end_ch": 19
+      }
+    ]
+  },
+  {
+    "index": 148,
+    "raw": "Matt 21",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 21,
+        "end_ch": 21
+      }
+    ]
+  },
+  {
+    "index": 149,
+    "raw": "Mark 11-12",
+    "segments": [
+      {
+        "book_dir": "mark",
+        "start_ch": 11,
+        "end_ch": 12
+      }
+    ]
+  },
+  {
+    "index": 150,
+    "raw": "Judg 8-9",
+    "segments": [
+      {
+        "book_dir": "judges",
+        "start_ch": 8,
+        "end_ch": 9
+      }
+    ]
+  },
+  {
+    "index": 151,
+    "raw": "Judg 10-11",
+    "segments": [
+      {
+        "book_dir": "judges",
+        "start_ch": 10,
+        "end_ch": 11
+      }
+    ]
+  },
+  {
+    "index": 152,
+    "raw": "Judg 12-14",
+    "segments": [
+      {
+        "book_dir": "judges",
+        "start_ch": 12,
+        "end_ch": 14
+      }
+    ]
+  },
+  {
+    "index": 153,
+    "raw": "Judg 15-16",
+    "segments": [
+      {
+        "book_dir": "judges",
+        "start_ch": 15,
+        "end_ch": 16
+      }
+    ]
+  },
+  {
+    "index": 154,
+    "raw": "Judg 17-19",
+    "segments": [
+      {
+        "book_dir": "judges",
+        "start_ch": 17,
+        "end_ch": 19
+      }
+    ]
+  },
+  {
+    "index": 155,
+    "raw": "Judg 20-21",
+    "segments": [
+      {
+        "book_dir": "judges",
+        "start_ch": 20,
+        "end_ch": 21
+      }
+    ]
+  },
+  {
+    "index": 156,
+    "raw": "Ruth 1-4",
+    "segments": [
+      {
+        "book_dir": "ruth",
+        "start_ch": 1,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 157,
+    "raw": "Ps 44-49",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 44,
+        "end_ch": 49
+      }
+    ]
+  },
+  {
+    "index": 158,
+    "raw": "Ps 50-56",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 50,
+        "end_ch": 56
+      }
+    ]
+  },
+  {
+    "index": 159,
+    "raw": "Prov 1-3",
+    "segments": [
+      {
+        "book_dir": "proverbs",
+        "start_ch": 1,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 160,
+    "raw": "John 12",
+    "segments": [
+      {
+        "book_dir": "john",
+        "start_ch": 12,
+        "end_ch": 12
+      }
+    ]
+  },
+  {
+    "index": 161,
+    "raw": "Matt 22-23",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 22,
+        "end_ch": 23
+      }
+    ]
+  },
+  {
+    "index": 162,
+    "raw": "Matt 24",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 24,
+        "end_ch": 24
+      }
+    ]
+  },
+  {
+    "index": 163,
+    "raw": "Matt 25",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 25,
+        "end_ch": 25
+      }
+    ]
+  },
+  {
+    "index": 164,
+    "raw": "Mark 13",
+    "segments": [
+      {
+        "book_dir": "mark",
+        "start_ch": 13,
+        "end_ch": 13
+      }
+    ]
+  },
+  {
+    "index": 165,
+    "raw": "1 Sam 1-2",
+    "segments": [
+      {
+        "book_dir": "1samuel",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 166,
+    "raw": "1 Sam 3-6",
+    "segments": [
+      {
+        "book_dir": "1samuel",
+        "start_ch": 3,
+        "end_ch": 6
+      }
+    ]
+  },
+  {
+    "index": 167,
+    "raw": "1 Sam 7-9",
+    "segments": [
+      {
+        "book_dir": "1samuel",
+        "start_ch": 7,
+        "end_ch": 9
+      }
+    ]
+  },
+  {
+    "index": 168,
+    "raw": "1 Sam 10-12",
+    "segments": [
+      {
+        "book_dir": "1samuel",
+        "start_ch": 10,
+        "end_ch": 12
+      }
+    ]
+  },
+  {
+    "index": 169,
+    "raw": "1 Sam 13-14",
+    "segments": [
+      {
+        "book_dir": "1samuel",
+        "start_ch": 13,
+        "end_ch": 14
+      }
+    ]
+  },
+  {
+    "index": 170,
+    "raw": "1 Sam 15-16",
+    "segments": [
+      {
+        "book_dir": "1samuel",
+        "start_ch": 15,
+        "end_ch": 16
+      }
+    ]
+  },
+  {
+    "index": 171,
+    "raw": "1 Sam 17-18",
+    "segments": [
+      {
+        "book_dir": "1samuel",
+        "start_ch": 17,
+        "end_ch": 18
+      }
+    ]
+  },
+  {
+    "index": 172,
+    "raw": "1 Sam 19-20",
+    "segments": [
+      {
+        "book_dir": "1samuel",
+        "start_ch": 19,
+        "end_ch": 20
+      }
+    ]
+  },
+  {
+    "index": 173,
+    "raw": "1 Sam 21-23",
+    "segments": [
+      {
+        "book_dir": "1samuel",
+        "start_ch": 21,
+        "end_ch": 23
+      }
+    ]
+  },
+  {
+    "index": 174,
+    "raw": "1 Sam 24-25",
+    "segments": [
+      {
+        "book_dir": "1samuel",
+        "start_ch": 24,
+        "end_ch": 25
+      }
+    ]
+  },
+  {
+    "index": 175,
+    "raw": "Mark 14",
+    "segments": [
+      {
+        "book_dir": "mark",
+        "start_ch": 14,
+        "end_ch": 14
+      }
+    ]
+  },
+  {
+    "index": 176,
+    "raw": "Luke 20-21",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 20,
+        "end_ch": 21
+      }
+    ]
+  },
+  {
+    "index": 177,
+    "raw": "Luke 22",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 22,
+        "end_ch": 22
+      }
+    ]
+  },
+  {
+    "index": 178,
+    "raw": "John 13",
+    "segments": [
+      {
+        "book_dir": "john",
+        "start_ch": 13,
+        "end_ch": 13
+      }
+    ]
+  },
+  {
+    "index": 179,
+    "raw": "John 14-15",
+    "segments": [
+      {
+        "book_dir": "john",
+        "start_ch": 14,
+        "end_ch": 15
+      }
+    ]
+  },
+  {
+    "index": 180,
+    "raw": "1 Sam 26-28",
+    "segments": [
+      {
+        "book_dir": "1samuel",
+        "start_ch": 26,
+        "end_ch": 28
+      }
+    ]
+  },
+  {
+    "index": 181,
+    "raw": "1 Sam 29-31",
+    "segments": [
+      {
+        "book_dir": "1samuel",
+        "start_ch": 29,
+        "end_ch": 31
+      }
+    ]
+  },
+  {
+    "index": 182,
+    "raw": "2 Sam 1-2",
+    "segments": [
+      {
+        "book_dir": "2samuel",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 183,
+    "raw": "2 Sam 3-5",
+    "segments": [
+      {
+        "book_dir": "2samuel",
+        "start_ch": 3,
+        "end_ch": 5
+      }
+    ]
+  },
+  {
+    "index": 184,
+    "raw": "Prov 4-7",
+    "segments": [
+      {
+        "book_dir": "proverbs",
+        "start_ch": 4,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 185,
+    "raw": "1 Chr 1-2",
+    "segments": [
+      {
+        "book_dir": "1chronicles",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 186,
+    "raw": "1 Chr 3-4",
+    "segments": [
+      {
+        "book_dir": "1chronicles",
+        "start_ch": 3,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 187,
+    "raw": "1 Chr 5-6",
+    "segments": [
+      {
+        "book_dir": "1chronicles",
+        "start_ch": 5,
+        "end_ch": 6
+      }
+    ]
+  },
+  {
+    "index": 188,
+    "raw": "1 Chr 7-8",
+    "segments": [
+      {
+        "book_dir": "1chronicles",
+        "start_ch": 7,
+        "end_ch": 8
+      }
+    ]
+  },
+  {
+    "index": 189,
+    "raw": "1 Chr 9-10",
+    "segments": [
+      {
+        "book_dir": "1chronicles",
+        "start_ch": 9,
+        "end_ch": 10
+      }
+    ]
+  },
+  {
+    "index": 190,
+    "raw": "John 16-17",
+    "segments": [
+      {
+        "book_dir": "john",
+        "start_ch": 16,
+        "end_ch": 17
+      }
+    ]
+  },
+  {
+    "index": 191,
+    "raw": "Matt 26",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 26,
+        "end_ch": 26
+      }
+    ]
+  },
+  {
+    "index": 192,
+    "raw": "Matt 27",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 27,
+        "end_ch": 27
+      }
+    ]
+  },
+  {
+    "index": 193,
+    "raw": "Mark 15",
+    "segments": [
+      {
+        "book_dir": "mark",
+        "start_ch": 15,
+        "end_ch": 15
+      }
+    ]
+  },
+  {
+    "index": 194,
+    "raw": "Luke 23",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 23,
+        "end_ch": 23
+      }
+    ]
+  },
+  {
+    "index": 195,
+    "raw": "1 Chr 11-12",
+    "segments": [
+      {
+        "book_dir": "1chronicles",
+        "start_ch": 11,
+        "end_ch": 12
+      }
+    ]
+  },
+  {
+    "index": 196,
+    "raw": "1 Chr 13-15",
+    "segments": [
+      {
+        "book_dir": "1chronicles",
+        "start_ch": 13,
+        "end_ch": 15
+      }
+    ]
+  },
+  {
+    "index": 197,
+    "raw": "2 Sam 6-8",
+    "segments": [
+      {
+        "book_dir": "2samuel",
+        "start_ch": 6,
+        "end_ch": 8
+      }
+    ]
+  },
+  {
+    "index": 198,
+    "raw": "1 Chr 16-18",
+    "segments": [
+      {
+        "book_dir": "1chronicles",
+        "start_ch": 16,
+        "end_ch": 18
+      }
+    ]
+  },
+  {
+    "index": 199,
+    "raw": "2 Sam 9-11",
+    "segments": [
+      {
+        "book_dir": "2samuel",
+        "start_ch": 9,
+        "end_ch": 11
+      }
+    ]
+  },
+  {
+    "index": 200,
+    "raw": "1 Chr 19-21",
+    "segments": [
+      {
+        "book_dir": "1chronicles",
+        "start_ch": 19,
+        "end_ch": 21
+      }
+    ]
+  },
+  {
+    "index": 201,
+    "raw": "2 Sam 12-13",
+    "segments": [
+      {
+        "book_dir": "2samuel",
+        "start_ch": 12,
+        "end_ch": 13
+      }
+    ]
+  },
+  {
+    "index": 202,
+    "raw": "2 Sam 14-15",
+    "segments": [
+      {
+        "book_dir": "2samuel",
+        "start_ch": 14,
+        "end_ch": 15
+      }
+    ]
+  },
+  {
+    "index": 203,
+    "raw": "Ps 57-64",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 57,
+        "end_ch": 64
+      }
+    ]
+  },
+  {
+    "index": 204,
+    "raw": "Ps 65-69",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 65,
+        "end_ch": 69
+      }
+    ]
+  },
+  {
+    "index": 205,
+    "raw": "John 18",
+    "segments": [
+      {
+        "book_dir": "john",
+        "start_ch": 18,
+        "end_ch": 18
+      }
+    ]
+  },
+  {
+    "index": 206,
+    "raw": "John 19",
+    "segments": [
+      {
+        "book_dir": "john",
+        "start_ch": 19,
+        "end_ch": 19
+      }
+    ]
+  },
+  {
+    "index": 207,
+    "raw": "Mt 28/Mk 16",
+    "segments": [
+      {
+        "book_dir": "matthew",
+        "start_ch": 28,
+        "end_ch": 28
+      },
+      {
+        "book_dir": "mark",
+        "start_ch": 16,
+        "end_ch": 16
+      }
+    ]
+  },
+  {
+    "index": 208,
+    "raw": "Luke 24",
+    "segments": [
+      {
+        "book_dir": "luke",
+        "start_ch": 24,
+        "end_ch": 24
+      }
+    ]
+  },
+  {
+    "index": 209,
+    "raw": "John 20-21",
+    "segments": [
+      {
+        "book_dir": "john",
+        "start_ch": 20,
+        "end_ch": 21
+      }
+    ]
+  },
+  {
+    "index": 210,
+    "raw": "1 Chr 22-24",
+    "segments": [
+      {
+        "book_dir": "1chronicles",
+        "start_ch": 22,
+        "end_ch": 24
+      }
+    ]
+  },
+  {
+    "index": 211,
+    "raw": "1 Chr 25-27",
+    "segments": [
+      {
+        "book_dir": "1chronicles",
+        "start_ch": 25,
+        "end_ch": 27
+      }
+    ]
+  },
+  {
+    "index": 212,
+    "raw": "2 Sam 16-17",
+    "segments": [
+      {
+        "book_dir": "2samuel",
+        "start_ch": 16,
+        "end_ch": 17
+      }
+    ]
+  },
+  {
+    "index": 213,
+    "raw": "2 Sam 18-19",
+    "segments": [
+      {
+        "book_dir": "2samuel",
+        "start_ch": 18,
+        "end_ch": 19
+      }
+    ]
+  },
+  {
+    "index": 214,
+    "raw": "2 Sam 20-21",
+    "segments": [
+      {
+        "book_dir": "2samuel",
+        "start_ch": 20,
+        "end_ch": 21
+      }
+    ]
+  },
+  {
+    "index": 215,
+    "raw": "2 Sam 22-23",
+    "segments": [
+      {
+        "book_dir": "2samuel",
+        "start_ch": 22,
+        "end_ch": 23
+      }
+    ]
+  },
+  {
+    "index": 216,
+    "raw": "2 Sam 24",
+    "segments": [
+      {
+        "book_dir": "2samuel",
+        "start_ch": 24,
+        "end_ch": 24
+      }
+    ]
+  },
+  {
+    "index": 217,
+    "raw": "1 Chr 28-29",
+    "segments": [
+      {
+        "book_dir": "1chronicles",
+        "start_ch": 28,
+        "end_ch": 29
+      }
+    ]
+  },
+  {
+    "index": 218,
+    "raw": "1 Ki 1-2",
+    "segments": [
+      {
+        "book_dir": "1kings",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 219,
+    "raw": "1 Ki 3-4",
+    "segments": [
+      {
+        "book_dir": "1kings",
+        "start_ch": 3,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 220,
+    "raw": "Acts 1-2",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 221,
+    "raw": "Acts 3",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 3,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 222,
+    "raw": "Acts 4-5",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 4,
+        "end_ch": 5
+      }
+    ]
+  },
+  {
+    "index": 223,
+    "raw": "Acts 6",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 6,
+        "end_ch": 6
+      }
+    ]
+  },
+  {
+    "index": 224,
+    "raw": "Acts 7",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 7,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 225,
+    "raw": "1 Ki 5-6",
+    "segments": [
+      {
+        "book_dir": "1kings",
+        "start_ch": 5,
+        "end_ch": 6
+      }
+    ]
+  },
+  {
+    "index": 226,
+    "raw": "1 Ki 7-8",
+    "segments": [
+      {
+        "book_dir": "1kings",
+        "start_ch": 7,
+        "end_ch": 8
+      }
+    ]
+  },
+  {
+    "index": 227,
+    "raw": "1 Ki 9-10",
+    "segments": [
+      {
+        "book_dir": "1kings",
+        "start_ch": 9,
+        "end_ch": 10
+      }
+    ]
+  },
+  {
+    "index": 228,
+    "raw": "2 Chr 1-4",
+    "segments": [
+      {
+        "book_dir": "2chronicles",
+        "start_ch": 1,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 229,
+    "raw": "2 Chr 5-7",
+    "segments": [
+      {
+        "book_dir": "2chronicles",
+        "start_ch": 5,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 230,
+    "raw": "2 Chr 8-9",
+    "segments": [
+      {
+        "book_dir": "2chronicles",
+        "start_ch": 8,
+        "end_ch": 9
+      }
+    ]
+  },
+  {
+    "index": 231,
+    "raw": "Song 1-4",
+    "segments": [
+      {
+        "book_dir": "songofsolomon",
+        "start_ch": 1,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 232,
+    "raw": "Song 5-8",
+    "segments": [
+      {
+        "book_dir": "songofsolomon",
+        "start_ch": 5,
+        "end_ch": 8
+      }
+    ]
+  },
+  {
+    "index": 233,
+    "raw": "1 Ki 11-12",
+    "segments": [
+      {
+        "book_dir": "1kings",
+        "start_ch": 11,
+        "end_ch": 12
+      }
+    ]
+  },
+  {
+    "index": 234,
+    "raw": "Eccl 1-3",
+    "segments": [
+      {
+        "book_dir": "ecclesiastes",
+        "start_ch": 1,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 235,
+    "raw": "Acts 8",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 8,
+        "end_ch": 8
+      }
+    ]
+  },
+  {
+    "index": 236,
+    "raw": "Acts 9",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 9,
+        "end_ch": 9
+      }
+    ]
+  },
+  {
+    "index": 237,
+    "raw": "Acts 10",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 10,
+        "end_ch": 10
+      }
+    ]
+  },
+  {
+    "index": 238,
+    "raw": "Acts 11-12",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 11,
+        "end_ch": 12
+      }
+    ]
+  },
+  {
+    "index": 239,
+    "raw": "James 1-2",
+    "segments": [
+      {
+        "book_dir": "james",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 240,
+    "raw": "Ps 70-74",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 70,
+        "end_ch": 74
+      }
+    ]
+  },
+  {
+    "index": 241,
+    "raw": "Ps 75-78",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 75,
+        "end_ch": 78
+      }
+    ]
+  },
+  {
+    "index": 242,
+    "raw": "Eccl 4-7",
+    "segments": [
+      {
+        "book_dir": "ecclesiastes",
+        "start_ch": 4,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 243,
+    "raw": "Eccl 8-12",
+    "segments": [
+      {
+        "book_dir": "ecclesiastes",
+        "start_ch": 8,
+        "end_ch": 12
+      }
+    ]
+  },
+  {
+    "index": 244,
+    "raw": "1 Ki 13-14",
+    "segments": [
+      {
+        "book_dir": "1kings",
+        "start_ch": 13,
+        "end_ch": 14
+      }
+    ]
+  },
+  {
+    "index": 245,
+    "raw": "2 Chr 10-13",
+    "segments": [
+      {
+        "book_dir": "2chronicles",
+        "start_ch": 10,
+        "end_ch": 13
+      }
+    ]
+  },
+  {
+    "index": 246,
+    "raw": "1 Ki 15-17",
+    "segments": [
+      {
+        "book_dir": "1kings",
+        "start_ch": 15,
+        "end_ch": 17
+      }
+    ]
+  },
+  {
+    "index": 247,
+    "raw": "2 Chr 14-16",
+    "segments": [
+      {
+        "book_dir": "2chronicles",
+        "start_ch": 14,
+        "end_ch": 16
+      }
+    ]
+  },
+  {
+    "index": 248,
+    "raw": "1 Ki 18-19",
+    "segments": [
+      {
+        "book_dir": "1kings",
+        "start_ch": 18,
+        "end_ch": 19
+      }
+    ]
+  },
+  {
+    "index": 249,
+    "raw": "1 Ki 20",
+    "segments": [
+      {
+        "book_dir": "1kings",
+        "start_ch": 20,
+        "end_ch": 20
+      }
+    ]
+  },
+  {
+    "index": 250,
+    "raw": "James 3-4",
+    "segments": [
+      {
+        "book_dir": "james",
+        "start_ch": 3,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 251,
+    "raw": "James 5",
+    "segments": [
+      {
+        "book_dir": "james",
+        "start_ch": 5,
+        "end_ch": 5
+      }
+    ]
+  },
+  {
+    "index": 252,
+    "raw": "Acts 13",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 13,
+        "end_ch": 13
+      }
+    ]
+  },
+  {
+    "index": 253,
+    "raw": "Acts 14",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 14,
+        "end_ch": 14
+      }
+    ]
+  },
+  {
+    "index": 254,
+    "raw": "Acts 15",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 15,
+        "end_ch": 15
+      }
+    ]
+  },
+  {
+    "index": 255,
+    "raw": "1 Ki 21-22",
+    "segments": [
+      {
+        "book_dir": "1kings",
+        "start_ch": 21,
+        "end_ch": 22
+      }
+    ]
+  },
+  {
+    "index": 256,
+    "raw": "Obad 1",
+    "segments": [
+      {
+        "book_dir": "obadiah",
+        "start_ch": 1,
+        "end_ch": 1
+      }
+    ]
+  },
+  {
+    "index": 257,
+    "raw": "2 Chr 17-18",
+    "segments": [
+      {
+        "book_dir": "2chronicles",
+        "start_ch": 17,
+        "end_ch": 18
+      }
+    ]
+  },
+  {
+    "index": 258,
+    "raw": "2 Chr 19-20",
+    "segments": [
+      {
+        "book_dir": "2chronicles",
+        "start_ch": 19,
+        "end_ch": 20
+      }
+    ]
+  },
+  {
+    "index": 259,
+    "raw": "Prov 8-11",
+    "segments": [
+      {
+        "book_dir": "proverbs",
+        "start_ch": 8,
+        "end_ch": 11
+      }
+    ]
+  },
+  {
+    "index": 260,
+    "raw": "Prov 12-14",
+    "segments": [
+      {
+        "book_dir": "proverbs",
+        "start_ch": 12,
+        "end_ch": 14
+      }
+    ]
+  },
+  {
+    "index": 261,
+    "raw": "2 Ki 1-3",
+    "segments": [
+      {
+        "book_dir": "2kings",
+        "start_ch": 1,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 262,
+    "raw": "2 Ki 4-5",
+    "segments": [
+      {
+        "book_dir": "2kings",
+        "start_ch": 4,
+        "end_ch": 5
+      }
+    ]
+  },
+  {
+    "index": 263,
+    "raw": "2 Ki 6-7",
+    "segments": [
+      {
+        "book_dir": "2kings",
+        "start_ch": 6,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 264,
+    "raw": "2 Ki 8-9",
+    "segments": [
+      {
+        "book_dir": "2kings",
+        "start_ch": 8,
+        "end_ch": 9
+      }
+    ]
+  },
+  {
+    "index": 265,
+    "raw": "Acts 16",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 16,
+        "end_ch": 16
+      }
+    ]
+  },
+  {
+    "index": 266,
+    "raw": "Acts 17-18",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 17,
+        "end_ch": 18
+      }
+    ]
+  },
+  {
+    "index": 267,
+    "raw": "1 Thess 1-3",
+    "segments": [
+      {
+        "book_dir": "1thessalonians",
+        "start_ch": 1,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 268,
+    "raw": "1 Thess 4-5",
+    "segments": [
+      {
+        "book_dir": "1thessalonians",
+        "start_ch": 4,
+        "end_ch": 5
+      }
+    ]
+  },
+  {
+    "index": 269,
+    "raw": "2 Thess 1-3",
+    "segments": [
+      {
+        "book_dir": "2thessalonians",
+        "start_ch": 1,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 270,
+    "raw": "2 Ki 10-11",
+    "segments": [
+      {
+        "book_dir": "2kings",
+        "start_ch": 10,
+        "end_ch": 11
+      }
+    ]
+  },
+  {
+    "index": 271,
+    "raw": "2 Chr 21-23",
+    "segments": [
+      {
+        "book_dir": "2chronicles",
+        "start_ch": 21,
+        "end_ch": 23
+      }
+    ]
+  },
+  {
+    "index": 272,
+    "raw": "Prov 15-16",
+    "segments": [
+      {
+        "book_dir": "proverbs",
+        "start_ch": 15,
+        "end_ch": 16
+      }
+    ]
+  },
+  {
+    "index": 273,
+    "raw": "2 Ki 12-14",
+    "segments": [
+      {
+        "book_dir": "2kings",
+        "start_ch": 12,
+        "end_ch": 14
+      }
+    ]
+  },
+  {
+    "index": 274,
+    "raw": "2 Chr 24-25",
+    "segments": [
+      {
+        "book_dir": "2chronicles",
+        "start_ch": 24,
+        "end_ch": 25
+      }
+    ]
+  },
+  {
+    "index": 275,
+    "raw": "Joel 1-3",
+    "segments": [
+      {
+        "book_dir": "joel",
+        "start_ch": 1,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 276,
+    "raw": "2 Ki 15-16",
+    "segments": [
+      {
+        "book_dir": "2kings",
+        "start_ch": 15,
+        "end_ch": 16
+      }
+    ]
+  },
+  {
+    "index": 277,
+    "raw": "2 Chr 26",
+    "segments": [
+      {
+        "book_dir": "2chronicles",
+        "start_ch": 26,
+        "end_ch": 26
+      }
+    ]
+  },
+  {
+    "index": 278,
+    "raw": "Amos 1-4",
+    "segments": [
+      {
+        "book_dir": "amos",
+        "start_ch": 1,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 279,
+    "raw": "Amos 5-9",
+    "segments": [
+      {
+        "book_dir": "amos",
+        "start_ch": 5,
+        "end_ch": 9
+      }
+    ]
+  },
+  {
+    "index": 280,
+    "raw": "Acts 19",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 19,
+        "end_ch": 19
+      }
+    ]
+  },
+  {
+    "index": 281,
+    "raw": "1 Cor 1-2",
+    "segments": [
+      {
+        "book_dir": "1corinthians",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 282,
+    "raw": "1 Cor 3-4",
+    "segments": [
+      {
+        "book_dir": "1corinthians",
+        "start_ch": 3,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 283,
+    "raw": "1 Cor 5-6",
+    "segments": [
+      {
+        "book_dir": "1corinthians",
+        "start_ch": 5,
+        "end_ch": 6
+      }
+    ]
+  },
+  {
+    "index": 284,
+    "raw": "1 Cor 7",
+    "segments": [
+      {
+        "book_dir": "1corinthians",
+        "start_ch": 7,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 285,
+    "raw": "Jonah 1-4",
+    "segments": [
+      {
+        "book_dir": "jonah",
+        "start_ch": 1,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 286,
+    "raw": "Ps 79-84",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 79,
+        "end_ch": 84
+      }
+    ]
+  },
+  {
+    "index": 287,
+    "raw": "Hos 1-4",
+    "segments": [
+      {
+        "book_dir": "hosea",
+        "start_ch": 1,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 288,
+    "raw": "Hos 5-9",
+    "segments": [
+      {
+        "book_dir": "hosea",
+        "start_ch": 5,
+        "end_ch": 9
+      }
+    ]
+  },
+  {
+    "index": 289,
+    "raw": "Hos 10-14",
+    "segments": [
+      {
+        "book_dir": "hosea",
+        "start_ch": 10,
+        "end_ch": 14
+      }
+    ]
+  },
+  {
+    "index": 290,
+    "raw": "2 Chr 27-28",
+    "segments": [
+      {
+        "book_dir": "2chronicles",
+        "start_ch": 27,
+        "end_ch": 28
+      }
+    ]
+  },
+  {
+    "index": 291,
+    "raw": "Is 1-2",
+    "segments": [
+      {
+        "book_dir": "isaiah",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 292,
+    "raw": "Is 3-6",
+    "segments": [
+      {
+        "book_dir": "isaiah",
+        "start_ch": 3,
+        "end_ch": 6
+      }
+    ]
+  },
+  {
+    "index": 293,
+    "raw": "Mic 1-4",
+    "segments": [
+      {
+        "book_dir": "micah",
+        "start_ch": 1,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 294,
+    "raw": "Mic 5-7",
+    "segments": [
+      {
+        "book_dir": "micah",
+        "start_ch": 5,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 295,
+    "raw": "1 Cor 8-9",
+    "segments": [
+      {
+        "book_dir": "1corinthians",
+        "start_ch": 8,
+        "end_ch": 9
+      }
+    ]
+  },
+  {
+    "index": 296,
+    "raw": "1 Cor 10",
+    "segments": [
+      {
+        "book_dir": "1corinthians",
+        "start_ch": 10,
+        "end_ch": 10
+      }
+    ]
+  },
+  {
+    "index": 297,
+    "raw": "1 Cor 11",
+    "segments": [
+      {
+        "book_dir": "1corinthians",
+        "start_ch": 11,
+        "end_ch": 11
+      }
+    ]
+  },
+  {
+    "index": 298,
+    "raw": "1 Cor 12-13",
+    "segments": [
+      {
+        "book_dir": "1corinthians",
+        "start_ch": 12,
+        "end_ch": 13
+      }
+    ]
+  },
+  {
+    "index": 299,
+    "raw": "1 Cor 14",
+    "segments": [
+      {
+        "book_dir": "1corinthians",
+        "start_ch": 14,
+        "end_ch": 14
+      }
+    ]
+  },
+  {
+    "index": 300,
+    "raw": "Is 7-9",
+    "segments": [
+      {
+        "book_dir": "isaiah",
+        "start_ch": 7,
+        "end_ch": 9
+      }
+    ]
+  },
+  {
+    "index": 301,
+    "raw": "Is 10-13",
+    "segments": [
+      {
+        "book_dir": "isaiah",
+        "start_ch": 10,
+        "end_ch": 13
+      }
+    ]
+  },
+  {
+    "index": 302,
+    "raw": "Is 14-17",
+    "segments": [
+      {
+        "book_dir": "isaiah",
+        "start_ch": 14,
+        "end_ch": 17
+      }
+    ]
+  },
+  {
+    "index": 303,
+    "raw": "Is 18-19",
+    "segments": [
+      {
+        "book_dir": "isaiah",
+        "start_ch": 18,
+        "end_ch": 19
+      }
+    ]
+  },
+  {
+    "index": 304,
+    "raw": "Is 20-24",
+    "segments": [
+      {
+        "book_dir": "isaiah",
+        "start_ch": 20,
+        "end_ch": 24
+      }
+    ]
+  },
+  {
+    "index": 305,
+    "raw": "2 Ki 17",
+    "segments": [
+      {
+        "book_dir": "2kings",
+        "start_ch": 17,
+        "end_ch": 17
+      }
+    ]
+  },
+  {
+    "index": 306,
+    "raw": "2 Chr 29-30",
+    "segments": [
+      {
+        "book_dir": "2chronicles",
+        "start_ch": 29,
+        "end_ch": 30
+      }
+    ]
+  },
+  {
+    "index": 307,
+    "raw": "Prov 17-20",
+    "segments": [
+      {
+        "book_dir": "proverbs",
+        "start_ch": 17,
+        "end_ch": 20
+      }
+    ]
+  },
+  {
+    "index": 308,
+    "raw": "2 Ki 18",
+    "segments": [
+      {
+        "book_dir": "2kings",
+        "start_ch": 18,
+        "end_ch": 18
+      }
+    ]
+  },
+  {
+    "index": 309,
+    "raw": "2 Ki 19-20",
+    "segments": [
+      {
+        "book_dir": "2kings",
+        "start_ch": 19,
+        "end_ch": 20
+      }
+    ]
+  },
+  {
+    "index": 310,
+    "raw": "1 Cor 15",
+    "segments": [
+      {
+        "book_dir": "1corinthians",
+        "start_ch": 15,
+        "end_ch": 15
+      }
+    ]
+  },
+  {
+    "index": 311,
+    "raw": "1 Cor 16",
+    "segments": [
+      {
+        "book_dir": "1corinthians",
+        "start_ch": 16,
+        "end_ch": 16
+      }
+    ]
+  },
+  {
+    "index": 312,
+    "raw": "Gal 1-2",
+    "segments": [
+      {
+        "book_dir": "galatians",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 313,
+    "raw": "Gal 3-4",
+    "segments": [
+      {
+        "book_dir": "galatians",
+        "start_ch": 3,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 314,
+    "raw": "Gal 5-6",
+    "segments": [
+      {
+        "book_dir": "galatians",
+        "start_ch": 5,
+        "end_ch": 6
+      }
+    ]
+  },
+  {
+    "index": 315,
+    "raw": "Is 25-28",
+    "segments": [
+      {
+        "book_dir": "isaiah",
+        "start_ch": 25,
+        "end_ch": 28
+      }
+    ]
+  },
+  {
+    "index": 316,
+    "raw": "Is 29-31",
+    "segments": [
+      {
+        "book_dir": "isaiah",
+        "start_ch": 29,
+        "end_ch": 31
+      }
+    ]
+  },
+  {
+    "index": 317,
+    "raw": "Is 32-35",
+    "segments": [
+      {
+        "book_dir": "isaiah",
+        "start_ch": 32,
+        "end_ch": 35
+      }
+    ]
+  },
+  {
+    "index": 318,
+    "raw": "Prov 21-23",
+    "segments": [
+      {
+        "book_dir": "proverbs",
+        "start_ch": 21,
+        "end_ch": 23
+      }
+    ]
+  },
+  {
+    "index": 319,
+    "raw": "Is 36-39",
+    "segments": [
+      {
+        "book_dir": "isaiah",
+        "start_ch": 36,
+        "end_ch": 39
+      }
+    ]
+  },
+  {
+    "index": 320,
+    "raw": "Prov 24-27",
+    "segments": [
+      {
+        "book_dir": "proverbs",
+        "start_ch": 24,
+        "end_ch": 27
+      }
+    ]
+  },
+  {
+    "index": 321,
+    "raw": "Prov 28-31",
+    "segments": [
+      {
+        "book_dir": "proverbs",
+        "start_ch": 28,
+        "end_ch": 31
+      }
+    ]
+  },
+  {
+    "index": 322,
+    "raw": "Is 40-42",
+    "segments": [
+      {
+        "book_dir": "isaiah",
+        "start_ch": 40,
+        "end_ch": 42
+      }
+    ]
+  },
+  {
+    "index": 323,
+    "raw": "Is 43-44",
+    "segments": [
+      {
+        "book_dir": "isaiah",
+        "start_ch": 43,
+        "end_ch": 44
+      }
+    ]
+  },
+  {
+    "index": 324,
+    "raw": "Is 45-48",
+    "segments": [
+      {
+        "book_dir": "isaiah",
+        "start_ch": 45,
+        "end_ch": 48
+      }
+    ]
+  },
+  {
+    "index": 325,
+    "raw": "Acts 20",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 20,
+        "end_ch": 20
+      }
+    ]
+  },
+  {
+    "index": 326,
+    "raw": "Rom 1",
+    "segments": [
+      {
+        "book_dir": "romans",
+        "start_ch": 1,
+        "end_ch": 1
+      }
+    ]
+  },
+  {
+    "index": 327,
+    "raw": "Rom 2-3",
+    "segments": [
+      {
+        "book_dir": "romans",
+        "start_ch": 2,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 328,
+    "raw": "Rom 4",
+    "segments": [
+      {
+        "book_dir": "romans",
+        "start_ch": 4,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 329,
+    "raw": "Rom 5",
+    "segments": [
+      {
+        "book_dir": "romans",
+        "start_ch": 5,
+        "end_ch": 5
+      }
+    ]
+  },
+  {
+    "index": 330,
+    "raw": "Ps 85-89",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 85,
+        "end_ch": 89
+      }
+    ]
+  },
+  {
+    "index": 331,
+    "raw": "Ps 90-97",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 90,
+        "end_ch": 97
+      }
+    ]
+  },
+  {
+    "index": 332,
+    "raw": "Is 49-51",
+    "segments": [
+      {
+        "book_dir": "isaiah",
+        "start_ch": 49,
+        "end_ch": 51
+      }
+    ]
+  },
+  {
+    "index": 333,
+    "raw": "Is 52-55",
+    "segments": [
+      {
+        "book_dir": "isaiah",
+        "start_ch": 52,
+        "end_ch": 55
+      }
+    ]
+  },
+  {
+    "index": 334,
+    "raw": "Is 56-59",
+    "segments": [
+      {
+        "book_dir": "isaiah",
+        "start_ch": 56,
+        "end_ch": 59
+      }
+    ]
+  },
+  {
+    "index": 335,
+    "raw": "Is 60-62",
+    "segments": [
+      {
+        "book_dir": "isaiah",
+        "start_ch": 60,
+        "end_ch": 62
+      }
+    ]
+  },
+  {
+    "index": 336,
+    "raw": "Is 63-66",
+    "segments": [
+      {
+        "book_dir": "isaiah",
+        "start_ch": 63,
+        "end_ch": 66
+      }
+    ]
+  },
+  {
+    "index": 337,
+    "raw": "2 Chr 31-32",
+    "segments": [
+      {
+        "book_dir": "2chronicles",
+        "start_ch": 31,
+        "end_ch": 32
+      }
+    ]
+  },
+  {
+    "index": 338,
+    "raw": "Nah 1-3",
+    "segments": [
+      {
+        "book_dir": "nahum",
+        "start_ch": 1,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 339,
+    "raw": "2 Ki 21-22",
+    "segments": [
+      {
+        "book_dir": "2kings",
+        "start_ch": 21,
+        "end_ch": 22
+      }
+    ]
+  },
+  {
+    "index": 340,
+    "raw": "Rom 6-7",
+    "segments": [
+      {
+        "book_dir": "romans",
+        "start_ch": 6,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 341,
+    "raw": "Rom 8",
+    "segments": [
+      {
+        "book_dir": "romans",
+        "start_ch": 8,
+        "end_ch": 8
+      }
+    ]
+  },
+  {
+    "index": 342,
+    "raw": "Rom 9",
+    "segments": [
+      {
+        "book_dir": "romans",
+        "start_ch": 9,
+        "end_ch": 9
+      }
+    ]
+  },
+  {
+    "index": 343,
+    "raw": "Rom 10",
+    "segments": [
+      {
+        "book_dir": "romans",
+        "start_ch": 10,
+        "end_ch": 10
+      }
+    ]
+  },
+  {
+    "index": 344,
+    "raw": "Rom 11",
+    "segments": [
+      {
+        "book_dir": "romans",
+        "start_ch": 11,
+        "end_ch": 11
+      }
+    ]
+  },
+  {
+    "index": 345,
+    "raw": "2 Chr 33-4",
+    "segments": [
+      {
+        "book_dir": "2chronicles",
+        "start_ch": 33,
+        "end_ch": 34
+      }
+    ]
+  },
+  {
+    "index": 346,
+    "raw": "Zeph 1-3",
+    "segments": [
+      {
+        "book_dir": "zephaniah",
+        "start_ch": 1,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 347,
+    "raw": "Jer 1-2",
+    "segments": [
+      {
+        "book_dir": "jeremiah",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 348,
+    "raw": "Jer 3-5",
+    "segments": [
+      {
+        "book_dir": "jeremiah",
+        "start_ch": 3,
+        "end_ch": 5
+      }
+    ]
+  },
+  {
+    "index": 349,
+    "raw": "Jer 6-7",
+    "segments": [
+      {
+        "book_dir": "jeremiah",
+        "start_ch": 6,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 350,
+    "raw": "Jer 8-10",
+    "segments": [
+      {
+        "book_dir": "jeremiah",
+        "start_ch": 8,
+        "end_ch": 10
+      }
+    ]
+  },
+  {
+    "index": 351,
+    "raw": "Habak 1-3",
+    "segments": [
+      {
+        "book_dir": "habakkuk",
+        "start_ch": 1,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 352,
+    "raw": "Jer 11-13",
+    "segments": [
+      {
+        "book_dir": "jeremiah",
+        "start_ch": 11,
+        "end_ch": 13
+      }
+    ]
+  },
+  {
+    "index": 353,
+    "raw": "2 Chr 35-36",
+    "segments": [
+      {
+        "book_dir": "2chronicles",
+        "start_ch": 35,
+        "end_ch": 36
+      }
+    ]
+  },
+  {
+    "index": 354,
+    "raw": "Jer 14-17",
+    "segments": [
+      {
+        "book_dir": "jeremiah",
+        "start_ch": 14,
+        "end_ch": 17
+      }
+    ]
+  },
+  {
+    "index": 355,
+    "raw": "Rom 12-13",
+    "segments": [
+      {
+        "book_dir": "romans",
+        "start_ch": 12,
+        "end_ch": 13
+      }
+    ]
+  },
+  {
+    "index": 356,
+    "raw": "Rom 14-15",
+    "segments": [
+      {
+        "book_dir": "romans",
+        "start_ch": 14,
+        "end_ch": 15
+      }
+    ]
+  },
+  {
+    "index": 357,
+    "raw": "Rom 16",
+    "segments": [
+      {
+        "book_dir": "romans",
+        "start_ch": 16,
+        "end_ch": 16
+      }
+    ]
+  },
+  {
+    "index": 358,
+    "raw": "2 Cor 1-2",
+    "segments": [
+      {
+        "book_dir": "2corinthians",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 359,
+    "raw": "2 Cor 3-4",
+    "segments": [
+      {
+        "book_dir": "2corinthians",
+        "start_ch": 3,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 360,
+    "raw": "Jer 18-21",
+    "segments": [
+      {
+        "book_dir": "jeremiah",
+        "start_ch": 18,
+        "end_ch": 21
+      }
+    ]
+  },
+  {
+    "index": 361,
+    "raw": "Jer 22-23",
+    "segments": [
+      {
+        "book_dir": "jeremiah",
+        "start_ch": 22,
+        "end_ch": 23
+      }
+    ]
+  },
+  {
+    "index": 362,
+    "raw": "Jer 24-26",
+    "segments": [
+      {
+        "book_dir": "jeremiah",
+        "start_ch": 24,
+        "end_ch": 26
+      }
+    ]
+  },
+  {
+    "index": 363,
+    "raw": "Ps 98-104",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 98,
+        "end_ch": 104
+      }
+    ]
+  },
+  {
+    "index": 364,
+    "raw": "Ps 105-107",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 105,
+        "end_ch": 107
+      }
+    ]
+  },
+  {
+    "index": 365,
+    "raw": "Jer 27-29",
+    "segments": [
+      {
+        "book_dir": "jeremiah",
+        "start_ch": 27,
+        "end_ch": 29
+      }
+    ]
+  },
+  {
+    "index": 366,
+    "raw": "Jer 30-31",
+    "segments": [
+      {
+        "book_dir": "jeremiah",
+        "start_ch": 30,
+        "end_ch": 31
+      }
+    ]
+  },
+  {
+    "index": 367,
+    "raw": "Jer 32-33",
+    "segments": [
+      {
+        "book_dir": "jeremiah",
+        "start_ch": 32,
+        "end_ch": 33
+      }
+    ]
+  },
+  {
+    "index": 368,
+    "raw": "Jer 34-36",
+    "segments": [
+      {
+        "book_dir": "jeremiah",
+        "start_ch": 34,
+        "end_ch": 36
+      }
+    ]
+  },
+  {
+    "index": 369,
+    "raw": "Ps 108-116",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 108,
+        "end_ch": 116
+      }
+    ]
+  },
+  {
+    "index": 370,
+    "raw": "2 Cor 5-6",
+    "segments": [
+      {
+        "book_dir": "2corinthians",
+        "start_ch": 5,
+        "end_ch": 6
+      }
+    ]
+  },
+  {
+    "index": 371,
+    "raw": "2 Cor 7-8",
+    "segments": [
+      {
+        "book_dir": "2corinthians",
+        "start_ch": 7,
+        "end_ch": 8
+      }
+    ]
+  },
+  {
+    "index": 372,
+    "raw": "2 Cor 9-10",
+    "segments": [
+      {
+        "book_dir": "2corinthians",
+        "start_ch": 9,
+        "end_ch": 10
+      }
+    ]
+  },
+  {
+    "index": 373,
+    "raw": "2 Cor 11",
+    "segments": [
+      {
+        "book_dir": "2corinthians",
+        "start_ch": 11,
+        "end_ch": 11
+      }
+    ]
+  },
+  {
+    "index": 374,
+    "raw": "2 Cor 12-13",
+    "segments": [
+      {
+        "book_dir": "2corinthians",
+        "start_ch": 12,
+        "end_ch": 13
+      }
+    ]
+  },
+  {
+    "index": 375,
+    "raw": "Jer 37-39",
+    "segments": [
+      {
+        "book_dir": "jeremiah",
+        "start_ch": 37,
+        "end_ch": 39
+      }
+    ]
+  },
+  {
+    "index": 376,
+    "raw": "Jer 40-43",
+    "segments": [
+      {
+        "book_dir": "jeremiah",
+        "start_ch": 40,
+        "end_ch": 43
+      }
+    ]
+  },
+  {
+    "index": 377,
+    "raw": "Jer 44-45",
+    "segments": [
+      {
+        "book_dir": "jeremiah",
+        "start_ch": 44,
+        "end_ch": 45
+      }
+    ]
+  },
+  {
+    "index": 378,
+    "raw": "Jer 46-48",
+    "segments": [
+      {
+        "book_dir": "jeremiah",
+        "start_ch": 46,
+        "end_ch": 48
+      }
+    ]
+  },
+  {
+    "index": 379,
+    "raw": "Dan 1-2",
+    "segments": [
+      {
+        "book_dir": "daniel",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 380,
+    "raw": "2 Ki 23-25",
+    "segments": [
+      {
+        "book_dir": "2kings",
+        "start_ch": 23,
+        "end_ch": 25
+      }
+    ]
+  },
+  {
+    "index": 381,
+    "raw": "Eze 1-4",
+    "segments": [
+      {
+        "book_dir": "ezekiel",
+        "start_ch": 1,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 382,
+    "raw": "Eze 5-8",
+    "segments": [
+      {
+        "book_dir": "ezekiel",
+        "start_ch": 5,
+        "end_ch": 8
+      }
+    ]
+  },
+  {
+    "index": 383,
+    "raw": "Eze 9-11",
+    "segments": [
+      {
+        "book_dir": "ezekiel",
+        "start_ch": 9,
+        "end_ch": 11
+      }
+    ]
+  },
+  {
+    "index": 384,
+    "raw": "Eze 12-14",
+    "segments": [
+      {
+        "book_dir": "ezekiel",
+        "start_ch": 12,
+        "end_ch": 14
+      }
+    ]
+  },
+  {
+    "index": 385,
+    "raw": "Acts 21",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 21,
+        "end_ch": 21
+      }
+    ]
+  },
+  {
+    "index": 386,
+    "raw": "Acts 22-23",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 22,
+        "end_ch": 23
+      }
+    ]
+  },
+  {
+    "index": 387,
+    "raw": "Acts 24-25",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 24,
+        "end_ch": 25
+      }
+    ]
+  },
+  {
+    "index": 388,
+    "raw": "Acts 26",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 26,
+        "end_ch": 26
+      }
+    ]
+  },
+  {
+    "index": 389,
+    "raw": "Acts 27-28",
+    "segments": [
+      {
+        "book_dir": "acts",
+        "start_ch": 27,
+        "end_ch": 28
+      }
+    ]
+  },
+  {
+    "index": 390,
+    "raw": "Ps 117-118",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 117,
+        "end_ch": 118
+      }
+    ]
+  },
+  {
+    "index": 391,
+    "raw": "Eze 15-17",
+    "segments": [
+      {
+        "book_dir": "ezekiel",
+        "start_ch": 15,
+        "end_ch": 17
+      }
+    ]
+  },
+  {
+    "index": 392,
+    "raw": "Eze 18-20",
+    "segments": [
+      {
+        "book_dir": "ezekiel",
+        "start_ch": 18,
+        "end_ch": 20
+      }
+    ]
+  },
+  {
+    "index": 393,
+    "raw": "Eze 21-22",
+    "segments": [
+      {
+        "book_dir": "ezekiel",
+        "start_ch": 21,
+        "end_ch": 22
+      }
+    ]
+  },
+  {
+    "index": 394,
+    "raw": "Eze 23-25",
+    "segments": [
+      {
+        "book_dir": "ezekiel",
+        "start_ch": 23,
+        "end_ch": 25
+      }
+    ]
+  },
+  {
+    "index": 395,
+    "raw": "Jer 49-50",
+    "segments": [
+      {
+        "book_dir": "jeremiah",
+        "start_ch": 49,
+        "end_ch": 50
+      }
+    ]
+  },
+  {
+    "index": 396,
+    "raw": "Jer 51-52",
+    "segments": [
+      {
+        "book_dir": "jeremiah",
+        "start_ch": 51,
+        "end_ch": 52
+      }
+    ]
+  },
+  {
+    "index": 397,
+    "raw": "Lam 1-2",
+    "segments": [
+      {
+        "book_dir": "lamentations",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 398,
+    "raw": "Lam 3-5",
+    "segments": [
+      {
+        "book_dir": "lamentations",
+        "start_ch": 3,
+        "end_ch": 5
+      }
+    ]
+  },
+  {
+    "index": 399,
+    "raw": "Ps 119",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 119,
+        "end_ch": 119
+      }
+    ]
+  },
+  {
+    "index": 400,
+    "raw": "Eph 1-2",
+    "segments": [
+      {
+        "book_dir": "ephesians",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 401,
+    "raw": "Eph 3-4",
+    "segments": [
+      {
+        "book_dir": "ephesians",
+        "start_ch": 3,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 402,
+    "raw": "Eph 5-6",
+    "segments": [
+      {
+        "book_dir": "ephesians",
+        "start_ch": 5,
+        "end_ch": 6
+      }
+    ]
+  },
+  {
+    "index": 403,
+    "raw": "Phil 1-2",
+    "segments": [
+      {
+        "book_dir": "philippians",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 404,
+    "raw": "Phil 3-4",
+    "segments": [
+      {
+        "book_dir": "philippians",
+        "start_ch": 3,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 405,
+    "raw": "Eze 26-28",
+    "segments": [
+      {
+        "book_dir": "ezekiel",
+        "start_ch": 26,
+        "end_ch": 28
+      }
+    ]
+  },
+  {
+    "index": 406,
+    "raw": "Eze 29-31",
+    "segments": [
+      {
+        "book_dir": "ezekiel",
+        "start_ch": 29,
+        "end_ch": 31
+      }
+    ]
+  },
+  {
+    "index": 407,
+    "raw": "Eze 32-33",
+    "segments": [
+      {
+        "book_dir": "ezekiel",
+        "start_ch": 32,
+        "end_ch": 33
+      }
+    ]
+  },
+  {
+    "index": 408,
+    "raw": "Eze 34-36",
+    "segments": [
+      {
+        "book_dir": "ezekiel",
+        "start_ch": 34,
+        "end_ch": 36
+      }
+    ]
+  },
+  {
+    "index": 409,
+    "raw": "Eze 37-39",
+    "segments": [
+      {
+        "book_dir": "ezekiel",
+        "start_ch": 37,
+        "end_ch": 39
+      }
+    ]
+  },
+  {
+    "index": 410,
+    "raw": "Dan 3-4",
+    "segments": [
+      {
+        "book_dir": "daniel",
+        "start_ch": 3,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 411,
+    "raw": "Eze 40-41",
+    "segments": [
+      {
+        "book_dir": "ezekiel",
+        "start_ch": 40,
+        "end_ch": 41
+      }
+    ]
+  },
+  {
+    "index": 412,
+    "raw": "Eze 42-44",
+    "segments": [
+      {
+        "book_dir": "ezekiel",
+        "start_ch": 42,
+        "end_ch": 44
+      }
+    ]
+  },
+  {
+    "index": 413,
+    "raw": "Eze 45-46",
+    "segments": [
+      {
+        "book_dir": "ezekiel",
+        "start_ch": 45,
+        "end_ch": 46
+      }
+    ]
+  },
+  {
+    "index": 414,
+    "raw": "Eze 47-48",
+    "segments": [
+      {
+        "book_dir": "ezekiel",
+        "start_ch": 47,
+        "end_ch": 48
+      }
+    ]
+  },
+  {
+    "index": 415,
+    "raw": "Col 1-2",
+    "segments": [
+      {
+        "book_dir": "colossians",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 416,
+    "raw": "Col 3-4",
+    "segments": [
+      {
+        "book_dir": "colossians",
+        "start_ch": 3,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 417,
+    "raw": "Philm 1",
+    "segments": [
+      {
+        "book_dir": "philemon",
+        "start_ch": 1,
+        "end_ch": 1
+      }
+    ]
+  },
+  {
+    "index": 418,
+    "raw": "1 Tim 1-2",
+    "segments": [
+      {
+        "book_dir": "1timothy",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 419,
+    "raw": "1 Tim 3-4",
+    "segments": [
+      {
+        "book_dir": "1timothy",
+        "start_ch": 3,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 420,
+    "raw": "Dan 5-6",
+    "segments": [
+      {
+        "book_dir": "daniel",
+        "start_ch": 5,
+        "end_ch": 6
+      }
+    ]
+  },
+  {
+    "index": 421,
+    "raw": "Dan 7-8",
+    "segments": [
+      {
+        "book_dir": "daniel",
+        "start_ch": 7,
+        "end_ch": 8
+      }
+    ]
+  },
+  {
+    "index": 422,
+    "raw": "Dan 9-10",
+    "segments": [
+      {
+        "book_dir": "daniel",
+        "start_ch": 9,
+        "end_ch": 10
+      }
+    ]
+  },
+  {
+    "index": 423,
+    "raw": "Dan 11-12",
+    "segments": [
+      {
+        "book_dir": "daniel",
+        "start_ch": 11,
+        "end_ch": 12
+      }
+    ]
+  },
+  {
+    "index": 424,
+    "raw": "Ezra 1-4",
+    "segments": [
+      {
+        "book_dir": "ezra",
+        "start_ch": 1,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 425,
+    "raw": "Hag 1-2",
+    "segments": [
+      {
+        "book_dir": "haggai",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 426,
+    "raw": "Zech 1-5",
+    "segments": [
+      {
+        "book_dir": "zechariah",
+        "start_ch": 1,
+        "end_ch": 5
+      }
+    ]
+  },
+  {
+    "index": 427,
+    "raw": "Zech 6-8",
+    "segments": [
+      {
+        "book_dir": "zechariah",
+        "start_ch": 6,
+        "end_ch": 8
+      }
+    ]
+  },
+  {
+    "index": 428,
+    "raw": "Zech 9-12",
+    "segments": [
+      {
+        "book_dir": "zechariah",
+        "start_ch": 9,
+        "end_ch": 12
+      }
+    ]
+  },
+  {
+    "index": 429,
+    "raw": "Zech 13-14",
+    "segments": [
+      {
+        "book_dir": "zechariah",
+        "start_ch": 13,
+        "end_ch": 14
+      }
+    ]
+  },
+  {
+    "index": 430,
+    "raw": "1 Tim 5-6",
+    "segments": [
+      {
+        "book_dir": "1timothy",
+        "start_ch": 5,
+        "end_ch": 6
+      }
+    ]
+  },
+  {
+    "index": 431,
+    "raw": "1 Pet 1-2",
+    "segments": [
+      {
+        "book_dir": "1peter",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 432,
+    "raw": "1 Pet 3-4",
+    "segments": [
+      {
+        "book_dir": "1peter",
+        "start_ch": 3,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 433,
+    "raw": "1 Pet 5",
+    "segments": [
+      {
+        "book_dir": "1peter",
+        "start_ch": 5,
+        "end_ch": 5
+      }
+    ]
+  },
+  {
+    "index": 434,
+    "raw": "Tit 1-3",
+    "segments": [
+      {
+        "book_dir": "titus",
+        "start_ch": 1,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 435,
+    "raw": "Ezra 5-7",
+    "segments": [
+      {
+        "book_dir": "ezra",
+        "start_ch": 5,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 436,
+    "raw": "Ezra 8-10",
+    "segments": [
+      {
+        "book_dir": "ezra",
+        "start_ch": 8,
+        "end_ch": 10
+      }
+    ]
+  },
+  {
+    "index": 437,
+    "raw": "Est 1-4",
+    "segments": [
+      {
+        "book_dir": "esther",
+        "start_ch": 1,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 438,
+    "raw": "Est 5-10",
+    "segments": [
+      {
+        "book_dir": "esther",
+        "start_ch": 5,
+        "end_ch": 10
+      }
+    ]
+  },
+  {
+    "index": 439,
+    "raw": "Ps 120-134",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 120,
+        "end_ch": 134
+      }
+    ]
+  },
+  {
+    "index": 440,
+    "raw": "Neh 1-3",
+    "segments": [
+      {
+        "book_dir": "nehemiah",
+        "start_ch": 1,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 441,
+    "raw": "Neh 4-6",
+    "segments": [
+      {
+        "book_dir": "nehemiah",
+        "start_ch": 4,
+        "end_ch": 6
+      }
+    ]
+  },
+  {
+    "index": 442,
+    "raw": "Neh 7-8",
+    "segments": [
+      {
+        "book_dir": "nehemiah",
+        "start_ch": 7,
+        "end_ch": 8
+      }
+    ]
+  },
+  {
+    "index": 443,
+    "raw": "Neh 9-10",
+    "segments": [
+      {
+        "book_dir": "nehemiah",
+        "start_ch": 9,
+        "end_ch": 10
+      }
+    ]
+  },
+  {
+    "index": 444,
+    "raw": "Neh 11-13",
+    "segments": [
+      {
+        "book_dir": "nehemiah",
+        "start_ch": 11,
+        "end_ch": 13
+      }
+    ]
+  },
+  {
+    "index": 445,
+    "raw": "2 Tim 1-2",
+    "segments": [
+      {
+        "book_dir": "2timothy",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 446,
+    "raw": "2 Tim 3-4",
+    "segments": [
+      {
+        "book_dir": "2timothy",
+        "start_ch": 3,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 447,
+    "raw": "2 Pet 1",
+    "segments": [
+      {
+        "book_dir": "2peter",
+        "start_ch": 1,
+        "end_ch": 1
+      }
+    ]
+  },
+  {
+    "index": 448,
+    "raw": "2 Pet 2-3",
+    "segments": [
+      {
+        "book_dir": "2peter",
+        "start_ch": 2,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 449,
+    "raw": "Heb 1",
+    "segments": [
+      {
+        "book_dir": "hebrews",
+        "start_ch": 1,
+        "end_ch": 1
+      }
+    ]
+  },
+  {
+    "index": 450,
+    "raw": "Mal 1-4",
+    "segments": [
+      {
+        "book_dir": "malachi",
+        "start_ch": 1,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 451,
+    "raw": "Ps 135-141",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 135,
+        "end_ch": 141
+      }
+    ]
+  },
+  {
+    "index": 452,
+    "raw": "Ps 142-150",
+    "segments": [
+      {
+        "book_dir": "psalms",
+        "start_ch": 142,
+        "end_ch": 150
+      }
+    ]
+  },
+  {
+    "index": 453,
+    "raw": "Heb 2-3",
+    "segments": [
+      {
+        "book_dir": "hebrews",
+        "start_ch": 2,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 454,
+    "raw": "Heb 4-5",
+    "segments": [
+      {
+        "book_dir": "hebrews",
+        "start_ch": 4,
+        "end_ch": 5
+      }
+    ]
+  },
+  {
+    "index": 455,
+    "raw": "Heb 6-7",
+    "segments": [
+      {
+        "book_dir": "hebrews",
+        "start_ch": 6,
+        "end_ch": 7
+      }
+    ]
+  },
+  {
+    "index": 456,
+    "raw": "Heb 8-9",
+    "segments": [
+      {
+        "book_dir": "hebrews",
+        "start_ch": 8,
+        "end_ch": 9
+      }
+    ]
+  },
+  {
+    "index": 457,
+    "raw": "Heb 10",
+    "segments": [
+      {
+        "book_dir": "hebrews",
+        "start_ch": 10,
+        "end_ch": 10
+      }
+    ]
+  },
+  {
+    "index": 458,
+    "raw": "Heb 11",
+    "segments": [
+      {
+        "book_dir": "hebrews",
+        "start_ch": 11,
+        "end_ch": 11
+      }
+    ]
+  },
+  {
+    "index": 459,
+    "raw": "Heb 12-13",
+    "segments": [
+      {
+        "book_dir": "hebrews",
+        "start_ch": 12,
+        "end_ch": 13
+      }
+    ]
+  },
+  {
+    "index": 460,
+    "raw": "Jude 1",
+    "segments": [
+      {
+        "book_dir": "jude",
+        "start_ch": 1,
+        "end_ch": 1
+      }
+    ]
+  },
+  {
+    "index": 461,
+    "raw": "1 John 1-2",
+    "segments": [
+      {
+        "book_dir": "1john",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 462,
+    "raw": "1 John 3-4",
+    "segments": [
+      {
+        "book_dir": "1john",
+        "start_ch": 3,
+        "end_ch": 4
+      }
+    ]
+  },
+  {
+    "index": 463,
+    "raw": "1 John 5",
+    "segments": [
+      {
+        "book_dir": "1john",
+        "start_ch": 5,
+        "end_ch": 5
+      }
+    ]
+  },
+  {
+    "index": 464,
+    "raw": "2 John-3 John",
+    "segments": [
+      {
+        "book_dir": "2john",
+        "start_ch": 1,
+        "end_ch": 1
+      },
+      {
+        "book_dir": "3john",
+        "start_ch": 1,
+        "end_ch": 1
+      }
+    ]
+  },
+  {
+    "index": 465,
+    "raw": "Rev 1-2",
+    "segments": [
+      {
+        "book_dir": "revelation",
+        "start_ch": 1,
+        "end_ch": 2
+      }
+    ]
+  },
+  {
+    "index": 466,
+    "raw": "Rev 3",
+    "segments": [
+      {
+        "book_dir": "revelation",
+        "start_ch": 3,
+        "end_ch": 3
+      }
+    ]
+  },
+  {
+    "index": 467,
+    "raw": "Rev 4-6",
+    "segments": [
+      {
+        "book_dir": "revelation",
+        "start_ch": 4,
+        "end_ch": 6
+      }
+    ]
+  },
+  {
+    "index": 468,
+    "raw": "Rev 7-9",
+    "segments": [
+      {
+        "book_dir": "revelation",
+        "start_ch": 7,
+        "end_ch": 9
+      }
+    ]
+  },
+  {
+    "index": 469,
+    "raw": "Rev 10-11",
+    "segments": [
+      {
+        "book_dir": "revelation",
+        "start_ch": 10,
+        "end_ch": 11
+      }
+    ]
+  },
+  {
+    "index": 470,
+    "raw": "Rev 12-13",
+    "segments": [
+      {
+        "book_dir": "revelation",
+        "start_ch": 12,
+        "end_ch": 13
+      }
+    ]
+  },
+  {
+    "index": 471,
+    "raw": "Rev 14-16",
+    "segments": [
+      {
+        "book_dir": "revelation",
+        "start_ch": 14,
+        "end_ch": 16
+      }
+    ]
+  },
+  {
+    "index": 472,
+    "raw": "Rev 17-19",
+    "segments": [
+      {
+        "book_dir": "revelation",
+        "start_ch": 17,
+        "end_ch": 19
+      }
+    ]
+  },
+  {
+    "index": 473,
+    "raw": "Rev 20-22",
+    "segments": [
+      {
+        "book_dir": "revelation",
+        "start_ch": 20,
+        "end_ch": 22
+      }
+    ]
+  }
+]

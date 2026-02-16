@@ -11,6 +11,7 @@ from bible_config import BookInfo, BOOKS
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 _PROJECT_ROOT = os.path.dirname(_SCRIPT_DIR)
 _POETRY_PATH = os.path.join(_SCRIPT_DIR, "poetry_sections.json")
+_ARGUMENTS_PATH = os.path.join(_PROJECT_ROOT, "data", "geneva_arguments.json")
 
 _poetry_config: dict | None = None
 
@@ -34,6 +35,21 @@ def _is_poetry_chapter(book_dir: str, chapter: int) -> bool:
         if start <= chapter <= end:
             return True
     return False
+
+
+_arguments_cache: dict | None = None
+
+
+def _load_argument(book_dir: str) -> str | None:
+    global _arguments_cache
+    if _arguments_cache is None:
+        if os.path.isfile(_ARGUMENTS_PATH):
+            with open(_ARGUMENTS_PATH, "r", encoding="utf-8") as f:
+                _arguments_cache = json.load(f)
+        else:
+            _arguments_cache = {}
+    text = _arguments_cache.get(book_dir, "")
+    return text if text else None
 
 
 # ── LaTeX escaping ──────────────────────────────────────────────────────
@@ -192,25 +208,38 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
     is_poetry = _is_poetry_chapter(book.directory, ch_num)
 
     # Mark for running headers (verse 1 set here; subsequent verses inline)
-    lines.append(f"\\markboth{{{book.name}~{ch_num}:1}}{{{book.name}~{ch_num}:1}}")
+    lines.append(f"\\markboth{{{book.name} {ch_num}:1}}{{{book.name} {ch_num}:1}}")
 
     if is_poetry:
         lines.append("\\begin{poetry}")
 
-    # Replace inline footnote markers with \marginnote{text}
-    def _replace_fn(m: re.Match) -> str:
-        back_id = m.group(1)  # id="fbN-C" -> the back-ref
-        fn_text = footnotes.get(back_id, "")
-        if fn_text:
-            return f"\\marginnote{{\\tiny\\itshape {fn_text}}}"
-        return ""
-
-    body = re.sub(
-        r'<sup class="footnote">\s*<a[^>]*id="(fb\d+-\d+)"[^>]*>\d+</a>\s*</sup>',
-        _replace_fn,
-        body,
+    # Footnote pattern — matched per-block below (not globally)
+    _fn_pattern = re.compile(
+        r'<sup class="footnote">\s*<a[^>]*id="(fb\d+-\d+)"[^>]*>\d+</a>\s*</sup>'
     )
 
+    def _collect_and_replace_fns(block_html: str) -> str:
+        """Combine all footnotes in a block into one margin note at the end."""
+        matches = list(_fn_pattern.finditer(block_html))
+        if not matches:
+            return block_html
+        # Collect all footnote texts
+        fn_texts = []
+        for m in matches:
+            fn_text = footnotes.get(m.group(1), "")
+            if fn_text:
+                fn_texts.append(fn_text)
+        # Remove all footnote markers
+        result = _fn_pattern.sub("", block_html)
+        # Append combined margin note at end of block (avoids lettrine conflicts)
+        if fn_texts:
+            combined = " \\\\[1pt] ".join(fn_texts)
+            note = f"\\marginnote{{\\tiny {combined}}}"
+            result = result.rstrip() + " " + note
+        return result
+
+    # Apply per-block footnote grouping, then split
+    # First strip the footnotes div so we don't process it
     # Split into block-level elements (h3 headings and p paragraphs)
     blocks = re.split(r'(?=<h3\b|<p\b)', body)
 
@@ -220,6 +249,9 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
         block = block.strip()
         if not block:
             continue
+
+        # Combine footnotes per block into a single margin note
+        block = _collect_and_replace_fns(block)
 
         # Section heading
         h3 = re.match(r'<h3[^>]*>(.*?)</h3>', block)
@@ -233,9 +265,9 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
             lines.append("")
             lines.append(
                 f"\\begingroup\\parshape=0\\everypar{{}}"
-                f"\\smallskip\\noindent"
-                f"{{\\centering\\spacedfont\\scshape\\small {heading_text}\\par}}"
-                f"\\nobreak\\smallskip\\endgroup"
+                f"\\vspace{{\\baselineskip}}\\noindent"
+                f"{{\\small\\itshape {heading_text}\\par}}"
+                f"\\nobreak\\endgroup"
             )
             continue
 
@@ -256,7 +288,7 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
         # First, handle verse-num markers -> \vs{N}
         def _replace_verse(m: re.Match) -> str:
             vnum = m.group(1).strip()
-            mark = f"\\markboth{{{book.name}~{ch_num}:{vnum}}}{{{book.name}~{ch_num}:{vnum}}}"
+            mark = f"\\markboth{{{book.name} {ch_num}:{vnum}}}{{{book.name} {ch_num}:{vnum}}}"
             return f"{mark}\\vs{{{vnum}}} "
 
         para_text = block
@@ -285,13 +317,14 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
             # Chapter start — emit \ch{N} + lettrine
             if is_first_chapter and ch_num == 1:
                 lettrine_text = _make_lettrine(
-                    para_text, lettrine_lines=5, color=book.group)
+                    para_text, lettrine_lines=8, color=book.group)
             else:
-                lettrine_text = _make_lettrine(para_text, color=book.group)
-            lines.append(f"\\ch{{{ch_num}}} {lettrine_text}")
+                lettrine_text = _make_lettrine(para_text, lettrine_lines=5, color=book.group)
+            lines.append(f"\\ch{{{ch_num}}} {lettrine_text}\\everypar{{}}")
             first_verse_seen = True
         else:
             if first_verse_seen:
+                lines.append("\\everypar{}")
                 lines.append("")
                 lines.append("\\parshape=0")
             lines.append(para_text)
@@ -322,10 +355,11 @@ def generate_book_tex(
     heading_img = _find_heading_image(book.directory)
     escaped_title = book.long_title
     escaped_sub = book.subtitle
+    argument = _load_argument(book.directory) or ""
     if heading_img:
-        lines.append(f"\\bbook[{heading_img}]{{{escaped_title}}}{{{escaped_sub}}}")
+        lines.append(f"\\bbook[{heading_img}]{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}")
     else:
-        lines.append(f"\\bbook{{{escaped_title}}}{{{escaped_sub}}}")
+        lines.append(f"\\bbook{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}")
 
     lines.append("")
     lines.append("\\begin{scripture}")
@@ -386,7 +420,7 @@ def generate_color_index_tex() -> str:
             continue
         lines.append(f"\\noindent{{\\bfseries\\color{{{group_key}}}{group_label}}}\\\\")
         for book in books:
-            lines.append(f"\\hspace{{1em}}{book.name}\\\\")
+            lines.append(f"\\hspace{{1em}}\\hyperlink{{book-{book.directory}}}{{{book.name}}}\\\\")
         lines.append("\\medskip")
         lines.append("")
 
