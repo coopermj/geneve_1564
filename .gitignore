@@ -92,3 +92,6 @@ livres_esv/
 
 # Test files
 fntest*
+
+# Git worktrees
+.worktrees/
