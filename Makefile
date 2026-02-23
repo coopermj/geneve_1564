@@ -27,6 +27,15 @@ esv_bible.pdf: esv_bible.tex
 generate-esv:
 	python3 scripts/generate_esv.py --output-dir livres_esv
 
+fetch-annotations:
+	python3 scripts/annotation_fetcher.py
+
+build-annotated:
+	python3 scripts/build_annotated.py
+
+build-annotated-book:
+	python3 scripts/build_annotated.py --books $(BOOK)
+
 clean:
 	rm -f *.pdf *.ps *.aux *.log *.out *.lol
 	rm -f *.idx *.ind *.ilg *.toc *.dvi
