@@ -104,6 +104,8 @@ def main():
           f"{scheduled[0]['date']} to {scheduled[-1]['date']}")
     print()
 
+    note_manifest: list = []
+
     # 3. Generate book .tex files (with plan_endpoints for octagon markers)
     print(f"Generating {len(books_to_generate)} book(s)...")
     print(f"Output: {output_dir}")
@@ -117,7 +119,11 @@ def main():
         chapters_data = fetch_book(book.abbreviation, book.chapters, cache_dir)
 
         # Generate LaTeX
-        tex_content = generate_book_tex(book, chapters_data, plan_endpoints=plan_endpoints)
+        tex_content = generate_book_tex(
+            book, chapters_data,
+            plan_endpoints=plan_endpoints,
+            note_manifest=note_manifest,
+        )
 
         # Write to file
         book_dir = os.path.join(output_dir, book.directory)
@@ -170,6 +176,11 @@ def main():
     with open(plan_path, "w", encoding="utf-8") as f:
         f.write(plan_tex)
     print("  reading_plan.tex written")
+
+    manifest_path = os.path.join(_PROJECT_ROOT, "data", "note_manifest.json")
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(note_manifest, f)
+    print(f"  note_manifest.json written ({len(note_manifest)} notes)")
 
     print()
     print("Done!")
