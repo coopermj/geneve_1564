@@ -60,14 +60,16 @@ def test_footnote_fallback():
 
 
 def test_offset_correction():
+    # Numeric corrections are ignored (only "footnote" corrections are acted on).
+    # Any overlapping note that isn't explicitly demoted stays as a marginnote.
     counter = [0]
     manifest = []
     corrections = {0: 24.5}
     result = _build_annotation_suffix(
         "genesis", 1, 1, ANNOTATIONS_V1, counter, manifest, corrections
     )
-    assert "[24.5pt]" in result
-    assert r"\marginnote[24.5pt]" in result
+    assert r"\marginnote{" in result
+    assert r"\footnotemain{" not in result
 
 
 def test_annotation_text_latex_escaped():

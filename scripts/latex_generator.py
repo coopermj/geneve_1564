@@ -302,8 +302,6 @@ def _build_annotation_suffix(
         correction = corrections.get(idx, 0) if corrections else 0
         if correction == "footnote":
             parts.append(f"{inline}\\footnote{{{note_content}}}")
-        elif correction:
-            parts.append(f"{inline}\\marginnote[{correction:.1f}pt]{{{note_content}}}")
         else:
             parts.append(f"{inline}\\marginnote{{{note_content}}}")
 

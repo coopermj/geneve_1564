@@ -76,6 +76,8 @@ def main():
                         help="Books to process (name or slug). Default: all 66.")
     parser.add_argument("--max-iter", type=int, default=3,
                         help="Maximum correction iterations (default: 3)")
+    parser.add_argument("--max-offset", type=float, default=0.0,
+                        help="Demote to footnote when push-down exceeds this pt (default: 0 = all overlaps to footnote)")
     parser.add_argument("--output-dir",
                         default=os.path.join(_PROJECT_ROOT, "livres"))
     parser.add_argument("--cache-dir",
@@ -104,7 +106,7 @@ def main():
         _compile()
 
         print("Detecting overlaps...", end=" ", flush=True)
-        new_corrections = detect(_PDF_PATH, _MANIFEST_PATH)
+        new_corrections = detect(_PDF_PATH, _MANIFEST_PATH, max_offset=args.max_offset)
 
         if not new_corrections:
             print(f"none found.")

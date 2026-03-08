@@ -22,6 +22,7 @@ def detect_overlaps_from_rects(
     gap: float = GAP,
     page_height: float = 677.0,
     bottom_margin: float = BOTTOM_MARGIN,
+    max_offset: float | None = None,
 ) -> dict:
     """Detect overlapping bounding boxes and compute push-down corrections.
 
@@ -30,6 +31,8 @@ def detect_overlaps_from_rects(
         gap: Minimum gap in points between notes.
         page_height: Page height in points.
         bottom_margin: Notes pushed past (page_height - bottom_margin) → footnote.
+        max_offset: Demote to footnote when cumulative push-down exceeds this
+            value (points). None = no limit (old behaviour).
 
     Returns:
         {note_index: offset_pt | "footnote"} — only indices needing correction.
@@ -54,13 +57,15 @@ def detect_overlaps_from_rects(
 
             if new_y1 > page_height - bottom_margin:
                 corrections[i + 1] = "footnote"
+            elif max_offset is not None and total > max_offset:
+                corrections[i + 1] = "footnote"
             else:
                 corrections[i + 1] = total
 
     return corrections
 
 
-def detect(pdf_path: str, manifest_path: str) -> dict:
+def detect(pdf_path: str, manifest_path: str, max_offset: float | None = None) -> dict:
     """Detect overlapping margin notes in a compiled PDF.
 
     Matches margin notes in the PDF (by sequence) to manifest entries,
@@ -99,7 +104,8 @@ def detect(pdf_path: str, manifest_path: str) -> dict:
 
         rects = [b["bbox"] for b in margin_blocks]
         page_corrections = detect_overlaps_from_rects(
-            rects, gap=GAP, page_height=page_height, bottom_margin=BOTTOM_MARGIN
+            rects, gap=GAP, page_height=page_height, bottom_margin=BOTTOM_MARGIN,
+            max_offset=max_offset,
         )
 
         for local_i in range(len(rects)):
