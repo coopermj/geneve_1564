@@ -65,17 +65,31 @@ def detect_overlaps_from_rects(
     return corrections
 
 
-def detect(pdf_path: str, manifest_path: str, max_offset: float | None = None) -> dict:
+def detect(
+    pdf_path: str,
+    manifest_path: str,
+    max_offset: float | None = None,
+    already_footnoted: set | None = None,
+) -> dict:
     """Detect overlapping margin notes in a compiled PDF.
 
     Matches margin notes in the PDF (by sequence) to manifest entries,
     returns corrections keyed by manifest idx.
+
+    Args:
+        already_footnoted: Set of manifest idx values already demoted to
+            footnotes. These are skipped during sequential matching so the
+            PDF margin blocks stay aligned with the remaining manifest entries.
     """
     with open(manifest_path, "r") as f:
         manifest = json.load(f)
 
     if not manifest:
         return {}
+
+    footnoted = already_footnoted or set()
+    # Build ordered list of manifest entries that are still margin notes
+    margin_manifest = [e for e in manifest if e["idx"] not in footnoted]
 
     doc = fitz.open(pdf_path)
     all_corrections: dict = {}
@@ -109,10 +123,10 @@ def detect(pdf_path: str, manifest_path: str, max_offset: float | None = None) -
         )
 
         for local_i in range(len(rects)):
-            if global_note_idx >= len(manifest):
+            if global_note_idx >= len(margin_manifest):
                 break
             if local_i in page_corrections:
-                manifest_idx = manifest[global_note_idx]["idx"]
+                manifest_idx = margin_manifest[global_note_idx]["idx"]
                 all_corrections[manifest_idx] = page_corrections[local_i]
             global_note_idx += 1
 

@@ -82,6 +82,11 @@ def main():
                         default=os.path.join(_PROJECT_ROOT, "livres"))
     parser.add_argument("--cache-dir",
                         default=os.path.join(_PROJECT_ROOT, "data", "net_bible_cache"))
+    parser.add_argument("--corrections-in",
+                        help="JSON file of prior corrections to seed the run")
+    parser.add_argument("--corrections-out",
+                        default=os.path.join(_PROJECT_ROOT, "data", "corrections_final.json"),
+                        help="Save accumulated corrections to this JSON file after run")
     args = parser.parse_args()
 
     if args.books:
@@ -96,6 +101,12 @@ def main():
         books = BOOKS
 
     corrections: dict = {}
+    if args.corrections_in and os.path.exists(args.corrections_in):
+        with open(args.corrections_in) as f:
+            raw = json.load(f)
+        corrections = {int(k): v for k, v in raw.items()}
+        n_fn = sum(1 for v in corrections.values() if v == "footnote")
+        print(f"Loaded {len(corrections)} prior corrections ({n_fn} footnotes) from {args.corrections_in}")
 
     for iteration in range(1, args.max_iter + 1):
         print(f"\n=== Iteration {iteration}/{args.max_iter} ===")
@@ -106,7 +117,9 @@ def main():
         _compile()
 
         print("Detecting overlaps...", end=" ", flush=True)
-        new_corrections = detect(_PDF_PATH, _MANIFEST_PATH, max_offset=args.max_offset)
+        already_footnoted = {k for k, v in corrections.items() if v == "footnote"}
+        new_corrections = detect(_PDF_PATH, _MANIFEST_PATH, max_offset=args.max_offset,
+                                 already_footnoted=already_footnoted)
 
         if not new_corrections:
             print(f"none found.")
@@ -124,6 +137,13 @@ def main():
     print("Generating .tex files with all corrections...")
     _generate(books, args.output_dir, args.cache_dir, corrections)
     _compile()
+
+    if args.corrections_out:
+        os.makedirs(os.path.dirname(args.corrections_out), exist_ok=True)
+        with open(args.corrections_out, "w") as f:
+            json.dump({str(k): v for k, v in corrections.items()}, f)
+        print(f"Saved {len(corrections)} corrections to {args.corrections_out}")
+
     print(f"\nDone — {args.max_iter} iteration(s) completed.")
 
 
