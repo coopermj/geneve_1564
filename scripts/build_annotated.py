@@ -4,6 +4,9 @@
 Usage:
     python3 scripts/build_annotated.py [--books genesis] [--max-iter 3]
     python3 scripts/build_annotated.py --books genesis exodus --max-iter 2
+
+    # Density-prune mode (recommended for first run — prevents cascade):
+    python3 scripts/build_annotated.py --density-prune [--max-iter 2]
 """
 
 import argparse
@@ -19,7 +22,7 @@ sys.path.insert(0, _SCRIPT_DIR)
 from bible_config import BOOKS, get_book_by_name
 from bible_fetcher import fetch_book
 from latex_generator import generate_book_tex
-from overlap_detector import detect
+from overlap_detector import detect, detect_density_excess
 
 _MANIFEST_PATH = os.path.join(_PROJECT_ROOT, "data", "note_manifest.json")
 _PDF_PATH = os.path.join(_PROJECT_ROOT, "net_bible.pdf")
@@ -78,6 +81,13 @@ def main():
                         help="Maximum correction iterations (default: 3)")
     parser.add_argument("--max-offset", type=float, default=0.0,
                         help="Demote to footnote when push-down exceeds this pt (default: 0 = all overlaps to footnote)")
+    parser.add_argument("--density-prune", action="store_true",
+                        help="Use page-density pruning: footnotes all notes that can't "
+                             "physically fit on their page. Run repeatedly (--density-iter) "
+                             "until no excess remains, then do --max-iter standard passes.")
+    parser.add_argument("--density-iter", type=int, default=5,
+                        help="Max density-prune iterations (default: 5). Stops early if "
+                             "no excess found.")
     parser.add_argument("--output-dir",
                         default=os.path.join(_PROJECT_ROOT, "livres"))
     parser.add_argument("--cache-dir",
@@ -107,6 +117,24 @@ def main():
         corrections = {int(k): v for k, v in raw.items()}
         n_fn = sum(1 for v in corrections.values() if v == "footnote")
         print(f"Loaded {len(corrections)} prior corrections ({n_fn} footnotes) from {args.corrections_in}")
+
+    if args.density_prune:
+        for d_iter in range(1, args.density_iter + 1):
+            print(f"\n=== Density-prune pass {d_iter}/{args.density_iter} ===")
+            print("Generating .tex files...")
+            _generate(books, args.output_dir, args.cache_dir, corrections)
+            _compile()
+            print("Computing page density excess...", end=" ", flush=True)
+            already_footnoted = {k for k, v in corrections.items() if v == "footnote"}
+            density_corrections = detect_density_excess(
+                _PDF_PATH, _MANIFEST_PATH, already_footnoted=already_footnoted
+            )
+            n_density = len(density_corrections)
+            print(f"{n_density} note(s) exceed page capacity → footnote")
+            if n_density == 0:
+                print("No density excess — density phase complete.")
+                break
+            corrections.update(density_corrections)
 
     for iteration in range(1, args.max_iter + 1):
         print(f"\n=== Iteration {iteration}/{args.max_iter} ===")

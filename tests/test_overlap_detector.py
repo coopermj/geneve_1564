@@ -41,9 +41,15 @@ def test_footnote_fallback_when_off_page():
 def test_identify_margin_notes_filters_by_x():
     blocks = [
         {"bbox": (50, 100, 400, 110), "text": "main text"},
-        {"bbox": (440, 100, 500, 110), "text": "(a) margin note"},
-        {"bbox": (440, 200, 500, 210), "text": "(b) another note"},
+        {"bbox": (440, 100, 500, 110), "text": "(a) right margin note"},
+        {"bbox": (440, 200, 500, 210), "text": "(b) another right note"},
+        # A block whose right edge is in the left margin zone
+        {"bbox": (10, 150, 60, 160), "text": "left margin note"},
     ]
-    notes = _identify_margin_notes(blocks, margin_x=435.0)
-    assert len(notes) == 2
-    assert notes[0]["text"] == "(a) margin note"
+    left, right = _identify_margin_notes(blocks, margin_x=435.0)
+    # Right: two blocks with x0 > 435
+    assert len(right) == 2
+    assert right[0]["text"] == "(a) right margin note"
+    # Left: one block whose x1 < 435/0.86 * LEFT_MARGIN_FRAC ≈ 89
+    assert len(left) == 1
+    assert left[0]["text"] == "left margin note"
