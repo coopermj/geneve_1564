@@ -102,36 +102,33 @@
 \usepackage{fourier-orns}
 
 \newsavebox{\bbookimgbox}
-\makeatletter
-\newcommand{\bbook}[5][]{%
+% \bbook[image]{Main Title}{Subtitle}{Argument text}{book-dir}{chapter-table}
+% chapter-table: optional brace arg — backwards-compatible if omitted.
+\NewDocumentCommand{\bbook}{O{} m m m m +G{}}{%
   \clearpage
   \thispagestyle{scrheadings}%
   \hypertarget{book-#5}{}%
-  \ifx\relax#1\relax
+  \IfBlankTF{#1}{%
     \savebox{\bbookimgbox}{}%
-  \else
+  }{%
     \savebox{\bbookimgbox}{\makebox[\textwidth][c]{\includegraphics[width=\textwidth]{#1}}}%
-  \fi
+  }%
   \twocolumn[%
     \usebox{\bbookimgbox}\par\nobreak
     \vspace*{-10pt}%
     {\centering\huge\booktitlefont\scshape #2%
-      \def\@bbook@sub{#3}%
-      \ifx\@bbook@sub\empty\else
-        ,\\\large #3%
-      \fi
+      \IfBlankF{#3}{,\\\large #3}%
       \\\char"2766\par}%
-    \def\@bbook@arg{#4}%
-    \ifx\@bbook@arg\empty\else
+    \IfBlankF{#4}{%
       {\centering\booktitlefont\textsc{the argument.}\par}%
       \vspace{2pt}%
       {\centering\parbox{\dimexpr\textwidth-2em}{\itshape\scriptsize #4\par}\par}%
       \vspace{5pt}%
-    \fi
+    }%
+    #6%
     \vspace{5pt}%
   ]%
 }
-\makeatother
 \titleformat{\chapter}[hang]%
    {\centering\huge\booktitlefont\scshape}%
    {}%
