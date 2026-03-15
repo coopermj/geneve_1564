@@ -6,6 +6,7 @@ import re
 from html import unescape
 
 from bible_config import BookInfo, BOOKS
+from latex_generator import _chapter_table
 
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -320,7 +321,7 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                     para_text, lettrine_lines=8, color=book.group)
             else:
                 lettrine_text = _make_lettrine(para_text, lettrine_lines=5, color=book.group)
-            lines.append(f"\\ch{{{ch_num}}} {lettrine_text}\\everypar{{}}")
+            lines.append(f"\\ch{{{ch_num}}} \\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{lettrine_text}\\everypar{{}}")
             first_verse_seen = True
         else:
             if first_verse_seen:
@@ -356,15 +357,15 @@ def generate_book_tex(
     escaped_title = book.long_title
     escaped_sub = book.subtitle
     argument = _load_argument(book.directory) or ""
+    sorted_chapters = sorted(chapters_html.keys())
+    ch_table = _chapter_table(book.directory, sorted_chapters)
     if heading_img:
-        lines.append(f"\\bbook[{heading_img}]{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}")
+        lines.append(f"\\bbook[{heading_img}]{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}{{{ch_table}}}")
     else:
-        lines.append(f"\\bbook{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}")
+        lines.append(f"\\bbook{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}{{{ch_table}}}")
 
     lines.append("")
     lines.append("\\begin{scripture}")
-
-    sorted_chapters = sorted(chapters_html.keys())
 
     for ch_num in sorted_chapters:
         html = chapters_html[ch_num]

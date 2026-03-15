@@ -149,6 +149,26 @@ _HEADING_IMAGES = {
 }
 
 
+def _chapter_table(book_dir: str, chapter_nums: list[int]) -> str:
+    """Return a one-line compact chapter navigation table for the book heading.
+
+    Renders as a centred, single-line row of chapter numbers (in small italic)
+    separated by thin spaces, each a PDF hyperlink to its chapter target
+    (ch-{book_dir}-{N}).  The whole row is wrapped in \\twocolumn[...] so it
+    appears full-width above the two text columns on the book title page.
+    """
+    links = [
+        f"\\hyperlink{{ch-{book_dir}-{n}}}{{\\textit{{\\small {n}}}}}"
+        for n in chapter_nums
+    ]
+    inner = "\\enspace ".join(links)
+    return (
+        "\\vspace{4pt}%\n"
+        "\\centerline{\\scriptsize\\color{gray}" + inner + "}%\n"
+        "\\vspace{6pt}"
+    )
+
+
 def _find_heading_image(book_dir: str) -> str | None:
     """Return the LaTeX-relative image path if a heading image exists, else None."""
     # Check explicit mapping first
@@ -347,15 +367,15 @@ def generate_book_tex(
     escaped_title = book.long_title
     escaped_sub = book.subtitle
     argument = _load_argument(book.directory) or ""
+    sorted_chapters = sorted(chapters_data.keys())
+    ch_table = _chapter_table(book.directory, sorted_chapters)
     if heading_img:
-        lines.append(f"\\bbook[{heading_img}]{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}")
+        lines.append(f"\\bbook[{heading_img}]{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}{{{ch_table}}}")
     else:
-        lines.append(f"\\bbook{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}")
+        lines.append(f"\\bbook{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}{{{ch_table}}}")
 
     lines.append("")
     lines.append("\\begin{scripture}")
-
-    sorted_chapters = sorted(chapters_data.keys())
 
     for ch_num in sorted_chapters:
         verses = chapters_data[ch_num]
