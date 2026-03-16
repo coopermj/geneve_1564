@@ -11,8 +11,56 @@ _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 _PROJECT_ROOT = os.path.dirname(_SCRIPT_DIR)
 _POETRY_PATH = os.path.join(_SCRIPT_DIR, "poetry_sections.json")
 _ARGUMENTS_PATH = os.path.join(_PROJECT_ROOT, "data", "geneva_arguments.json")
+_RED_LETTER_PATH = os.path.join(_PROJECT_ROOT, "data", "red_letter_verses.json")
 
 _poetry_config: dict | None = None
+_red_letter_verses: dict | None = None
+
+
+def _load_red_letter_verses() -> dict:
+    global _red_letter_verses
+    if _red_letter_verses is None:
+        if os.path.isfile(_RED_LETTER_PATH):
+            with open(_RED_LETTER_PATH, encoding="utf-8") as f:
+                _red_letter_verses = json.load(f)
+        else:
+            _red_letter_verses = {}
+    return _red_letter_verses
+
+
+def _is_red_letter(book_dir: str, chapter: int, verse: int) -> bool:
+    data = _load_red_letter_verses()
+    verses = data.get(book_dir, {}).get(str(chapter), [])
+    return verse in verses
+
+
+def _apply_red_letter_quotes(text: str) -> str:
+    """Within a red-letter verse, wrap TeX double-quoted spans in redletter commands.
+
+    Finds ``...'' pairs and wraps them with \\redletteron/\\redletteroff.
+    Unquoted framing text (e.g. "Jesus said,") is left as plain text.
+    If a `` opens with no matching '' in the verse, colors from `` to end.
+    """
+    parts = []
+    i = 0
+    while i < len(text):
+        open_pos = text.find('``', i)
+        if open_pos == -1:
+            parts.append(text[i:])
+            break
+        parts.append(text[i:open_pos])
+        close_pos = text.find("''", open_pos + 2)
+        if close_pos == -1:
+            parts.append('\\redletteron ')
+            parts.append(text[open_pos:])
+            parts.append('\\redletteroff')
+            break
+        else:
+            parts.append('\\redletteron ')
+            parts.append(text[open_pos:close_pos + 2])
+            parts.append('\\redletteroff')
+            i = close_pos + 2
+    return ''.join(parts)
 
 
 def _load_poetry_config() -> dict:
@@ -408,6 +456,8 @@ def generate_book_tex(
             new_para = _starts_paragraph(raw_html)
             text = _process_verse_text(raw_html)
 
+            is_rl = _is_red_letter(book.directory, ch_num, verse_num)
+
             ch_annotations = _book_annotations.get(str(ch_num), {})
             verse_anns = ch_annotations.get(str(verse_num), [])
             ann_suffix = _build_annotation_suffix(
@@ -425,6 +475,8 @@ def generate_book_tex(
                     lettrine_text = _make_lettrine(text, lettrine_lines=5, color=book.group)
                     lettrine_char_budget = 5 * 80
                 lettrine_char_budget -= len(text)
+                if is_rl:
+                    lettrine_text = _apply_red_letter_quotes(lettrine_text)
                 lines.append(f"\\markboth{{{book.name} {ch_num}:1}}{{{book.name} {ch_num}:1}}")
                 # Ensure enough vertical space for the chapter heading +
                 # lettrine before starting.  Without this, the scripture
@@ -436,6 +488,8 @@ def generate_book_tex(
                 lines.append(f"\\ch{{{ch_num}}} \\allowchapbreak\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{lettrine_text}{ann_suffix}\\everypar{{}}")
             else:
                 lettrine_char_budget -= len(text)
+                if is_rl:
+                    text = _apply_red_letter_quotes(text)
                 mark = f"\\markboth{{{book.name} {ch_num}:{verse_num}}}{{{book.name} {ch_num}:{verse_num}}}"
                 if new_para:
                     if lettrine_char_budget > 0 and not is_poetry:
