@@ -102,10 +102,20 @@
 \usepackage{fourier-orns}
 
 \newsavebox{\bbookimgbox}
-% \bbook[image]{Main Title}{Subtitle}{Argument text}{book-dir}{chapter-table}
-% chapter-table: optional brace arg — backwards-compatible if omitted.
-\NewDocumentCommand{\bbook}{O{} m m m m +G{}}{%
+% Chapter table helper — set with \gdef\bbookchaptable{...} before \bbook, auto-reset after.
+\gdef\bbookchaptable{}
+% Current book tracking for chapter-table header link
+\makeatletter
+\gdef\currentbookdir{}
+\newcommand{\chaptertablelink}{%
+  \ifx\currentbookdir\@empty\else
+    \hyperlink{book-\currentbookdir}{\headerfont\small\faBookmark}%
+  \fi}
+\makeatother
+% \bbook[image]{Main Title}{Subtitle}{Argument text}{book-dir}
+\NewDocumentCommand{\bbook}{O{} m m m m}{%
   \clearpage
+  \gdef\currentbookdir{#5}%
   \thispagestyle{scrheadings}%
   \hypertarget{book-#5}{}%
   \IfBlankTF{#1}{%
@@ -125,9 +135,10 @@
       {\centering\parbox{\dimexpr\textwidth-2em}{\itshape\scriptsize #4\par}\par}%
       \vspace{5pt}%
     }%
-    #6%
+    \bbookchaptable
     \vspace{5pt}%
   ]%
+  \gdef\bbookchaptable{}
 }
 \titleformat{\chapter}[hang]%
    {\centering\huge\booktitlefont\scshape}%
@@ -143,6 +154,7 @@
 \clearpairofpagestyles
 \ihead[\headerfont\small\upshape\rightmark]{\headerfont\small\upshape\rightmark}
 \ohead[\headerfont\small\upshape\leftmark]{\headerfont\small\upshape\leftmark}
+\chead[\chaptertablelink]{\chaptertablelink}
 \cfoot[\hyperlink{toc}{\faHome}]{\hyperlink{toc}{\faHome}}
 
 \pagestyle{scrheadings}
