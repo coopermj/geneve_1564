@@ -297,6 +297,29 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
         para_text = re.sub(r'</?p[^>]*>', '', para_text)
         # Remove chapter-num <b> tag (we handle it separately)
         para_text = re.sub(r'<b class="chapter-num[^"]*"[^>]*>.*?</b>', '', para_text)
+        # Convert <span class="woc">...</span> to redletter toggles before
+        # stripping all other tags. Use sentinels to survive the tag strip.
+        para_text = re.sub(r'<span class="woc">', '\x01', para_text)
+        # Track which </span> closes a woc: replace </span> after sentinel
+        # with closing sentinel. Any other </span> becomes empty (stripped).
+        def _close_woc(text: str) -> str:
+            depth = 0
+            result = []
+            i = 0
+            while i < len(text):
+                if text[i] == '\x01':
+                    depth += 1
+                    result.append('\x01')
+                    i += 1
+                elif text[i:i+6] == '</spa' and depth > 0:
+                    result.append('\x02')
+                    depth -= 1
+                    i += len('</span>')
+                else:
+                    result.append(text[i])
+                    i += 1
+            return ''.join(result)
+        para_text = _close_woc(para_text)
         # Replace verse-num <b> tags
         para_text = re.sub(
             r'<b class="verse-num[^"]*"[^>]*>\s*(\d+)[^<]*</b>',
@@ -310,18 +333,28 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
         para_text = _apply_divine_names(para_text)
         para_text = _escape_latex(para_text)
         para_text = re.sub(r'\s+', ' ', para_text).strip()
+        # Restore woc sentinels as redletter commands
+        para_text = para_text.replace('\x01', '\\redletteron ')
+        para_text = para_text.replace('\x02', '\\redletteroff ')
 
         if not para_text:
             continue
 
         if is_chapter_start and ch_match:
-            # Chapter start — emit \ch{N} + lettrine
+            # Chapter start — emit \ch{N} + lettrine.
+            # Strip any leading \redletteron before passing to _make_lettrine
+            # (lettrine must receive plain text as its first character).
+            rl_prefix = ""
+            lettrine_src = para_text
+            if lettrine_src.startswith("\\redletteron "):
+                rl_prefix = "\\redletteron "
+                lettrine_src = lettrine_src[len("\\redletteron "):]
             if is_first_chapter and ch_num == 1:
                 lettrine_text = _make_lettrine(
-                    para_text, lettrine_lines=8, color=book.group)
+                    lettrine_src, lettrine_lines=8, color=book.group)
             else:
-                lettrine_text = _make_lettrine(para_text, lettrine_lines=5, color=book.group)
-            lines.append(f"\\ch{{{ch_num}}} \\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{lettrine_text}\\everypar{{}}")
+                lettrine_text = _make_lettrine(lettrine_src, lettrine_lines=5, color=book.group)
+            lines.append(f"\\ch{{{ch_num}}} \\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{rl_prefix}{lettrine_text}\\everypar{{}}")
             first_verse_seen = True
         else:
             if first_verse_seen:

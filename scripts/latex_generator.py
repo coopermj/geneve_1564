@@ -11,8 +11,27 @@ _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 _PROJECT_ROOT = os.path.dirname(_SCRIPT_DIR)
 _POETRY_PATH = os.path.join(_SCRIPT_DIR, "poetry_sections.json")
 _ARGUMENTS_PATH = os.path.join(_PROJECT_ROOT, "data", "geneva_arguments.json")
+_RED_LETTER_PATH = os.path.join(_PROJECT_ROOT, "data", "red_letter_verses.json")
 
 _poetry_config: dict | None = None
+_red_letter_verses: dict | None = None
+
+
+def _load_red_letter_verses() -> dict:
+    global _red_letter_verses
+    if _red_letter_verses is None:
+        if os.path.isfile(_RED_LETTER_PATH):
+            with open(_RED_LETTER_PATH, encoding="utf-8") as f:
+                _red_letter_verses = json.load(f)
+        else:
+            _red_letter_verses = {}
+    return _red_letter_verses
+
+
+def _is_red_letter(book_dir: str, chapter: int, verse: int) -> bool:
+    data = _load_red_letter_verses()
+    verses = data.get(book_dir, {}).get(str(chapter), [])
+    return verse in verses
 
 
 def _load_poetry_config() -> dict:
@@ -326,6 +345,9 @@ def generate_book_tex(
             raw_html = verse["text"]
             new_para = _starts_paragraph(raw_html)
             text = _process_verse_text(raw_html)
+            is_rl = _is_red_letter(book.directory, ch_num, verse_num)
+            rl_on = "\\redletteron " if is_rl else ""
+            rl_off = "\\redletteroff" if is_rl else ""
 
             if verse_num == 1:
                 # Chapter start — use \ch{N} with lettrine drop cap.
@@ -352,7 +374,7 @@ def generate_book_tex(
                 # the whole block out, leaving large blank gaps.
                 if ch_num > 1:
                     lines.append("\\Needspace*{8\\baselineskip}")
-                lines.append(f"\\ch{{{ch_num}}} \\allowchapbreak\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{lettrine_text}\\everypar{{}}")
+                lines.append(f"\\ch{{{ch_num}}} \\allowchapbreak\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{rl_on}{lettrine_text}{rl_off}\\everypar{{}}")
             else:
                 lettrine_char_budget -= len(text)
                 mark = f"\\markboth{{{book.name} {ch_num}:{verse_num}}}{{{book.name} {ch_num}:{verse_num}}}"
@@ -361,14 +383,14 @@ def generate_book_tex(
                         # Within lettrine zone: line break (not \par) to
                         # preserve \parshape and avoid drop-cap overlap.
                         # Skipped in poetry: \obeylines makes \\ invalid.
-                        lines.append(f"\\\\\\indent{mark}\\vs{{{verse_num}}} {text}")
+                        lines.append(f"\\\\\\indent{mark}\\vs{{{verse_num}}} {rl_on}{text}{rl_off}")
                     else:
                         lines.append("\\everypar{}")
                         lines.append("")
                         lines.append("\\parshape=0")
-                        lines.append(f"{mark}\\vs{{{verse_num}}} {text}")
+                        lines.append(f"{mark}\\vs{{{verse_num}}} {rl_on}{text}{rl_off}")
                 else:
-                    lines.append(f"{mark}\\vs{{{verse_num}}} {text}")
+                    lines.append(f"{mark}\\vs{{{verse_num}}} {rl_on}{text}{rl_off}")
 
         # Return-to-plan octagon after last verse of endpoint chapters
         if plan_endpoints and (book.directory, ch_num) in plan_endpoints:
