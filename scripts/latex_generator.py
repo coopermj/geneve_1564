@@ -34,6 +34,35 @@ def _is_red_letter(book_dir: str, chapter: int, verse: int) -> bool:
     return verse in verses
 
 
+def _apply_red_letter_quotes(text: str) -> str:
+    """Within a red-letter verse, wrap TeX double-quoted spans in redletter commands.
+
+    Finds ``...'' pairs and wraps them with \\redletteron/\\redletteroff.
+    Unquoted framing text (e.g. "Jesus said,") is left as plain text.
+    If a `` opens with no matching '' in the verse, colors from `` to end.
+    """
+    parts = []
+    i = 0
+    while i < len(text):
+        open_pos = text.find('``', i)
+        if open_pos == -1:
+            parts.append(text[i:])
+            break
+        parts.append(text[i:open_pos])
+        close_pos = text.find("''", open_pos + 2)
+        if close_pos == -1:
+            parts.append('\\redletteron ')
+            parts.append(text[open_pos:])
+            parts.append('\\redletteroff')
+            break
+        else:
+            parts.append('\\redletteron ')
+            parts.append(text[open_pos:close_pos + 2])
+            parts.append('\\redletteroff')
+            i = close_pos + 2
+    return ''.join(parts)
+
+
 def _load_poetry_config() -> dict:
     global _poetry_config
     if _poetry_config is None:
@@ -346,8 +375,6 @@ def generate_book_tex(
             new_para = _starts_paragraph(raw_html)
             text = _process_verse_text(raw_html)
             is_rl = _is_red_letter(book.directory, ch_num, verse_num)
-            rl_on = "\\redletteron " if is_rl else ""
-            rl_off = "\\redletteroff" if is_rl else ""
 
             if verse_num == 1:
                 # Chapter start — use \ch{N} with lettrine drop cap.
@@ -366,6 +393,8 @@ def generate_book_tex(
                     lettrine_text = _make_lettrine(text, lettrine_lines=5, color=book.group)
                     lettrine_char_budget = 5 * 80
                 lettrine_char_budget -= len(text)
+                if is_rl:
+                    lettrine_text = _apply_red_letter_quotes(lettrine_text)
                 lines.append(f"\\markboth{{{book.name} {ch_num}:1}}{{{book.name} {ch_num}:1}}")
                 # Ensure enough vertical space for the chapter heading +
                 # lettrine before starting.  Without this, the scripture
@@ -374,23 +403,25 @@ def generate_book_tex(
                 # the whole block out, leaving large blank gaps.
                 if ch_num > 1:
                     lines.append("\\Needspace*{8\\baselineskip}")
-                lines.append(f"\\ch{{{ch_num}}} \\allowchapbreak\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{rl_on}{lettrine_text}{rl_off}\\everypar{{}}")
+                lines.append(f"\\ch{{{ch_num}}} \\allowchapbreak\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{lettrine_text}\\everypar{{}}")
             else:
                 lettrine_char_budget -= len(text)
+                if is_rl:
+                    text = _apply_red_letter_quotes(text)
                 mark = f"\\markboth{{{book.name} {ch_num}:{verse_num}}}{{{book.name} {ch_num}:{verse_num}}}"
                 if new_para:
                     if lettrine_char_budget > 0 and not is_poetry:
                         # Within lettrine zone: line break (not \par) to
                         # preserve \parshape and avoid drop-cap overlap.
                         # Skipped in poetry: \obeylines makes \\ invalid.
-                        lines.append(f"\\\\\\indent{mark}\\vs{{{verse_num}}} {rl_on}{text}{rl_off}")
+                        lines.append(f"\\\\\\indent{mark}\\vs{{{verse_num}}} {text}")
                     else:
                         lines.append("\\everypar{}")
                         lines.append("")
                         lines.append("\\parshape=0")
-                        lines.append(f"{mark}\\vs{{{verse_num}}} {rl_on}{text}{rl_off}")
+                        lines.append(f"{mark}\\vs{{{verse_num}}} {text}")
                 else:
-                    lines.append(f"{mark}\\vs{{{verse_num}}} {rl_on}{text}{rl_off}")
+                    lines.append(f"{mark}\\vs{{{verse_num}}} {text}")
 
         # Return-to-plan octagon after last verse of endpoint chapters
         if plan_endpoints and (book.directory, ch_num) in plan_endpoints:
