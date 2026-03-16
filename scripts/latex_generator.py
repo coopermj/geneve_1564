@@ -205,14 +205,17 @@ def _make_lettrine(text: str, lettrine_lines: int | None = None,
     text = text.lstrip()
 
     prefix = ""
-    # Strip all leading LaTeX opening quotes (`` and/or `)
+    # Strip all leading LaTeX opening quotes (`` and/or `) and open parens
     # Handles nested quotes like ``\`You... (double-then-single)
-    while text.startswith("``") or text.startswith("`"):
+    while text.startswith("``") or text.startswith("`") or text.startswith("("):
         if text.startswith("``"):
             prefix += "``"
             text = text[2:]
-        else:
+        elif text.startswith("`"):
             prefix += "`"
+            text = text[1:]
+        else:
+            prefix += "("
             text = text[1:]
 
     # Skip any leading whitespace after quotes
