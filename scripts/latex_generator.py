@@ -205,20 +205,27 @@ def _make_lettrine(text: str, lettrine_lines: int | None = None,
     text = text.lstrip()
 
     prefix = ""
-    # Strip all leading LaTeX opening quotes (`` and/or `) and open parens
+    # Strip all leading LaTeX opening quotes (`` and/or `) and open parens.
+    # Also strip NET cross-reference labels like (5:27) that some chapters open with.
     # Handles nested quotes like ``\`You... (double-then-single)
-    while text.startswith("``") or text.startswith("`") or text.startswith("("):
+    while True:
         if text.startswith("``"):
             prefix += "``"
             text = text[2:]
         elif text.startswith("`"):
             prefix += "`"
             text = text[1:]
-        else:
+        elif m := re.match(r'\(\d+:\d+[a-z]?\)\s*', text):
+            # Cross-reference label like (5:27) or (63:19b) — keep as prefix
+            prefix += m.group(0)
+            text = text[m.end():]
+        elif text.startswith("("):
             prefix += "("
             text = text[1:]
+        else:
+            break
 
-    # Skip any leading whitespace after quotes
+    # Skip any leading whitespace after quotes/prefixes
     text = text.lstrip()
 
     if not text:
