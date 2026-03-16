@@ -359,10 +359,11 @@ def generate_book_tex(
     argument = _load_argument(book.directory) or ""
     sorted_chapters = sorted(chapters_html.keys())
     ch_table = _chapter_table(book.directory, sorted_chapters)
+    lines.append(f"\\gdef\\@chaptable{{{ch_table}}}")
     if heading_img:
-        lines.append(f"\\bbook[{heading_img}]{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}{{{ch_table}}}")
+        lines.append(f"\\bbook[{heading_img}]{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}")
     else:
-        lines.append(f"\\bbook{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}{{{ch_table}}}")
+        lines.append(f"\\bbook{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}")
 
     lines.append("")
     lines.append("\\begin{scripture}")

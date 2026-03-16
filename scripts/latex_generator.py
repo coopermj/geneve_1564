@@ -161,10 +161,10 @@ def _chapter_table(book_dir: str, chapter_nums: list[int]) -> str:
         f"\\hyperlink{{ch-{book_dir}-{n}}}{{\\textit{{\\small {n}}}}}"
         for n in chapter_nums
     ]
-    inner = "\\enspace ".join(links)
+    inner = "\\hspace{0.4em}".join(links)
     return (
         "\\vspace{4pt}%\n"
-        "\\centerline{\\scriptsize\\color{gray}" + inner + "}%\n"
+        "\\parbox[t]{\\linewidth}{\\centering\\small" + inner + "}%\n"
         "\\vspace{6pt}"
     )
 
@@ -369,10 +369,11 @@ def generate_book_tex(
     argument = _load_argument(book.directory) or ""
     sorted_chapters = sorted(chapters_data.keys())
     ch_table = _chapter_table(book.directory, sorted_chapters)
+    lines.append(f"\\gdef\\bbookchaptable{{{ch_table}}}")
     if heading_img:
-        lines.append(f"\\bbook[{heading_img}]{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}{{{ch_table}}}")
+        lines.append(f"\\bbook[{heading_img}]{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}")
     else:
-        lines.append(f"\\bbook{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}{{{ch_table}}}")
+        lines.append(f"\\bbook{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}")
 
     lines.append("")
     lines.append("\\begin{scripture}")

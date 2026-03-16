@@ -103,8 +103,14 @@
 
 \newsavebox{\bbookimgbox}
 \makeatletter
+\gdef\currentbookdir{}
+\newcommand{\chaptertablelink}{%
+  \ifx\currentbookdir\@empty\else
+    \hyperlink{book-\currentbookdir}{\headerfont\small\faBookmark}%
+  \fi}
 \newcommand{\bbook}[5][]{%
   \clearpage
+  \gdef\currentbookdir{#5}%
   \thispagestyle{scrheadings}%
   \hypertarget{book-#5}{}%
   \ifx\relax#1\relax
@@ -146,6 +152,7 @@
 \clearpairofpagestyles
 \ihead[\headerfont\small\upshape\rightmark]{\headerfont\small\upshape\rightmark}
 \ohead[\headerfont\small\upshape\leftmark]{\headerfont\small\upshape\leftmark}
+\chead[\chaptertablelink]{\chaptertablelink}
 \cfoot[\hyperlink{toc}{\faHome}]{\hyperlink{toc}{\faHome}}
 
 \pagestyle{scrheadings}
