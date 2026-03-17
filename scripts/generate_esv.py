@@ -30,10 +30,12 @@ ESV_API_KEY = os.environ.get("ESV_API_KEY", "")
 def fetch_book(book_name: str, num_chapters: int, api_key: str,
                cache_dir: str) -> dict[int, str]:
     """Fetch all chapters of a book, returning {chapter_num: html}."""
+    import time as _time
     chapters = {}
     for ch in range(1, num_chapters + 1):
         html = fetch_chapter(book_name, ch, api_key, cache_dir)
         chapters[ch] = html
+        _time.sleep(0.4)  # gentle rate-limit buffer between chapters
     return chapters
 
 

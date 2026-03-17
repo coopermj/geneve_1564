@@ -62,7 +62,9 @@ def fetch_chapter(
         except Exception as e:
             if attempt == retries - 1:
                 raise
-            delay = 3 * (attempt + 1)
+            # Use longer delays for rate-limit (429) errors
+            is_429 = "429" in str(e)
+            delay = (30 * (attempt + 1)) if is_429 else (3 * (attempt + 1))
             print(
                 f"    Retry {attempt+1}/{retries} for {passage}"
                 f" (error: {e}), waiting {delay}s..."
