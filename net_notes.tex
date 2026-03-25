@@ -103,10 +103,6 @@
   {\begin{spacing}{0.8}\itshape\scriptsize\hspace{-1em}}
   {\end{spacing}}
 
-% Footnotes
-\usepackage{alphalph}
-\DeclareNewFootnote{main}[alph]
-\renewcommand{\thefootnotemain}{\alphalph{\value{footnotemain}}}
 
 % Bible books
 \usepackage{titlesec}
@@ -180,6 +176,7 @@
 \usepackage{fontawesome5}
 \usepackage{multicol}
 \usepackage{needspace}
+\usepackage{changepage}
 \usepackage{amssymb}
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric}
@@ -210,9 +207,9 @@
 
 \begin{document}
 
-\newgeometry{left=18mm,right=15mm,top=15mm,bottom=15mm,includeheadfoot}
+\begin{adjustwidth}{0pt}{-40mm}
 \input{livres/color_index}
-\restoregeometry
+\end{adjustwidth}
 \input{livres/old_testament}
 \input{livres/new_testament}
 \input{livres/reading_plan}
