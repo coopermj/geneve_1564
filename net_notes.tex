@@ -193,6 +193,11 @@
   \end{tikzpicture}}%
 }
 
+% Override \twocolumn — keep single-column throughout (shared files use \twocolumn)
+% \twocolumn[optional-header] → just outputs the header; no column switch
+\renewcommand{\twocolumn}[1][]{#1}
+\renewcommand{\onecolumn}{}
+
 % Vertical rule at the right edge of the text column — marks the note gutter
 \AddToShipoutPictureBG{%
   \begin{tikzpicture}[remember picture, overlay]
