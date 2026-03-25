@@ -1,0 +1,32 @@
+% Cover — NET Bible Note-Taking Edition
+\thispagestyle{empty}%
+\begin{tikzpicture}[remember picture,overlay]
+  % Accent strips — full page width
+  \fill[wisdom!50]
+    ([yshift=-16mm]current page.north west) rectangle ([yshift=-20mm]current page.north east);
+  \fill[wisdom!50]
+    ([yshift=16mm]current page.south west) rectangle ([yshift=20mm]current page.south east);
+  % Horizontal note lines in the gutter
+  \foreach \i in {0,...,22}{
+    \draw[color=wisdom!30,line width=0.35pt]
+      ([xshift=\dimexpr\oddsidemargin+1in+\textwidth+5mm\relax,
+         yshift=\dimexpr-36mm-\i*8.5mm\relax]current page.north west)
+      --
+      ([xshift=\dimexpr\paperwidth-10mm\relax,
+         yshift=\dimexpr-36mm-\i*8.5mm\relax]current page.north west);
+  }
+\end{tikzpicture}%
+\null\vspace*{72mm}
+\begin{center}
+  {\large\booktitlefont\scshape the holy bible\par}
+  \vspace{5pt}
+  {\color{wisdom}\rule{26mm}{0.4pt}\enspace{\large\char"2766}\enspace\rule{26mm}{0.4pt}\par}
+  \vspace{12pt}
+  {\fontsize{44}{50}\selectfont\allurafont\color{wisdom}Net Bible\par}
+  \vspace{8pt}
+  {\small\spacedfont\scshape note-taking edition\par}
+  \vspace{16pt}
+  {\color{wisdom!40}\rule{55mm}{0.3pt}\par}
+\end{center}
+\vfill
+\clearpage
