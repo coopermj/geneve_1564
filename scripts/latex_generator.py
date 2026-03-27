@@ -143,8 +143,8 @@ def _strip_html_tags(html: str) -> str:
     """
     text = html
 
-    # Remove <p> tags
-    text = re.sub(r'</?p[^>]*>', '', text)
+    # Replace <p> tags with a space to prevent adjacent words merging
+    text = re.sub(r'</?p[^>]*>', ' ', text)
 
     # Remove <st> tags but keep content
     text = re.sub(r'<st[^>]*>', '', text)
@@ -369,8 +369,11 @@ def _build_annotation_suffix(
     for ann in verse_annotations:
         idx = counter[0]
         counter[0] += 1
+        # Store first 20 chars of plain text for content-based PDF matching
+        _plain = ann["text"][:20].replace("\n", " ").strip()
         manifest.append({"idx": idx, "book": book_dir, "ch": ch_num,
-                          "verse": verse_num, "letter": ann["letter"]})
+                          "verse": verse_num, "letter": ann["letter"],
+                          "text_prefix": _plain})
 
         letter = ann["letter"]
         text = _escape_latex(_convert_smart_quotes(ann["text"]))

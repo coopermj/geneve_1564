@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 
 import fitz  # PyMuPDF
 
@@ -11,37 +12,25 @@ _PROJECT_ROOT = os.path.dirname(_SCRIPT_DIR)
 GAP = 2.0
 BOTTOM_MARGIN = 36.0
 
-# In twocolumn mode, marginnote places notes in the outer margin of the
-# current column: left-column text → left margin, right-column text →
-# right margin.  The right-margin threshold is 0.86 * page_width (passed
-# in as margin_x).  The left-margin threshold is the symmetric fraction
-# on the other side: blocks whose *right edge* (x1) is less than
-# LEFT_MARGIN_FRAC * page_width are in the left outer margin.
-LEFT_MARGIN_FRAC = 0.17  # right edge of left-margin block < 17% of page width
+# All margin notes go to the outer (right) margin only.
+# \@mn@margintest has been patched to always return \@tempswatrue so that
+# left-column text no longer sends notes to the inner (binding) margin.
+# The right-margin threshold: blocks whose left edge > 0.86 * page_width.
 
 
 def _identify_margin_notes(blocks: list, margin_x: float) -> tuple[list, list]:
-    """Return (left_blocks, right_blocks) for the two outer margin zones.
+    """Return (left_blocks, right_blocks) for the outer margin zone.
 
-    In twocolumn layout, notes for column-1 text appear in the LEFT outer
-    margin (right edge < LEFT_MARGIN_FRAC * page_width) and notes for
-    column-2 text appear in the RIGHT outer margin (left edge > margin_x).
-    Each list is sorted top-to-bottom.  The manifest sequence processes
-    left-column notes before right-column notes on each page, matching
-    the LaTeX two-column flow: column 1 fills before column 2 begins.
+    With the marginnote patch in net_bible.tex, ALL notes appear in the
+    outer (right) margin regardless of column.  left_blocks is always
+    empty; right_blocks contains all margin-note blocks sorted top-to-bottom.
+    The two-element return keeps the call-sites unchanged.
     """
-    page_width = margin_x / 0.86
-    left_threshold = page_width * LEFT_MARGIN_FRAC
-
-    left = sorted(
-        [b for b in blocks if b["bbox"][2] < left_threshold],
-        key=lambda b: b["bbox"][1],
-    )
     right = sorted(
         [b for b in blocks if b["bbox"][0] > margin_x],
         key=lambda b: b["bbox"][1],
     )
-    return left, right
+    return [], right
 
 
 def detect_overlaps_from_rects(
@@ -179,6 +168,78 @@ def detect_density_excess(
     return all_corrections
 
 
+def _match_blocks_to_manifest(
+    pdf_blocks: list,
+    manifest_entries: list,
+) -> dict:
+    """Match PDF margin-note blocks to manifest entries by content fingerprint.
+
+    Each manifest entry has a ``text_prefix`` field (first 20 chars of plain
+    note text) and a ``letter`` field.  Each PDF block starts with the letter
+    followed by a space then the note text.  We match greedily: for each
+    manifest entry (in document order) we find the first unmatched block whose
+    text contains the entry's letter and text_prefix, consuming it.
+
+    Returns {manifest_idx: block_index_in_pdf_blocks} for matched entries.
+    Falls back to sequential matching for entries without ``text_prefix``.
+    """
+    used = set()
+    result: dict = {}
+
+    for entry in manifest_entries:
+        letter = entry["letter"]
+        prefix = entry.get("text_prefix", "")
+
+        best = None
+        for i, blk in enumerate(pdf_blocks):
+            if i in used:
+                continue
+            txt = blk["text"]
+            # Block text starts with the letter marker then the note body
+            starts_ok = txt.startswith(letter) and (
+                len(txt) <= len(letter) or not txt[len(letter)].isalpha()
+            )
+            if not starts_ok:
+                continue
+            if prefix and prefix[:10].lower() not in txt.lower():
+                continue
+            best = i
+            break
+
+        if best is None:
+            # Fall back: take first unused block (sequential)
+            for i in range(len(pdf_blocks)):
+                if i not in used:
+                    best = i
+                    break
+
+        if best is not None:
+            result[entry["idx"]] = best
+            used.add(best)
+
+    return result
+
+
+def _parse_aux_page_assignments(aux_path: str) -> list[int]:
+    """Parse the LaTeX aux file for marginnote page assignments.
+
+    Returns a list of absolute page numbers (1-based), one per \newmarginnote
+    entry in the aux file, in the order they appear.  Entry K in this list
+    gives the PDF page for the Kth margin note in document order.
+    """
+    pages: list[int] = []
+    pattern = re.compile(r"\\newmarginnote\{[^}]+\}\{\{(\d+)\}")
+    try:
+        with open(aux_path, encoding="utf-8", errors="replace") as f:
+            for line in f:
+                m = pattern.search(line)
+                if m:
+                    pages.append(int(m.group(1)))
+    except FileNotFoundError:
+        pass
+    return pages
+
+
 def detect(
     pdf_path: str,
     manifest_path: str,
@@ -187,13 +248,13 @@ def detect(
 ) -> dict:
     """Detect overlapping margin notes in a compiled PDF.
 
-    Matches margin notes in the PDF (by sequence) to manifest entries,
-    returns corrections keyed by manifest idx.
+    Uses the LaTeX aux file (same stem as pdf_path) for accurate page
+    assignments, then content-fingerprint matching within each page.
 
     Args:
         already_footnoted: Set of manifest idx values already demoted to
-            footnotes. These are skipped during sequential matching so the
-            PDF margin blocks stay aligned with the remaining manifest entries.
+            footnotes.  These are skipped so the aux-file index sequence
+            stays aligned with the remaining margin notes.
     """
     with open(manifest_path, "r") as f:
         manifest = json.load(f)
@@ -202,14 +263,31 @@ def detect(
         return {}
 
     footnoted = already_footnoted or set()
-    # Build ordered list of manifest entries that are still margin notes
+    # margin_manifest: notes still in the margin (in document order)
     margin_manifest = [e for e in manifest if e["idx"] not in footnoted]
+
+    # Read aux file page assignments (one per \newmarginnote, document order)
+    aux_path = os.path.splitext(pdf_path)[0] + ".aux"
+    aux_pages = _parse_aux_page_assignments(aux_path)
+
+    # Build per-PDF-page list of manifest entries using aux assignments.
+    # aux_pages has one entry per non-footnoted \marginnote in document order,
+    # matching margin_manifest entry-for-entry: aux_pages[K] is the PDF page
+    # for margin_manifest[K].
+    page_to_entries: dict[int, list] = {}
+    for k, entry in enumerate(margin_manifest):
+        if k >= len(aux_pages):
+            break
+        pdf_page = aux_pages[k]
+        page_to_entries.setdefault(pdf_page, []).append(entry)
 
     doc = fitz.open(pdf_path)
     all_corrections: dict = {}
-    global_note_idx = 0
 
     for page in doc:
+        pdf_page_1based = page.number + 1
+        page_entries = page_to_entries.get(pdf_page_1based, [])
+
         page_width = page.rect.width
         page_height = page.rect.height
         margin_x = page_width * 0.86
@@ -227,30 +305,26 @@ def detect(
             for b in raw_blocks
             if b["type"] == 0
         ]
-        left_blocks, right_blocks = _identify_margin_notes(text_blocks, margin_x=margin_x)
+        _, right_blocks = _identify_margin_notes(text_blocks, margin_x=margin_x)
 
-        # Detect overlaps in each column independently, then map to manifest
-        # in left-first, right-second order (matching the LaTeX sequence).
-        col_offset = 0
-        page_corrections: dict = {}
-        for col_blocks in (left_blocks, right_blocks):
-            rects = [b["bbox"] for b in col_blocks]
-            col_corr = detect_overlaps_from_rects(
-                rects, gap=GAP, page_height=page_height, bottom_margin=BOTTOM_MARGIN,
-                max_offset=max_offset,
-            )
-            for local_i, val in col_corr.items():
-                page_corrections[local_i + col_offset] = val
-            col_offset += len(rects)
+        if not right_blocks:
+            continue
 
-        total_blocks = col_offset
-        for local_i in range(total_blocks):
-            if global_note_idx >= len(margin_manifest):
-                break
-            if local_i in page_corrections:
-                manifest_idx = margin_manifest[global_note_idx]["idx"]
-                all_corrections[manifest_idx] = page_corrections[local_i]
-            global_note_idx += 1
+        # Match manifest entries to PDF blocks by content fingerprint
+        idx_to_block = _match_blocks_to_manifest(right_blocks, page_entries)
+
+        # Detect geometric overlaps in PDF y-order
+        rects = [b["bbox"] for b in right_blocks]
+        block_corrections = detect_overlaps_from_rects(
+            rects, gap=GAP, page_height=page_height, bottom_margin=BOTTOM_MARGIN,
+            max_offset=max_offset,
+        )
+
+        # Map overlapping block indices back to manifest idx
+        block_to_manifest = {v: k for k, v in idx_to_block.items()}
+        for block_i, correction in block_corrections.items():
+            if block_i in block_to_manifest:
+                all_corrections[block_to_manifest[block_i]] = correction
 
     doc.close()
     return all_corrections
