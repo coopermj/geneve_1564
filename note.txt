@@ -1,33 +1,17 @@
-## Session context — 2026-03-16
+## Session context — 2026-03-25/26
 
 ### What was done this session
 
-1. **Chapter navigation table**: Added wrapping chapter number links to every book title page.
-   - Generator emits `\gdef\bbookchaptable{...}` before `\bbook`
-   - Uses `\hspace{0.4em}` (breakable glue) as separator — fixes non-wrapping with `\enspace` (kern)
-   - Numbers are black, `\small` size, centered in a `\parbox[t]{\linewidth}`
-   - `\bbook` auto-resets `\bbookchaptable{}` after use
+1. **Word-spacing fix**
+   - `<p>` tags replaced with ' ' in _strip_html_tags() — prevents "outand"/"mebecause" merged words
+   - Affects NET (labs.bible.org) <p class="poetry"> inline line breaks
+   - Regenerated all 66 NET books + recompiled (master PDF now 1358 pages)
 
-2. **Per-page book bookmark**: `\faBookmark` icon in centered running header (`\chead`) links back to current book's title page.
-   - `\bbook` sets `\gdef\currentbookdir{#5}` AFTER `\clearpage` (so last pages of previous book don't see new value)
-   - `\chaptertablelink` command defined with `\makeatletter`/`\ifx\currentbookdir\@empty` guard
+2. **Cover pages added** — all three editions
+   - livres_esv/cover.tex: gospels blue double-border frame (TikZ: \usepackage{tikz} added to esv_bible.tex)
+   - Cover pattern: \onecolumn in main .tex before \input{cover}; \clearpage at END of cover file
 
-3. **Lettrine fixes** — `_make_lettrine()` now strips these as prefix before the drop cap:
-   - Opening quotes (`` `` `` and `` ` ``) — already existed
-   - `(` — bare open paren (e.g. 1 John 3: "(See what sort of love...")
-   - `(N:N)` cross-reference labels (e.g. `(5:27)`) — 25 NET chapters use alternate verse numbering
+3. **ESV now 1321 pages** with cover
 
-4. All books regenerated in all three compiled Bibles:
-   - `net_bible.pdf` (main, 1360pp): all 66 books
-   - `esv_bible.pdf` (main, 136pp): Genesis, Exodus, John
-   - `net_bible.pdf` (worktree/annotations, 2013pp): all 66 annotated books
-
-### Next task (incomplete)
-**Red-letter (words of Christ)**
-- Scripture package: `\redletteron` / `\redletteroff` commands (toggle mode, not per-span)
-- ESV: `<span class="woc">` already in cached HTML → parse and wrap
-- NET: labs.bible.org API has NO red-letter markup → need external data source
-- User interrupted search for data source; need to decide what source to use
-
-
-claude --resume 147732db-f381-431f-a7cb-3bf72921d34b
+### Next tasks
+- geneva-annotations overlap convergence still in progress

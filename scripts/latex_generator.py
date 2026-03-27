@@ -143,8 +143,8 @@ def _strip_html_tags(html: str) -> str:
     """
     text = html
 
-    # Remove <p> tags
-    text = re.sub(r'</?p[^>]*>', '', text)
+    # Replace <p> tags with a space to prevent adjacent words merging
+    text = re.sub(r'</?p[^>]*>', ' ', text)
 
     # Remove <st> tags but keep content
     text = re.sub(r'<st[^>]*>', '', text)
