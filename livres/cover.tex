@@ -1,0 +1,36 @@
+% Cover — NET Bible (two-column reading edition)
+\clearpage
+\thispagestyle{empty}%
+\begin{tikzpicture}[remember picture,overlay]
+  % Full-width accent rules
+  \fill[pauline!45]
+    ([yshift=-16mm]current page.north west) rectangle ([yshift=-20mm]current page.north east);
+  \fill[pauline!45]
+    ([yshift=16mm]current page.south west) rectangle ([yshift=20mm]current page.south east);
+  % Thin vertical rules flanking the title area — echoing two-column layout
+  \draw[color=pauline!35,line width=0.6pt]
+    ([xshift=22mm,yshift=-55mm]current page.north west) --
+    ([xshift=22mm,yshift=55mm]current page.south west);
+  \draw[color=pauline!35,line width=0.6pt]
+    ([xshift=-22mm,yshift=-55mm]current page.north east) --
+    ([xshift=-22mm,yshift=55mm]current page.south east);
+  % Short inner verticals (column rule suggestion)
+  \draw[color=pauline!20,line width=0.3pt]
+    ([xshift=26mm,yshift=-55mm]current page.north west) --
+    ([xshift=26mm,yshift=55mm]current page.south west);
+  \draw[color=pauline!20,line width=0.3pt]
+    ([xshift=-26mm,yshift=-55mm]current page.north east) --
+    ([xshift=-26mm,yshift=55mm]current page.south east);
+\end{tikzpicture}%
+\null\vspace*{72mm}
+\begin{center}
+  {\large\booktitlefont\scshape the holy bible\par}
+  \vspace{5pt}
+  {\color{pauline}\rule{26mm}{0.4pt}\enspace{\large\char"2766}\enspace\rule{26mm}{0.4pt}\par}
+  \vspace{12pt}
+  {\fontsize{44}{50}\selectfont\allurafont\color{pauline}Net Bible\par}
+  \vspace{16pt}
+  {\color{pauline!40}\rule{55mm}{0.3pt}\par}
+\end{center}
+\vfill
+\clearpage
