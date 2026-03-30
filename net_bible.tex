@@ -1,15 +1,86 @@
-\documentclass[paper=179mm:239mm,pagesize=auto,fontsize=11pt,headinclude=on,openany,oneside]{scrbook}
-\usepackage[left=18mm,right=55mm,top=15mm,bottom=15mm,includeheadfoot]{geometry}
+\documentclass[twocolumn,paper=179mm:239mm,pagesize=auto,fontsize=13pt,headinclude=on,openany,oneside]{scrbook}
+\areaset[8mm]{125mm}{210mm}
 
 \usepackage{marginnote}
-\renewcommand{\marginfont}{\fontsize{7.5}{9}\selectfont\itshape}
-% Single-column layout: marginnote correctly places notes in the outer (right)
-% margin without any patching needed.
-
-% Override \twocolumn / \onecolumn so that \bbook's \twocolumn[header] call
-% just outputs the header inline without switching the document to two-column.
-\renewcommand{\twocolumn}[1][]{#1}
-\renewcommand{\onecolumn}{}
+\renewcommand{\marginfont}{\fontsize{9}{10.5}\selectfont\itshape}
+% Force all \marginnote calls to the outer (right) margin in oneside twocolumn.
+% By default, marginnote sends left-column notes to the inner (binding) margin
+% by checking \@mn@currxpos against oddsidemargin+columnwidth+columnsep and
+% forcing \@tempswafalse for left-column text.  We redefine \@mn@margintest to
+% keep all xpos-detection logic but remove the \if@twocolumn overrides.
+\makeatletter
+\renewcommand*{\@mn@margintest}{%
+  \expandafter\ifx\csname @mn@thispage\endcsname\@empty
+    \gdef\@mn@atthispage{1}%
+  \else\expandafter\ifnum \@mn@thispage=\value{mn@abspage}%
+      \begingroup
+        \@tempcnta\@mn@atthispage\advance\@tempcnta by \@ne
+        \xdef\@mn@atthispage{\the\@tempcnta}%
+      \endgroup
+    \else
+      \gdef\@mn@atthispage{1}%
+    \fi
+  \fi
+  \xdef\@mn@thispage{\themn@abspage}%
+  \let\@mn@currpage\relax
+  \let\@mn@currxpos\relax
+  \mn@savepos
+  \protected@write\@auxout{\let\themn@abspage\relax}{%
+    \string\newmarginnote{note.\@mn@thispage.\@mn@atthispage}{%
+      {\themn@abspage}{\noexpand\number\mn@lastxpos sp}}%
+  }%
+  \expandafter\ifx\csname mn@note.\@mn@thispage.\@mn@atthispage\endcsname\relax
+    \if@twoside
+      \ifodd\value{mn@abspage}\@tempswatrue\else\@tempswafalse\fi
+    \else
+      \@tempswatrue
+    \fi
+  \else
+    \edef\@mn@currpage{\csname
+      mn@note.\@mn@thispage.\@mn@atthispage\endcsname}%
+    \edef\@mn@currxpos{\expandafter\@secondoftwo\@mn@currpage}%
+    \ifx\@mn@currxpos\@empty\else
+      \edef\@mn@currxpos{\the\dimexpr \@mn@currxpos -\hoffset\relax}%
+      \begingroup\expandafter\expandafter\expandafter\endgroup
+      \expandafter\ifx\csname pdfhorigin\endcsname\relax\else
+        \begingroup\expandafter\expandafter\expandafter\endgroup
+        \expandafter\ifx\csname pdfoutput\endcsname\relax
+          \begingroup\expandafter\expandafter\expandafter\endgroup
+          \expandafter\ifx\csname outputmode\endcsname\relax\else
+            \ifnum \outputmode=1 %
+              \edef\@mn@currxpos{\the\dimexpr \@mn@currxpos -\pdfhorigin
+                +1in\relax}%
+            \fi
+          \fi
+        \else
+          \ifnum \pdfoutput=1 %
+            \edef\@mn@currxpos{\the\dimexpr \@mn@currxpos -\pdfhorigin
+              +1in\relax}%
+          \fi
+        \fi
+      \fi
+      \ifdefined\mn@pagewidth
+        \@mn@if@RTL{%
+          \edef\@mn@currxpos{%
+            \the\dimexpr\mn@pagewidth-\@mn@currxpos\relax
+          }%
+        }{}%
+      \fi
+    \fi
+    \edef\@mn@currpage{\expandafter\@firstoftwo\@mn@currpage}%
+    % oneside layout: always use outer (right) margin regardless of column
+    \if@twoside
+      \ifodd\@mn@currpage\relax
+        \@tempswatrue
+      \else
+        \@tempswafalse
+      \fi
+    \else
+      \@tempswatrue
+    \fi
+  \fi
+}
+\makeatother
 \usepackage{ragged2e}
 
 \usepackage{fontspec}
@@ -111,6 +182,9 @@
   {\begin{spacing}{0.8}\itshape\scriptsize\hspace{-1em}}
   {\end{spacing}}
 
+% Footnotes
+\usepackage{alphalph}
+
 % Bible books
 \usepackage{titlesec}
 \usepackage{fourier-orns}
@@ -182,12 +256,14 @@
 \setlength{\parindent}{1em}
 \setlength{\parskip}{0pt}
 
-\linespread{0.95}
+\linespread{0.9}
+\setlength{\columnsep}{6mm}
 
 % Language
 \usepackage[english]{babel}
 
 \usepackage{fontawesome5}
+\usepackage{multicol}
 \usepackage{needspace}
 \usepackage{amssymb}
 \usepackage{tikz}
