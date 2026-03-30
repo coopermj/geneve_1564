@@ -12,19 +12,16 @@ _PROJECT_ROOT = os.path.dirname(_SCRIPT_DIR)
 GAP = 2.0
 BOTTOM_MARGIN = 36.0
 
-# All margin notes go to the outer (right) margin only.
-# \@mn@margintest has been patched to always return \@tempswatrue so that
-# left-column text no longer sends notes to the inner (binding) margin.
-# The right-margin threshold: blocks whose left edge > 0.86 * page_width.
+# Single-column layout with 55mm right margin: notes appear in the outer
+# (right) margin.  Threshold: blocks whose left edge > 0.68 * page_width.
 
 
 def _identify_margin_notes(blocks: list, margin_x: float) -> tuple[list, list]:
     """Return (left_blocks, right_blocks) for the outer margin zone.
 
-    With the marginnote patch in net_bible.tex, ALL notes appear in the
-    outer (right) margin regardless of column.  left_blocks is always
-    empty; right_blocks contains all margin-note blocks sorted top-to-bottom.
-    The two-element return keeps the call-sites unchanged.
+    Single-column layout: ALL notes appear in the outer (right) margin.
+    left_blocks is always empty; right_blocks contains margin-note blocks
+    sorted top-to-bottom.  The two-element return keeps call-sites unchanged.
     """
     right = sorted(
         [b for b in blocks if b["bbox"][0] > margin_x],
@@ -133,7 +130,7 @@ def detect_density_excess(
     for page in doc:
         page_width = page.rect.width
         page_height = page.rect.height
-        margin_x = page_width * 0.86
+        margin_x = page_width * 0.68
         usable_bottom = page_height - bottom_margin
 
         raw_blocks = page.get_text("dict")["blocks"]
