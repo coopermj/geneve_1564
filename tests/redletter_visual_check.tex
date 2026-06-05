@@ -1,0 +1,18 @@
+\documentclass[12pt]{scrbook}
+\usepackage{xcolor}
+\usepackage{scripture}
+\scripturesetup{
+  chapter/drop=false,
+  chapter/para=true,
+  verse/format=\textsuperscript{#1},
+  verse/first=false,
+  redletter=true,
+  redletter/colour=red,
+}
+\begin{document}
+\begin{scripture}
+% Mimics the generated ESV pattern: each red verse independently wrapped
+% \redletteron ... \redletteroff, with \vs{N} between an off->on pair.
+\ch{14} \redletteron ``Let not your hearts be troubled. Believe in God; believe also in me.\redletteroff \vs{2} \redletteron In my Father's house are many rooms.\redletteroff \vs{3} \redletteron And if I go and prepare a place for you, I will come again and will take you to myself.\redletteroff \vs{4} \redletteron And you know the way to where I am going.\redletteroff \vs{5} Thomas said to him, ``Lord, we do not know where you are going. How can we know the way?'' \vs{6} Jesus said to him, \redletteron ``I am the way, and the truth, and the life. No one comes to the Father except through me.\redletteroff
+\end{scripture}
+\end{document}
