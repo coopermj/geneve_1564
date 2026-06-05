@@ -79,7 +79,7 @@ def _render_red_letter(text: str, desc, state: "_RLState") -> str:
     if state.in_jesus or desc.get("starts_in_jesus"):
         if not state.in_jesus:
             state.in_jesus = True
-            state.open_depth = state.depth
+            state.open_depth = 0
         out.append("\\redletteron ")
 
     opens = desc.get("opens", [])
@@ -115,6 +115,8 @@ def _render_red_letter(text: str, desc, state: "_RLState") -> str:
 
     if state.in_jesus:
         out.append("\\redletteroff ")
+        state.in_jesus = False
+        state.open_depth = None
     return "".join(out)
 
 
