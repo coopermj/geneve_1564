@@ -28,10 +28,20 @@ def _load_red_letter_verses() -> dict:
     return _red_letter_verses
 
 
-def _is_red_letter(book_dir: str, chapter: int, verse: int) -> bool:
+def _get_red_letter_desc(book_dir: str, chapter: int, verse: int):
+    """Return the red-letter descriptor for a verse, or None.
+
+    Descriptor: {"opens": [bool...], "starts_in_jesus": bool}. Returns None for
+    verses with no Words of Christ (or legacy/missing data).
+    """
     data = _load_red_letter_verses()
-    verses = data.get(book_dir, {}).get(str(chapter), [])
-    return verse in verses
+    chapters = data.get(book_dir)
+    if not isinstance(chapters, dict):
+        return None
+    verses = chapters.get(str(chapter))
+    if not isinstance(verses, dict):  # legacy list format -> no descriptors
+        return None
+    return verses.get(str(verse))
 
 
 class _RLState:

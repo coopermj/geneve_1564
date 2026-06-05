@@ -129,6 +129,19 @@ leak = lg._render_red_letter("crowd ``A'' jesus ``B''", D([False, True], False),
 check("no depth leak after non-jesus verse", "\\redletteron ``B''" in leak, leak)
 check("depth reset to 0 on None verse", st.depth == 0 or True, st.depth)
 
+print("latex_generator._get_red_letter_desc")
+# Inject a fake v2 dataset and confirm lookup returns descriptors / None.
+lg._red_letter_verses = {
+    "_format": 2,
+    "john": {"3": {"16": {"opens": [True], "starts_in_jesus": False}}},
+}
+check("desc lookup hit",
+      lg._get_red_letter_desc("john", 3, 16) == {"opens": [True], "starts_in_jesus": False},
+      lg._get_red_letter_desc("john", 3, 16))
+check("desc lookup miss", lg._get_red_letter_desc("john", 3, 17) is None, "miss")
+check("desc lookup unknown book", lg._get_red_letter_desc("genesis", 1, 1) is None, "book")
+lg._red_letter_verses = None  # reset cache
+
 if _failures:
     print(f"\n{len(_failures)} FAILED: {_failures}")
     sys.exit(1)
