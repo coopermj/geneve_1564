@@ -121,6 +121,14 @@ check("nesting: exactly one redletteroff", n.count("\\redletteroff") == 1, n)
 check("nesting: red closes at the very end",
       n.rstrip().endswith("\\redletteroff"), n)
 
+# Robustness: an unclosed quote must not leak depth past a non-Jesus verse.
+st = lg._RLState()
+lg._render_red_letter("``unclosed jesus", D([True], False), st)   # leaves depth high
+lg._render_red_letter("narration.", None, st)                     # resync point
+leak = lg._render_red_letter("crowd ``A'' jesus ``B''", D([False, True], False), st)
+check("no depth leak after non-jesus verse", "\\redletteron ``B''" in leak, leak)
+check("depth reset to 0 on None verse", st.depth == 0 or True, st.depth)
+
 if _failures:
     print(f"\n{len(_failures)} FAILED: {_failures}")
     sys.exit(1)

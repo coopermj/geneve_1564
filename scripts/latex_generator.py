@@ -58,8 +58,11 @@ def _render_red_letter(text: str, desc, state: "_RLState") -> str:
     if desc is None:
         if state.in_jesus:
             out.append("\\redletteroff ")
-            state.in_jesus = False
-            state.open_depth = None
+        # A non-Jesus verse is a safe resync point: clear all quote state so a
+        # stray unclosed quote in earlier text cannot leak depth into later verses.
+        state.in_jesus = False
+        state.open_depth = None
+        state.depth = 0
         out.append(text)
         return "".join(out)
 
