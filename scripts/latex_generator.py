@@ -102,6 +102,9 @@ def _load_argument(book_dir: str) -> str | None:
 
 # LaTeX special characters that need escaping
 _LATEX_SPECIAL = {
+    "\\": r"\textbackslash{}",
+    "{": r"\{",
+    "}": r"\}",
     "&": r"\&",
     "%": r"\%",
     "$": r"\$",
@@ -113,23 +116,14 @@ _LATEX_SPECIAL = {
 
 
 def _escape_latex(text: str) -> str:
-    """Escape LaTeX special characters, but preserve existing commands."""
-    # We process character by character, skipping backslash sequences
-    result = []
-    i = 0
-    while i < len(text):
-        ch = text[i]
-        if ch == "\\":
-            # Keep backslash sequences as-is (LaTeX commands)
-            result.append(ch)
-            i += 1
-        elif ch in _LATEX_SPECIAL:
-            result.append(_LATEX_SPECIAL[ch])
-            i += 1
-        else:
-            result.append(ch)
-            i += 1
-    return "".join(result)
+    r"""Escape LaTeX special characters in raw source prose.
+
+    IMPORTANT: this must be called on bare text BEFORE any LaTeX commands
+    (\textsc, \lettrine, \vs, ...) are injected. Escaping happens per
+    character, so it also escapes literal ``\``, ``{`` and ``}`` in the
+    source -- which is only safe while no genuine commands are present.
+    """
+    return "".join(_LATEX_SPECIAL.get(ch, ch) for ch in text)
 
 
 def _strip_html_tags(html: str) -> str:
@@ -315,11 +309,16 @@ def _starts_paragraph(raw_html: str) -> bool:
 
 
 def _process_verse_text(raw_html: str) -> str:
-    """Full pipeline: strip HTML, convert quotes, escape, apply divine names."""
+    """Full pipeline: strip HTML, escape, convert quotes, apply divine names.
+
+    Escaping runs on the bare prose BEFORE smart-quote and divine-name
+    commands are injected, so literal ``{``, ``}`` and ``\\`` in the source
+    are escaped without corrupting the injected ``\\textsc{}`` commands.
+    """
     text = _strip_html_tags(raw_html)
+    text = _escape_latex(text)
     text = _convert_smart_quotes(text)
     text = _apply_divine_names(text)
-    text = _escape_latex(text)
     return text
 
 
@@ -341,9 +340,9 @@ def generate_book_tex(
     lines.append(f"% NET Bible text, scripture package formatting")
 
     heading_img = _find_heading_image(book.directory)
-    escaped_title = book.long_title
-    escaped_sub = book.subtitle
-    argument = _load_argument(book.directory) or ""
+    escaped_title = _escape_latex(book.long_title)
+    escaped_sub = _escape_latex(book.subtitle)
+    argument = _escape_latex(_load_argument(book.directory) or "")
     sorted_chapters = sorted(chapters_data.keys())
     ch_table = _chapter_table(book.directory, sorted_chapters)
     lines.append(f"\\gdef\\bbookchaptable{{{ch_table}}}")

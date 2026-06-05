@@ -56,6 +56,9 @@ def _load_argument(book_dir: str) -> str | None:
 # ── LaTeX escaping ──────────────────────────────────────────────────────
 
 _LATEX_SPECIAL = {
+    "\\": r"\textbackslash{}",
+    "{": r"\{",
+    "}": r"\}",
     "&": r"\&",
     "%": r"\%",
     "$": r"\$",
@@ -67,20 +70,13 @@ _LATEX_SPECIAL = {
 
 
 def _escape_latex(text: str) -> str:
-    result = []
-    i = 0
-    while i < len(text):
-        ch = text[i]
-        if ch == "\\":
-            result.append(ch)
-            i += 1
-        elif ch in _LATEX_SPECIAL:
-            result.append(_LATEX_SPECIAL[ch])
-            i += 1
-        else:
-            result.append(ch)
-            i += 1
-    return "".join(result)
+    r"""Escape LaTeX specials in raw prose.
+
+    Must be called on bare text BEFORE any LaTeX command (\textit, \vs,
+    \markboth, \textsc, ...) is injected: it escapes literal ``\``, ``{``
+    and ``}`` too, which would corrupt genuine commands if any were present.
+    """
+    return "".join(_LATEX_SPECIAL.get(ch, ch) for ch in text)
 
 
 def _convert_smart_quotes(text: str) -> str:
@@ -178,15 +174,21 @@ def _parse_footnotes(html: str) -> dict[str, str]:
 
 
 def _clean_footnote_text(text: str) -> str:
-    """Convert footnote HTML to LaTeX-safe text."""
+    """Convert footnote HTML to LaTeX-safe text.
+
+    Prose is escaped BEFORE \\textit is injected, so literal braces/backslash
+    in the note text are escaped without corrupting the injected command.
+    """
     text = re.sub(r'</?note[^>]*>', '', text)
-    text = re.sub(r'<i[^>]*>(.*?)</i>', r'\\textit{\1}', text)
     text = re.sub(r'<span[^>]*>(.*?)</span>', r'\1', text)
-    text = re.sub(r'<[^>]+>', '', text)
-    text = unescape(text).strip()
-    text = _convert_smart_quotes(text)
+    text = unescape(text)
+    # Escape bare prose first; <i> tags survive (no special chars), then
+    # become \textit after escaping.
     text = _escape_latex(text)
-    return text
+    text = re.sub(r'<i[^>]*>(.*?)</i>', r'\\textit{\1}', text)
+    text = re.sub(r'<[^>]+>', '', text)
+    text = _convert_smart_quotes(text)
+    return text.strip()
 
 
 def _strip_footnote_div(html: str) -> str:
@@ -219,11 +221,17 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
         r'<sup class="footnote">\s*<a[^>]*id="(fb\d+-\d+)"[^>]*>\d+</a>\s*</sup>'
     )
 
-    def _collect_and_replace_fns(block_html: str) -> str:
-        """Combine all footnotes in a block into one margin note at the end."""
+    def _collect_and_replace_fns(block_html: str) -> tuple[str, str]:
+        """Strip footnote markers from a block.
+
+        Returns ``(clean_block, margin_note)``. The margin note (built from
+        already-escaped footnote text) is returned separately so the caller
+        can append it AFTER the block's prose is escaped -- appending it
+        beforehand would let _escape_latex corrupt the \\marginnote braces.
+        """
         matches = list(_fn_pattern.finditer(block_html))
         if not matches:
-            return block_html
+            return block_html, ""
         # Collect all footnote texts
         fn_texts = []
         for m in matches:
@@ -232,12 +240,12 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                 fn_texts.append(fn_text)
         # Remove all footnote markers
         result = _fn_pattern.sub("", block_html)
-        # Append combined margin note at end of block (avoids lettrine conflicts)
+        # Build combined margin note (appended by caller after escaping)
+        note = ""
         if fn_texts:
             combined = " \\\\[1pt] ".join(fn_texts)
-            note = f"\\marginnote{{\\tiny {combined}}}"
-            result = result.rstrip() + " " + note
-        return result
+            note = f" \\marginnote{{\\tiny {combined}}}"
+        return result, note
 
     # Apply per-block footnote grouping, then split
     # First strip the footnotes div so we don't process it
@@ -251,8 +259,8 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
         if not block:
             continue
 
-        # Combine footnotes per block into a single margin note
-        block = _collect_and_replace_fns(block)
+        # Strip footnote markers; the margin note is appended after escaping.
+        block, margin_note = _collect_and_replace_fns(block)
 
         # Section heading
         h3 = re.match(r'<h3[^>]*>(.*?)</h3>', block)
@@ -285,23 +293,16 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
             block,
         )
 
-        # Strip all remaining HTML tags except our \footnotemain insertions
-        # First, handle verse-num markers -> \vs{N}
-        def _replace_verse(m: re.Match) -> str:
-            vnum = m.group(1).strip()
-            mark = f"\\markboth{{{book.name} {ch_num}:{vnum}}}{{{book.name} {ch_num}:{vnum}}}"
-            return f"{mark}\\vs{{{vnum}}} "
-
         para_text = block
         # Remove <p> and </p>
         para_text = re.sub(r'</?p[^>]*>', '', para_text)
         # Remove chapter-num <b> tag (we handle it separately)
         para_text = re.sub(r'<b class="chapter-num[^"]*"[^>]*>.*?</b>', '', para_text)
-        # Convert <span class="woc">...</span> to redletter toggles before
-        # stripping all other tags. Use sentinels to survive the tag strip.
+        # Mark woc spans with sentinels (\x01 open, \x02 close) so they
+        # survive tag-stripping AND escaping; restored to redletter toggles
+        # after escaping. Sentinels are control chars, never escaped.
         para_text = re.sub(r'<span class="woc">', '\x01', para_text)
-        # Track which </span> closes a woc: replace </span> after sentinel
-        # with closing sentinel. Any other </span> becomes empty (stripped).
+
         def _close_woc(text: str) -> str:
             depth = 0
             result = []
@@ -311,7 +312,7 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                     depth += 1
                     result.append('\x01')
                     i += 1
-                elif text[i:i+6] == '</spa' and depth > 0:
+                elif text.startswith('</span>', i) and depth > 0:
                     result.append('\x02')
                     depth -= 1
                     i += len('</span>')
@@ -320,22 +321,37 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                     i += 1
             return ''.join(result)
         para_text = _close_woc(para_text)
-        # Replace verse-num <b> tags
+
+        # Replace verse-num <b> tags with a numeric sentinel (\x03 N \x04).
+        # The real \markboth/\vs commands are restored AFTER escaping so the
+        # command braces are not escaped.
         para_text = re.sub(
             r'<b class="verse-num[^"]*"[^>]*>\s*(\d+)[^<]*</b>',
-            _replace_verse,
+            lambda m: f"\x03{m.group(1).strip()}\x04",
             para_text,
         )
-        # Remove any remaining HTML tags (but preserve \footnotemain)
+        # Strip remaining HTML tags and decode entities -> bare prose.
         para_text = re.sub(r'<[^>]+>', '', para_text)
         para_text = unescape(para_text)
+        # Escape bare prose BEFORE injecting any LaTeX commands.
+        para_text = _escape_latex(para_text)
+        # Inject commands into the now-escaped prose.
         para_text = _convert_smart_quotes(para_text)
         para_text = _apply_divine_names(para_text)
-        para_text = _escape_latex(para_text)
-        para_text = re.sub(r'\s+', ' ', para_text).strip()
+
+        # Restore verse-number sentinels -> running header + \vs.
+        def _restore_verse(m: re.Match) -> str:
+            v = m.group(1)
+            mark = f"\\markboth{{{book.name} {ch_num}:{v}}}{{{book.name} {ch_num}:{v}}}"
+            return f"{mark}\\vs{{{v}}} "
+        para_text = re.sub('\x03(\\d+)\x04', _restore_verse, para_text)
         # Restore woc sentinels as redletter commands
         para_text = para_text.replace('\x01', '\\redletteron ')
         para_text = para_text.replace('\x02', '\\redletteroff ')
+        para_text = re.sub(r'\s+', ' ', para_text).strip()
+        # Append this block's combined footnote margin note (already escaped),
+        # after escaping so its \marginnote braces survive intact.
+        para_text = (para_text + margin_note).strip()
 
         if not para_text:
             continue
@@ -387,9 +403,9 @@ def generate_book_tex(
     lines.append(f"% ESV Bible text, scripture package formatting")
 
     heading_img = _find_heading_image(book.directory)
-    escaped_title = book.long_title
-    escaped_sub = book.subtitle
-    argument = _load_argument(book.directory) or ""
+    escaped_title = _escape_latex(book.long_title)
+    escaped_sub = _escape_latex(book.subtitle)
+    argument = _escape_latex(_load_argument(book.directory) or "")
     sorted_chapters = sorted(chapters_html.keys())
     ch_table = _chapter_table(book.directory, sorted_chapters)
     lines.append(f"\\gdef\\bbookchaptable{{{ch_table}}}")
