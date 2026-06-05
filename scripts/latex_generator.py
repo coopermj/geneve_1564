@@ -422,13 +422,14 @@ def generate_book_tex(
         # lettrine zone use \\ (preserving \parshape) instead of \par
         # which would reset the shape and let text overlap the drop cap.
         lettrine_char_budget = 0
+        rl_state = _RLState()
 
         for verse in verses:
             verse_num = int(verse["verse"])
             raw_html = verse["text"]
             new_para = _starts_paragraph(raw_html)
             text = _process_verse_text(raw_html)
-            is_rl = _is_red_letter(book.directory, ch_num, verse_num)
+            desc = _get_red_letter_desc(book.directory, ch_num, verse_num)
 
             if verse_num == 1:
                 # Chapter start — use \ch{N} with lettrine drop cap.
@@ -447,8 +448,7 @@ def generate_book_tex(
                     lettrine_text = _make_lettrine(text, lettrine_lines=5, color=book.group)
                     lettrine_char_budget = 5 * 80
                 lettrine_char_budget -= len(text)
-                if is_rl:
-                    lettrine_text = _apply_red_letter_quotes(lettrine_text)
+                lettrine_text = _render_red_letter(lettrine_text, desc, rl_state)
                 lines.append(f"\\markboth{{{book.name} {ch_num}:1}}{{{book.name} {ch_num}:1}}")
                 # Ensure enough vertical space for the chapter heading +
                 # lettrine before starting.  Without this, the scripture
@@ -460,8 +460,7 @@ def generate_book_tex(
                 lines.append(f"\\ch{{{ch_num}}} \\allowchapbreak\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{lettrine_text}\\everypar{{}}")
             else:
                 lettrine_char_budget -= len(text)
-                if is_rl:
-                    text = _apply_red_letter_quotes(text)
+                text = _render_red_letter(text, desc, rl_state)
                 mark = f"\\markboth{{{book.name} {ch_num}:{verse_num}}}{{{book.name} {ch_num}:{verse_num}}}"
                 if new_para:
                     if lettrine_char_budget > 0 and not is_poetry:
