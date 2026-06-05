@@ -39,6 +39,39 @@ check("drops footnote text",
       == ["foo", "bar"],
       repr(brd._clean_web_verse(raw_fn)))
 
+print("build_red_letter_data.parse_verse_descriptor")
+
+OPEN, CLOSE, SOPEN, SCLOSE = "“", "”", "‘", "’"
+
+def wj(s):  # wrap in a words-of-Jesus span
+    return r"\wj " + s + r"\wj*"
+
+# Leading frame: narrator, then Jesus opens a quote.
+d = brd.parse_verse_descriptor("He answered, " + wj(OPEN + "It is written." + CLOSE))
+check("leading frame opens=[True]", d == {"opens": [True], "starts_in_jesus": False}, d)
+
+# Continuation verse: \wj words, no quote mark.
+d = brd.parse_verse_descriptor(wj("Blessed are those who mourn,"))
+check("continuation starts_in_jesus", d == {"opens": [], "starts_in_jesus": True}, d)
+
+# Mixed speaker: crowd quote (not wj) then Jesus quote (wj).
+d = brd.parse_verse_descriptor(
+    "they said, " + OPEN + "We don't know." + CLOSE + " he said, "
+    + wj(OPEN + "Neither will I." + CLOSE))
+check("mixed speaker opens=[False,True]",
+      d == {"opens": [False, True], "starts_in_jesus": False}, d)
+
+# Non-Jesus quote only -> None.
+d = brd.parse_verse_descriptor("they said, " + OPEN + "We don't know." + CLOSE)
+check("non-jesus -> None", d is None, d)
+
+# Nested Scripture quote inside Jesus' words: one top-level open, still Jesus.
+d = brd.parse_verse_descriptor(
+    "he answered, " + wj(OPEN + "It is written, " + SOPEN + "Man shall not live"
+                         + SCLOSE + CLOSE))
+check("nested single stays one top-level open",
+      d == {"opens": [True], "starts_in_jesus": False}, d)
+
 if _failures:
     print(f"\n{len(_failures)} FAILED: {_failures}")
     sys.exit(1)

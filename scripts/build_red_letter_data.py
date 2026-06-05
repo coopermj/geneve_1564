@@ -52,6 +52,54 @@ def _clean_web_verse(raw: str) -> str:
     return t
 
 
+def parse_verse_descriptor(raw: str):
+    r"""Return {"opens": [bool...], "starts_in_jesus": bool} or None.
+
+    opens: one flag per TOP-LEVEL double-quote open in the verse, in order;
+           True if that quote begins inside a \wj (Jesus) span.
+    starts_in_jesus: the verse's first content begins inside a \wj span with
+           no opening double quote (a continuation verse).
+    Returns None if the verse contains no Words of Christ.
+    """
+    t = _clean_web_verse(raw)
+    in_wj = False
+    depth = 0
+    opens: list[bool] = []
+    starts = False
+    seen = False
+    jesus = False
+    for ch in t:
+        if ch == "\x01":
+            in_wj = True
+            continue
+        if ch == "\x02":
+            in_wj = False
+            continue
+        if ch == "“":  # open double
+            if depth == 0:
+                opens.append(in_wj)
+            if in_wj:
+                jesus = True
+            depth += 1
+            seen = True
+            continue
+        if ch == "”":  # close double
+            depth = max(0, depth - 1)
+            seen = True
+            continue
+        if ch.isspace():
+            continue
+        if not seen:
+            seen = True
+            if in_wj and depth == 0:
+                starts = True
+        if in_wj:
+            jesus = True
+    if not jesus:
+        return None
+    return {"opens": opens, "starts_in_jesus": starts}
+
+
 def parse_usfm_for_wj(filepath: str) -> dict[str, list[int]]:
     """Return {chapter_str: [verse_nums_with_wj]} for one USFM file."""
     result: dict[str, list[int]] = {}
