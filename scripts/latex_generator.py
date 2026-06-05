@@ -34,33 +34,75 @@ def _is_red_letter(book_dir: str, chapter: int, verse: int) -> bool:
     return verse in verses
 
 
-def _apply_red_letter_quotes(text: str) -> str:
-    """Within a red-letter verse, wrap TeX double-quoted spans in redletter commands.
+class _RLState:
+    """Red-letter state carried across the verses of one chapter."""
 
-    Finds ``...'' pairs and wraps them with \\redletteron/\\redletteroff.
-    Unquoted framing text (e.g. "Jesus said,") is left as plain text.
-    If a `` opens with no matching '' in the verse, colors from `` to end.
+    def __init__(self) -> None:
+        self.in_jesus = False
+        self.depth = 0           # double-quote nesting depth
+        self.open_depth = None   # depth at which the active Jesus quote opened
+
+
+def _render_red_letter(text: str, desc, state: "_RLState") -> str:
+    r"""Insert \redletteron/\redletteroff into one verse's TeX text.
+
+    desc is {"opens": [bool...], "starts_in_jesus": bool} or None (no Words of
+    Christ in this verse). Mutates `state`. Red turns off only when double-quote
+    depth returns to the level where Jesus' quote opened, so nested quotes
+    (single, or 3rd-level double) stay red. Each verse's trailing \redletteroff
+    keeps the next verse number black; carried `in_jesus` reopens it.
     """
-    parts = []
+    OPEN, CLOSE = "``", "''"
+    out: list[str] = []
+
+    if desc is None:
+        if state.in_jesus:
+            out.append("\\redletteroff ")
+            state.in_jesus = False
+            state.open_depth = None
+        out.append(text)
+        return "".join(out)
+
+    if state.in_jesus or desc.get("starts_in_jesus"):
+        if not state.in_jesus:
+            state.in_jesus = True
+            state.open_depth = state.depth
+        out.append("\\redletteron ")
+
+    opens = desc.get("opens", [])
+    k = 0
     i = 0
-    while i < len(text):
-        open_pos = text.find('``', i)
-        if open_pos == -1:
-            parts.append(text[i:])
-            break
-        parts.append(text[i:open_pos])
-        close_pos = text.find("''", open_pos + 2)
-        if close_pos == -1:
-            parts.append('\\redletteron ')
-            parts.append(text[open_pos:])
-            parts.append('\\redletteroff')
-            break
-        else:
-            parts.append('\\redletteron ')
-            parts.append(text[open_pos:close_pos + 2])
-            parts.append('\\redletteroff')
-            i = close_pos + 2
-    return ''.join(parts)
+    n = len(text)
+    while i < n:
+        two = text[i:i + 2]
+        if two == OPEN:
+            if state.depth == 0:  # top-level open
+                if not state.in_jesus:
+                    is_j = opens[k] if k < len(opens) else False
+                    if is_j:
+                        out.append("\\redletteron ")
+                        state.in_jesus = True
+                        state.open_depth = state.depth
+                k += 1
+            state.depth += 1
+            out.append(OPEN)
+            i += 2
+            continue
+        if two == CLOSE:
+            state.depth = max(0, state.depth - 1)
+            out.append(CLOSE)
+            i += 2
+            if state.in_jesus and state.depth == state.open_depth:
+                out.append("\\redletteroff ")
+                state.in_jesus = False
+                state.open_depth = None
+            continue
+        out.append(text[i])
+        i += 1
+
+    if state.in_jesus:
+        out.append("\\redletteroff ")
+    return "".join(out)
 
 
 def _load_poetry_config() -> dict:

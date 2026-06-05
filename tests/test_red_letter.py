@@ -72,6 +72,55 @@ d = brd.parse_verse_descriptor(
 check("nested single stays one top-level open",
       d == {"opens": [True], "starts_in_jesus": False}, d)
 
+print("latex_generator._render_red_letter")
+import latex_generator as lg
+
+# Render a chapter of verses given (text, descriptor) pairs; return list of
+# rendered strings sharing one state.
+def render_chapter(verses):
+    st = lg._RLState()
+    return [lg._render_red_letter(t, d, st) for (t, d) in verses]
+
+D = lambda opens, starts: {"opens": opens, "starts_in_jesus": starts}
+
+# Sermon continuation: v3 opens, v4 continues (NET closes each beatitude).
+out = render_chapter([
+    ("``Blessed are the poor in spirit.''", D([True], False)),
+    ("``Blessed are those who mourn.''", D([], True)),
+])
+check("v3 leading wraps quote",
+      out[0] == "\\redletteron ``Blessed are the poor in spirit.''\\redletteroff ", out[0])
+check("v4 continuation is red",
+      out[1].startswith("\\redletteron ") and out[1].rstrip().endswith("\\redletteroff"),
+      out[1])
+
+# Plain narration after Jesus stops: descriptor None closes red, stays off.
+st = lg._RLState()
+a = lg._render_red_letter("``I am he.''", D([True], False), st)
+b = lg._render_red_letter("Then they left.", None, st)
+check("narration after jesus is black", "redletter" not in b, b)
+check("narration does not reopen", b == "Then they left.", b)
+
+# Mixed speaker: crowd quote black, Jesus quote red.
+st = lg._RLState()
+m = lg._render_red_letter(
+    "they said, ``We don't know.'' he said, ``Neither.''",
+    D([False, True], False), st)
+check("mixed: crowd quote not preceded by redletteron",
+      m.index("``We") < m.find("\\redletteron") if "\\redletteron" in m else False, m)
+check("mixed: jesus quote turns red",
+      "\\redletteron ``Neither.''\\redletteroff" in m, m)
+
+# 3rd-level nesting: inner double must NOT end the red early.
+st = lg._RLState()
+n = lg._render_red_letter(
+    "``It is `the stone the builders ``rejected'' became' great.''",
+    D([True], False), st)
+check("nesting: exactly one redletteron", n.count("\\redletteron") == 1, n)
+check("nesting: exactly one redletteroff", n.count("\\redletteroff") == 1, n)
+check("nesting: red closes at the very end",
+      n.rstrip().endswith("\\redletteroff"), n)
+
 if _failures:
     print(f"\n{len(_failures)} FAILED: {_failures}")
     sys.exit(1)
