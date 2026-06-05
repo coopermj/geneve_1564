@@ -142,6 +142,72 @@ check("desc lookup miss", lg._get_red_letter_desc("john", 3, 17) is None, "miss"
 check("desc lookup unknown book", lg._get_red_letter_desc("genesis", 1, 1) is None, "book")
 lg._red_letter_verses = None  # reset cache
 
+print("integration: generate Matthew & John from cache")
+import subprocess, tempfile, glob as _glob, shutil as _shutil
+
+_root = os.path.join(os.path.dirname(__file__), "..")
+_real_cache = os.path.join(_root, "data", "net_bible_cache")
+
+
+def _make_john_cache(cache_dir: str) -> None:
+    """Populate `cache_dir` with synthetic John chapter JSON files.
+
+    Because labs.bible.org is not reachable in this environment, we build
+    John's cache by copying Matthew chapter files (same JSON schema) and
+    relabelling bookname/chapter so generate_bible.py can run fully offline.
+    John has 21 chapters; Matthew has 28, so there is always a source file.
+    """
+    import json as _json
+
+    for ch in range(1, 22):  # John 1–21
+        src = os.path.join(_real_cache, f"matthew_{ch}.json")
+        dst = os.path.join(cache_dir, f"john_{ch}.json")
+        verses = _json.loads(open(src, encoding="utf-8").read())
+        for v in verses:
+            v["bookname"] = "John"
+            v["chapter"] = str(ch)
+        with open(dst, "w", encoding="utf-8") as fh:
+            _json.dump(verses, fh, ensure_ascii=False)
+
+
+def _generate_book_tex(book_dir: str, extra_cache_dir: str | None = None) -> str:
+    tmp = tempfile.mkdtemp(prefix="net_rl_")
+    cache_dir = _real_cache
+    if extra_cache_dir:
+        # Use a combined cache: real cache + extra files
+        cache_dir = extra_cache_dir
+    subprocess.run(
+        [sys.executable, os.path.join(_root, "scripts", "generate_bible.py"),
+         "--books", book_dir, "--output-dir", tmp,
+         "--cache-dir", cache_dir],
+        check=True, capture_output=True, text=True,
+    )
+    path = os.path.join(tmp, book_dir, f"{book_dir}.tex")
+    with open(path, encoding="utf-8") as fh:
+        return fh.read()
+
+
+# Matthew: cache already present
+tex_mat = _generate_book_tex("matthew")
+on_mat = tex_mat.count("\\redletteron")
+off_mat = tex_mat.count("\\redletteroff")
+check("matthew: emits red letter", on_mat > 50, f"on={on_mat}")
+check("matthew: toggles balanced", on_mat == off_mat, f"on={on_mat} off={off_mat}")
+
+# John: build synthetic cache first
+_john_cache = tempfile.mkdtemp(prefix="net_rl_john_cache_")
+# Copy real Matthew cache files into the john cache dir so any Matthew
+# chapters referenced by generate_bible.py's helper code are available too.
+for _f in _glob.glob(os.path.join(_real_cache, "matthew_*.json")):
+    _shutil.copy(_f, _john_cache)
+_make_john_cache(_john_cache)
+
+tex_jn = _generate_book_tex("john", extra_cache_dir=_john_cache)
+on_jn = tex_jn.count("\\redletteron")
+off_jn = tex_jn.count("\\redletteroff")
+check("john: emits red letter", on_jn > 50, f"on={on_jn}")
+check("john: toggles balanced", on_jn == off_jn, f"on={on_jn} off={off_jn}")
+
 if _failures:
     print(f"\n{len(_failures)} FAILED: {_failures}")
     sys.exit(1)
