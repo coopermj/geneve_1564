@@ -6,7 +6,7 @@ of Jesus. We parse these to produce a verse-level red-letter map that the NET
 generator can use to mark entire verses with \redletteron / \redletteroff.
 
 Output: data/red_letter_verses.json
-Format: {"book_dir": {"chapter": [verse_nums], ...}, ...}
+Format: {"_format": 2, "book_dir": {"chapter": {"verse": descriptor}, ...}, ...}
 """
 
 import glob
@@ -100,33 +100,37 @@ def parse_verse_descriptor(raw: str):
     return {"opens": opens, "starts_in_jesus": starts}
 
 
-def parse_usfm_for_wj(filepath: str) -> dict[str, list[int]]:
-    """Return {chapter_str: [verse_nums_with_wj]} for one USFM file."""
-    result: dict[str, list[int]] = {}
+def parse_usfm_for_descriptors(filepath: str) -> dict[str, dict[str, dict]]:
+    """Return {chapter_str: {verse_str: descriptor}} for one USFM file."""
+    result: dict[str, dict[str, dict]] = {}
     current_chapter: int | None = None
     current_verse: int | None = None
     verse_parts: list[str] = []
 
+    _C = re.compile(r"\\c\s+(\d+)")
+    _V = re.compile(r"\\v\s+(\d+)\s*(.*)")
+
     def flush():
         if current_chapter is not None and current_verse is not None:
-            text = " ".join(verse_parts)
-            if r"\wj" in text:
+            desc = parse_verse_descriptor(" ".join(verse_parts))
+            if desc is not None:
                 ch = str(current_chapter)
-                result.setdefault(ch, []).append(current_verse)
+                result.setdefault(ch, {})[str(current_verse)] = desc
 
     with open(filepath, encoding="utf-8") as fh:
         for line in fh:
             line = line.rstrip("\n")
-            if re.match(r"\\c\s+\d+", line):
+            mc = _C.match(line)
+            mv = _V.match(line)
+            if mc:
                 flush()
                 verse_parts = []
                 current_verse = None
-                current_chapter = int(re.match(r"\\c\s+(\d+)", line).group(1))
-            elif re.match(r"\\v\s+\d+", line):
+                current_chapter = int(mc.group(1))
+            elif mv:
                 flush()
-                m = re.match(r"\\v\s+(\d+)\s*(.*)", line)
-                current_verse = int(m.group(1))
-                verse_parts = [m.group(2)]
+                current_verse = int(mv.group(1))
+                verse_parts = [mv.group(2)]
             elif current_verse is not None:
                 verse_parts.append(line)
 
@@ -135,7 +139,7 @@ def parse_usfm_for_wj(filepath: str) -> dict[str, list[int]]:
 
 
 def main() -> None:
-    all_data: dict[str, dict[str, list[int]]] = {}
+    all_data: dict[str, object] = {"_format": 2}
 
     for filepath in sorted(glob.glob(os.path.join(_USFM_DIR, "*.usfm"))):
         filename = os.path.basename(filepath)
@@ -147,7 +151,7 @@ def main() -> None:
             continue
 
         book_dir = _CODE_TO_DIR[code]
-        data = parse_usfm_for_wj(filepath)
+        data = parse_usfm_for_descriptors(filepath)
         if data:
             all_data[book_dir] = data
             total = sum(len(v) for v in data.values())
