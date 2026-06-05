@@ -127,7 +127,7 @@ lg._render_red_letter("``unclosed jesus", D([True], False), st)   # leaves depth
 lg._render_red_letter("narration.", None, st)                     # resync point
 leak = lg._render_red_letter("crowd ``A'' jesus ``B''", D([False, True], False), st)
 check("no depth leak after non-jesus verse", "\\redletteron ``B''" in leak, leak)
-check("depth reset to 0 on None verse", st.depth == 0 or True, st.depth)
+check("depth reset to 0 on None verse", st.depth == 0, st.depth)
 
 print("latex_generator._get_red_letter_desc")
 # Inject a fake v2 dataset and confirm lookup returns descriptors / None.
