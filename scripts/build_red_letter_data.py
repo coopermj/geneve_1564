@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Parse WEB USFM files to extract red-letter (words of Christ) verse data.
+r"""Parse WEB USFM files to extract red-letter (words of Christ) verse data.
 
 The World English Bible (WEB) USFM files use \wj ... \wj* markers for words
 of Jesus. We parse these to produce a verse-level red-letter map that the NET
@@ -28,6 +28,28 @@ _CODE_TO_DIR = {
     "ACT": "acts",
     "REV": "revelation",
 }
+
+
+def _clean_web_verse(raw: str) -> str:
+    r"""Strip USFM markup from a verse, marking \wj spans with sentinels.
+
+    Returns plain text where '\x01' marks a words-of-Jesus span opening and
+    '\x02' marks its close. Footnotes (\f..\f*) and cross-references
+    (\x..\x*) are removed entirely (they contain quotes we must not count).
+    """
+    t = raw
+    # Remove footnotes and cross-references (may contain quotes/markers).
+    t = re.sub(r"\\f .*?\\f\*", "", t)
+    t = re.sub(r"\\x .*?\\x\*", "", t)
+    # Mark words-of-Jesus spans with sentinels (\wj* before \wj to be safe).
+    t = t.replace(r"\wj*", "\x02")
+    t = re.sub(r"\\wj\b", "\x01", t)
+    # Unwrap word markup: \+w word|strong=..\+w*  and  \w word|..\w*  -> word
+    t = re.sub(r"\\\+w ([^\\|]*)(?:\|[^\\]*?)?\\\+w\*", r"\1", t)
+    t = re.sub(r"\\w ([^\\|]*)(?:\|[^\\]*?)?\\w\*", r"\1", t)
+    # Drop any remaining USFM markers (\q1, \q2, \p, \m, \b, \nb, ...).
+    t = re.sub(r"\\[a-z]+\d*\*?", " ", t)
+    return t
 
 
 def parse_usfm_for_wj(filepath: str) -> dict[str, list[int]]:
