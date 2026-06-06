@@ -1,6 +1,6 @@
 % NET Bible — single-column notes layout
 % Text occupies ~66% of page width; right ~34% is a blank note-taking gutter.
-\documentclass[paper=179mm:239mm,pagesize=auto,11pt,headinclude=on,openany,oneside]{scrbook}
+\documentclass[paper=179mm:239mm,pagesize=auto,12pt,headinclude=on,openany,oneside]{scrbook}
 
 % Layout: left 18mm | text 106mm (~59%) | right 55mm note gutter
 \usepackage[left=18mm,right=55mm,top=15mm,bottom=15mm,includeheadfoot]{geometry}
@@ -169,6 +169,7 @@
 \setlength{\parindent}{1em}
 \setlength{\parskip}{0pt}
 \linespread{1.0}
+\newcommand{\netnotesbodyfontsize}{\fontsize{11.4pt}{14pt}\selectfont}
 
 % Language
 \usepackage[english]{babel}
@@ -177,6 +178,7 @@
 \usepackage{multicol}
 \usepackage{needspace}
 \usepackage{changepage}
+\usepackage{eso-pic}
 \usepackage{amssymb}
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric}
@@ -195,22 +197,14 @@
 \renewcommand{\twocolumn}[1][]{#1}
 \renewcommand{\onecolumn}{}
 
-% Vertical rule at the right edge of the text column — marks the note gutter
-\AddToShipoutPictureBG{%
-  \begin{tikzpicture}[remember picture, overlay]
-    \draw[color=black!20, line width=0.4pt]
-      ([xshift=\dimexpr\oddsidemargin+1in+\textwidth\relax]current page.south west)
-      --
-      ([xshift=\dimexpr\oddsidemargin+1in+\textwidth\relax]current page.north west);
-  \end{tikzpicture}%
-}
-
 \begin{document}
+\netnotesbodyfontsize
 
-\input{livres/cover}
 \begin{adjustwidth}{0pt}{-40mm}
+\input{livres/cover}
 \input{livres/color_index}
 \end{adjustwidth}
+\clearpage
 \input{livres/old_testament}
 \input{livres/new_testament}
 \input{livres/reading_plan}

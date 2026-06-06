@@ -8,12 +8,13 @@
     ([yshift=16mm]current page.south west) rectangle ([yshift=20mm]current page.south east);
   % Horizontal note lines in the gutter
   \foreach \i in {0,...,22}{
+    \pgfmathsetlengthmacro{\gutterliney}{-36mm-\i*8.5mm}
     \draw[color=wisdom!30,line width=0.35pt]
       ([xshift=\dimexpr\oddsidemargin+1in+\textwidth+5mm\relax,
-         yshift=\dimexpr-36mm-\i*8.5mm\relax]current page.north west)
+         yshift=\gutterliney]current page.north west)
       --
       ([xshift=\dimexpr\paperwidth-10mm\relax,
-         yshift=\dimexpr-36mm-\i*8.5mm\relax]current page.north west);
+         yshift=\gutterliney]current page.north west);
   }
 \end{tikzpicture}%
 \null\vspace*{72mm}
