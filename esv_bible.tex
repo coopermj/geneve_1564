@@ -77,6 +77,7 @@
 
 % Scripture package for verse/chapter markup
 \usepackage{scripture}
+\input{verse_protrusion}
 \scripturesetup{
   chapter/drop=false,
   chapter/para=true,
@@ -84,7 +85,7 @@
   chapter/format=Chapter~#1,
   chapter/para/aboveskip=\baselineskip,
   chapter/para/belowskip=0pt,
-  verse/format=\textsuperscript{#1},
+  verse/format=\verseprotrudenum{#1},
   verse/sep=0.1em,
   verse/first=false,
   indent=true,
