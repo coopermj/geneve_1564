@@ -61,6 +61,9 @@
 
 % Colors — eInk-optimized palette for Remarkable Paper Pro (Gallery 3)
 \usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric}
+\usepackage{eso-pic}
 \definecolor{pentateuch}{HTML}{8B4513}
 \definecolor{historical}{HTML}{B22222}
 \definecolor{wisdom}{HTML}{2E8B57}
@@ -104,42 +107,44 @@
 \usepackage{fourier-orns}
 
 \newsavebox{\bbookimgbox}
+% Chapter table helper — set with \gdef\bbookchaptable{...} before \bbook, auto-reset after.
+\gdef\bbookchaptable{}
+% Current book tracking for chapter-table header link
 \makeatletter
 \gdef\currentbookdir{}
 \newcommand{\chaptertablelink}{%
   \ifx\currentbookdir\@empty\else
     \hyperlink{book-\currentbookdir}{\headerfont\small\faBookmark}%
   \fi}
-\newcommand{\bbook}[5][]{%
+\makeatother
+% \bbook[image]{Main Title}{Subtitle}{Argument text}{book-dir}
+\NewDocumentCommand{\bbook}{O{} m m m m}{%
   \clearpage
   \gdef\currentbookdir{#5}%
   \thispagestyle{scrheadings}%
   \hypertarget{book-#5}{}%
-  \ifx\relax#1\relax
+  \IfBlankTF{#1}{%
     \savebox{\bbookimgbox}{}%
-  \else
+  }{%
     \savebox{\bbookimgbox}{\makebox[\textwidth][c]{\includegraphics[width=\textwidth]{#1}}}%
-  \fi
+  }%
   \twocolumn[%
     \usebox{\bbookimgbox}\par\nobreak
     \vspace*{-10pt}%
     {\centering\huge\booktitlefont\scshape #2%
-      \def\@bbook@sub{#3}%
-      \ifx\@bbook@sub\empty\else
-        ,\\\large #3%
-      \fi
+      \IfBlankF{#3}{,\\\large #3}%
       \\\char"2766\par}%
-    \def\@bbook@arg{#4}%
-    \ifx\@bbook@arg\empty\else
+    \IfBlankF{#4}{%
       {\centering\booktitlefont\textsc{the argument.}\par}%
       \vspace{2pt}%
       {\centering\parbox{\dimexpr\textwidth-2em}{\itshape\scriptsize #4\par}\par}%
       \vspace{5pt}%
-    \fi
+    }%
+    \bbookchaptable
     \vspace{5pt}%
   ]%
+  \gdef\bbookchaptable{}
 }
-\makeatother
 \titleformat{\chapter}[hang]%
    {\centering\huge\booktitlefont\scshape}%
    {}%
@@ -177,11 +182,11 @@
 
 
 \begin{document}
-
+\onecolumn
+\input{livres_esv/cover}
 \input{livres_esv/color_index}
-\input{livres_esv/genesis/genesis}
-\input{livres_esv/exodus/exodus}
-\input{livres_esv/john/john}
+\input{livres_esv/old_testament}
+\input{livres_esv/new_testament}
 
 \vfill
 \begin{center}

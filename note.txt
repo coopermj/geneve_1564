@@ -1,0 +1,17 @@
+## Session context — 2026-03-25/26
+
+### What was done this session
+
+1. **Word-spacing fix**
+   - `<p>` tags replaced with ' ' in _strip_html_tags() — prevents "outand"/"mebecause" merged words
+   - Affects NET (labs.bible.org) <p class="poetry"> inline line breaks
+   - Regenerated all 66 NET books + recompiled (master PDF now 1358 pages)
+
+2. **Cover pages added** — all three editions
+   - livres_esv/cover.tex: gospels blue double-border frame (TikZ: \usepackage{tikz} added to esv_bible.tex)
+   - Cover pattern: \onecolumn in main .tex before \input{cover}; \clearpage at END of cover file
+
+3. **ESV now 1321 pages** with cover
+
+### Next tasks
+- geneva-annotations overlap convergence still in progress
