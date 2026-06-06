@@ -1,3 +1,6 @@
+% Manual visual regression fixture for verse-number margin protrusion.
+% Build: cd tests && OSFONTDIR=/Users/micahcooper/geneve_1564/fonts lualatex verse_protrusion_visual_check.tex
+% Then eyeball (or pixel-measure) the line-start verse number vs the column rule: it should hang slightly left.
 \documentclass[11pt]{article}
 \usepackage{fontspec}
 \setmainfont{EB Garamond}[

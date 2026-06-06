@@ -78,6 +78,20 @@
 %% is the safe outcome.
 \makeatletter
 
+% --- Precondition guards: raise a clear error if required packages are absent.
+%     Without microtype (\SetProtrusion) or fontspec (\addfontfeature) the file
+%     would fail later with a cryptic "Undefined control sequence" inside an \edef.
+\@ifundefined{SetProtrusion}{%
+  \PackageError{verse_protrusion}%
+    {microtype must be loaded before verse_protrusion.tex}%
+    {Add \string\usepackage{microtype} (and fontspec) before \string\input{verse_protrusion}.}%
+}{}
+\@ifundefined{addfontfeature}{%
+  \PackageError{verse_protrusion}%
+    {fontspec must be loaded before verse_protrusion.tex}%
+    {Add \string\usepackage{fontspec} (and set a main font) before \string\input{verse_protrusion}.}%
+}{}
+
 % --- Tunable: partial left-protrusion factor (out of 1000 = one glyph width).
 %     Edit ONLY this line to retune the hang; the \edef below propagates it
 %     into all ten digit entries automatically.
@@ -119,6 +133,7 @@
 
 % --- Feature detection (by glyph-width measurement) + final decision.
 %     Done at begin-document when the real body font is active.
+% NOTE: detection assumes verse numbers are set in the main body font (the font active at begin-document). If an edition sets verse numbers in a different family lacking superior figures, detection may report available while rendering shows none (no crash; just no hang).
 \newif\ifverseprot@use
 \AtBeginDocument{%
   \setbox0=\hbox{{\addfontfeature{VerticalPosition=Superior}0}}%
