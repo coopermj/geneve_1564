@@ -1,0 +1,74 @@
+%% verse_protrusion.tex
+%% Microtype protrusion for verse numbers (edition-portable).
+%% Requires, loaded BEFORE this file: fontspec (main font set), microtype, scripture.
+%% Effect: a verse number at the start of a line hangs a tuned partial amount
+%% into the left margin. Mid-line numbers are unaffected (microtype only
+%% protrudes line-edge glyphs). Font-agnostic: uses OpenType superior figures
+%% of the CURRENT body font; falls back to \textsuperscript if unavailable.
+%%
+%% WORKING INCANTATION (the bits that are easy to get wrong):
+%%   1. Use [ context = verseprot ], NOT [ name = ... ]. The `context' key is
+%%      what makes \microtypecontext{protrusion=verseprot} resolve to this list;
+%%      `name' only defines a list and leaves the context undefined (microtype
+%%      then warns "I cannot find a protrusion list ... Switching off").
+%%   2. Font set must be the full 5-axis wildcard { font = */*/*/*/* } so it
+%%      matches BOTH the body font instance AND the separate font instance that
+%%      fontspec spins up for VerticalPosition=Superior (e.g. EBGaramond(1)).
+%%   3. Each entry is char = {left,right} (ONE brace, comma-separated). Left-only
+%%      hang -> {350,0}. Two separate braces {350}{0} is wrong syntax.
+%%   4. microtype does NOT expand a macro inside the value braces, so the factor
+%%      is an inlined literal (350) in every entry, not \verseprot@factor.
+%%   5. microtype protrudes GLYPH nodes, not boxes. Superior figures (real
+%%      substituted glyphs) protrude; \textsuperscript (a raised box) does not --
+%%      hence the OpenType path is required for the hang, with \textsuperscript
+%%      only as the non-protruding fallback when the font lacks superior figures.
+%% Verified: with this setup the leading verse number hangs partially into the
+%% left margin while mid-line numbers stay inline (tests/verse_protrusion_visual_check.tex).
+\makeatletter
+
+% --- Tunable: partial left-protrusion factor (out of 1000 = one glyph width).
+%     NOTE: microtype does NOT expand a macro inside the \SetProtrusion value
+%     braces (it reads the token name literally -> "Missing number"). So the
+%     factor MUST be an inlined literal in every digit entry below. Keep this
+%     def in sync with the literals; it is documentation only.
+\def\verseprot@factor{350}
+
+% --- Manual override (an edition may force the feature off):
+\newif\ifverseprotrusion  \verseprotrusiontrue
+
+% --- microtype protrusion context: left-only hang on digits 0-9.
+%     Activated ONLY inside \verseprotrudenum via \microtypecontext, so no
+%     other text is affected.
+\SetProtrusion
+  [ context = verseprot ]
+  { font = */*/*/*/* }
+  { 0 = {350,0} , 1 = {350,0} ,
+    2 = {350,0} , 3 = {350,0} ,
+    4 = {350,0} , 5 = {350,0} ,
+    6 = {350,0} , 7 = {350,0} ,
+    8 = {350,0} , 9 = {350,0} }
+
+% --- Feature detection (by glyph-width measurement) + final decision.
+%     Done at begin-document when the real body font is active.
+\newif\ifverseprot@use
+\AtBeginDocument{%
+  \setbox0=\hbox{{\addfontfeature{VerticalPosition=Superior}0}}%
+  \setbox2=\hbox{0}%
+  \ifdim\wd0=\wd2 % no substitution happened -> font lacks superior figures
+    \verseprot@usefalse
+  \else
+    \ifverseprotrusion \verseprot@usetrue \else \verseprot@usefalse \fi
+  \fi
+}
+
+% --- The formatter wired into scripture's verse/format.
+\NewDocumentCommand\verseprotrudenum{m}{%
+  \ifverseprot@use
+    {\addfontfeature{VerticalPosition=Superior}%
+     \microtypecontext{protrusion=verseprot}#1}%
+  \else
+    \textsuperscript{#1}%
+  \fi
+}
+
+\makeatother
