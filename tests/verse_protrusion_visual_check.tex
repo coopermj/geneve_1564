@@ -1,0 +1,32 @@
+\documentclass[11pt]{article}
+\usepackage{fontspec}
+\setmainfont{EB Garamond}[
+  Path=../fonts/, Extension=.otf,
+  UprightFont=EBGaramond-Regular,
+  ItalicFont=EBGaramond-Italic,
+  BoldFont=EBGaramond-Bold,
+  BoldItalicFont=EBGaramond-BoldItalic,
+]
+\usepackage[protrusion=true,expansion=true,final]{microtype}
+\usepackage{scripture}
+\input{../verse_protrusion}
+\scripturesetup{
+  verse/format=\verseprotrudenum{#1},
+  verse/sep=0.1em,
+  verse/first=false,
+  indent=true,
+}
+\begin{document}
+\parindent=0pt
+\setlength{\columnwidth}{45mm}\setlength{\hsize}{45mm}\linewidth=45mm
+\noindent\rule{45mm}{0.4pt}\par
+\begin{scripture}
+% Filler so the next verse number is pushed to the START of a fresh line:
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+\vs{12}And God said, Let there be light, and there was light, and God
+saw that the light was good and he divided the light from the darkness.
+\vs{13}And the evening and the morning were the first day, and it was so
+ordered by the word of his power forever and ever amen.
+\end{scripture}
+\noindent\rule{45mm}{0.4pt}\par
+\end{document}
