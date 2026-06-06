@@ -517,16 +517,19 @@ _GROUP_INFO = [
     ("revelation", "Revelation"),
 ]
 
-# After these groups, force a column break (produces 3 columns: OT1 | OT2 | NT)
-_COLUMN_BREAK_AFTER = {"wisdom", "minorprophets"}
+# After these groups, force a column break. Breaking after "acts" (rather than
+# "minorprophets") balances the three columns: putting Gospels+Acts in column 2
+# keeps column 3 (Pauline+General+Revelation) short enough to fit one page even
+# at the 13pt net_bible body size.
+_COLUMN_BREAK_AFTER = {"wisdom", "acts"}
 
 
 def generate_color_index_tex() -> str:
     """Generate a 3-column color index page grouping books by category.
 
     Layout: col 1 = Pentateuch + Historical + Wisdom,
-            col 2 = Major Prophets + Minor Prophets,
-            col 3 = NT books.
+            col 2 = Major Prophets + Minor Prophets + Gospels + Acts,
+            col 3 = Pauline + General Epistles + Revelation.
     Sections are never split across columns.
     """
     lines = []
