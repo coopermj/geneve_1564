@@ -28,39 +28,96 @@ def _load_red_letter_verses() -> dict:
     return _red_letter_verses
 
 
-def _is_red_letter(book_dir: str, chapter: int, verse: int) -> bool:
-    data = _load_red_letter_verses()
-    verses = data.get(book_dir, {}).get(str(chapter), [])
-    return verse in verses
+def _get_red_letter_desc(book_dir: str, chapter: int, verse: int):
+    """Return the red-letter descriptor for a verse, or None.
 
-
-def _apply_red_letter_quotes(text: str) -> str:
-    """Within a red-letter verse, wrap TeX double-quoted spans in redletter commands.
-
-    Finds ``...'' pairs and wraps them with \\redletteron/\\redletteroff.
-    Unquoted framing text (e.g. "Jesus said,") is left as plain text.
-    If a `` opens with no matching '' in the verse, colors from `` to end.
+    Descriptor: {"opens": [bool...], "starts_in_jesus": bool}. Returns None for
+    verses with no Words of Christ (or legacy/missing data).
     """
-    parts = []
+    data = _load_red_letter_verses()
+    chapters = data.get(book_dir)
+    if not isinstance(chapters, dict):
+        return None
+    verses = chapters.get(str(chapter))
+    if not isinstance(verses, dict):  # legacy list format -> no descriptors
+        return None
+    return verses.get(str(verse))
+
+
+class _RLState:
+    """Red-letter state carried across the verses of one chapter."""
+
+    def __init__(self) -> None:
+        self.in_jesus = False
+        self.depth = 0           # double-quote nesting depth
+        self.open_depth = None   # depth at which the active Jesus quote opened
+
+
+def _render_red_letter(text: str, desc, state: "_RLState") -> str:
+    r"""Insert \redletteron/\redletteroff into one verse's TeX text.
+
+    desc is {"opens": [bool...], "starts_in_jesus": bool} or None (no Words of
+    Christ in this verse). Mutates `state`. Red turns off only when double-quote
+    depth returns to the level where Jesus' quote opened, so nested quotes
+    (single, or 3rd-level double) stay red. Each verse's trailing \redletteroff
+    keeps the next verse number black; carried `in_jesus` reopens it.
+    """
+    OPEN, CLOSE = "``", "''"
+    out: list[str] = []
+
+    if desc is None:
+        if state.in_jesus:
+            out.append("\\redletteroff ")
+        # A non-Jesus verse is a safe resync point: clear all quote state so a
+        # stray unclosed quote in earlier text cannot leak depth into later verses.
+        state.in_jesus = False
+        state.open_depth = None
+        state.depth = 0
+        out.append(text)
+        return "".join(out)
+
+    if state.in_jesus or desc.get("starts_in_jesus"):
+        if not state.in_jesus:
+            state.in_jesus = True
+            state.open_depth = 0
+        out.append("\\redletteron ")
+
+    opens = desc.get("opens", [])
+    k = 0
     i = 0
-    while i < len(text):
-        open_pos = text.find('``', i)
-        if open_pos == -1:
-            parts.append(text[i:])
-            break
-        parts.append(text[i:open_pos])
-        close_pos = text.find("''", open_pos + 2)
-        if close_pos == -1:
-            parts.append('\\redletteron ')
-            parts.append(text[open_pos:])
-            parts.append('\\redletteroff')
-            break
-        else:
-            parts.append('\\redletteron ')
-            parts.append(text[open_pos:close_pos + 2])
-            parts.append('\\redletteroff')
-            i = close_pos + 2
-    return ''.join(parts)
+    n = len(text)
+    while i < n:
+        two = text[i:i + 2]
+        if two == OPEN:
+            if state.depth == 0:  # top-level open
+                if not state.in_jesus:
+                    is_j = opens[k] if k < len(opens) else False
+                    if is_j:
+                        out.append("\\redletteron ")
+                        state.in_jesus = True
+                        state.open_depth = state.depth
+                k += 1
+            state.depth += 1
+            out.append(OPEN)
+            i += 2
+            continue
+        if two == CLOSE:
+            state.depth = max(0, state.depth - 1)
+            out.append(CLOSE)
+            i += 2
+            if state.in_jesus and state.depth == state.open_depth:
+                out.append("\\redletteroff ")
+                state.in_jesus = False
+                state.open_depth = None
+            continue
+        out.append(text[i])
+        i += 1
+
+    if state.in_jesus:
+        out.append("\\redletteroff ")
+        state.in_jesus = False
+        state.open_depth = None
+    return "".join(out)
 
 
 def _load_poetry_config() -> dict:
@@ -367,13 +424,14 @@ def generate_book_tex(
         # lettrine zone use \\ (preserving \parshape) instead of \par
         # which would reset the shape and let text overlap the drop cap.
         lettrine_char_budget = 0
+        rl_state = _RLState()
 
         for verse in verses:
             verse_num = int(verse["verse"])
             raw_html = verse["text"]
             new_para = _starts_paragraph(raw_html)
             text = _process_verse_text(raw_html)
-            is_rl = _is_red_letter(book.directory, ch_num, verse_num)
+            desc = _get_red_letter_desc(book.directory, ch_num, verse_num)
 
             if verse_num == 1:
                 # Chapter start — use \ch{N} with lettrine drop cap.
@@ -392,8 +450,7 @@ def generate_book_tex(
                     lettrine_text = _make_lettrine(text, lettrine_lines=5, color=book.group)
                     lettrine_char_budget = 5 * 80
                 lettrine_char_budget -= len(text)
-                if is_rl:
-                    lettrine_text = _apply_red_letter_quotes(lettrine_text)
+                lettrine_text = _render_red_letter(lettrine_text, desc, rl_state)
                 lines.append(f"\\markboth{{{book.name} {ch_num}:1}}{{{book.name} {ch_num}:1}}")
                 # Ensure enough vertical space for the chapter heading +
                 # lettrine before starting.  Without this, the scripture
@@ -405,8 +462,7 @@ def generate_book_tex(
                 lines.append(f"\\ch{{{ch_num}}} \\allowchapbreak\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{lettrine_text}\\everypar{{}}")
             else:
                 lettrine_char_budget -= len(text)
-                if is_rl:
-                    text = _apply_red_letter_quotes(text)
+                text = _render_red_letter(text, desc, rl_state)
                 mark = f"\\markboth{{{book.name} {ch_num}:{verse_num}}}{{{book.name} {ch_num}:{verse_num}}}"
                 if new_para:
                     if lettrine_char_budget > 0 and not is_poetry:
