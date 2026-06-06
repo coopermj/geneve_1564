@@ -6,24 +6,47 @@
 %% protrudes line-edge glyphs). Font-agnostic: uses OpenType superior figures
 %% of the CURRENT body font; falls back to \textsuperscript if unavailable.
 %%
-%% WORKING INCANTATION (the bits that are easy to get wrong):
+%% WORKING MECHANISM (the bits that are easy to get wrong):
 %%   1. Use [ context = verseprot ], NOT [ name = ... ]. The `context' key is
 %%      what makes \microtypecontext{protrusion=verseprot} resolve to this list;
 %%      `name' only defines a list and leaves the context undefined (microtype
 %%      then warns "I cannot find a protrusion list ... Switching off").
-%%   2. Font set must be the full 5-axis wildcard { font = */*/*/*/* } so it
-%%      matches BOTH the body font instance AND the separate font instance that
-%%      fontspec spins up for VerticalPosition=Superior (e.g. EBGaramond(1)).
+%%   2. Font set is the full 5-axis wildcard { font = */*/*/*/* } so it matches
+%%      BOTH the body font instance AND the separate font instance that fontspec
+%%      spins up for VerticalPosition=Superior (e.g. EBGaramond(1)).
 %%   3. Each entry is char = {left,right} (ONE brace, comma-separated). Left-only
 %%      hang -> {350,0}. Two separate braces {350}{0} is wrong syntax.
 %%   4. microtype does NOT expand a macro inside the value braces, so the factor
 %%      is an inlined literal (350) in every entry, not \verseprot@factor.
-%%   5. microtype protrudes GLYPH nodes, not boxes. Superior figures (real
-%%      substituted glyphs) protrude; \textsuperscript (a raised box) does not --
-%%      hence the OpenType path is required for the hang, with \textsuperscript
-%%      only as the non-protruding fallback when the font lacks superior figures.
-%% Verified: with this setup the leading verse number hangs partially into the
-%% left margin while mid-line numbers stay inline (tests/verse_protrusion_visual_check.tex).
+%%   5. *** THE KEY FIX ***  microtype (luatex) keys protrusion by the codepoint
+%%      of the glyph AS IT APPEARS IN THE NODE LIST, i.e. AFTER GSUB shaping.
+%%      VerticalPosition=Superior runs the OpenType `sups' feature, which in
+%%      EB Garamond substitutes each ASCII digit for the glyph at its Unicode
+%%      SUPERSCRIPT codepoint:
+%%          0->U+2070  1->U+00B9  2->U+00B2  3->U+00B3
+%%          4..9 -> U+2074..U+2079
+%%      Therefore the list MUST be keyed on those superscript codepoints, NOT on
+%%      the ASCII digits 0-9. (Keying 0-9 = U+0030..U+0039 was the bug: those
+%%      input glyphs never reach the line because sups replaces them, so the
+%%      lpcode never bound to the rendered superior glyph -> ZERO protrusion,
+%%      verified by 600 dpi pixel measurement and by dumping the substituted
+%%      glyph names with fontTools: three -> uni00B3, etc.)
+%%   6. microtype protrudes GLYPH nodes, not boxes. The substituted superior
+%%      figures are real glyphs and protrude; \textsuperscript (a raised box)
+%%      does not -- hence the OpenType path is required for the hang, with
+%%      \textsuperscript only as the non-protruding fallback when the font lacks
+%%      superior figures.
+%% Verified by measurement (tests/verse_protrusion_visual_check.tex, 600 dpi):
+%% with this setup the leading verse number's leftmost ink sits measurably LEFT
+%% of the column rule, while mid-line numbers stay inline; feature ON vs OFF
+%% now differs at the left edge.
+%%
+%% PORTABILITY NOTE: the superscript-codepoint mapping above is what EB Garamond
+%% (and most fonts following the Unicode/AGL convention) emit for `sups'. A font
+%% whose superior figures live at private-use or `.sups'-named glyph slots with
+%% no Unicode value would need different keys; in that case microtype cannot
+%% address them by codepoint and the \textsuperscript fallback (no protrusion)
+%% is the safe outcome.
 \makeatletter
 
 % --- Tunable: partial left-protrusion factor (out of 1000 = one glyph width).
@@ -36,17 +59,24 @@
 % --- Manual override (an edition may force the feature off):
 \newif\ifverseprotrusion  \verseprotrusiontrue
 
-% --- microtype protrusion context: left-only hang on digits 0-9.
+% --- microtype protrusion context: left-only hang on the SUPERSCRIPT glyphs
+%     that the `sups' feature substitutes for the digits 0-9 (see header note
+%     #5). Keyed on the substituted Unicode codepoints, NOT on ASCII 0-9.
 %     Activated ONLY inside \verseprotrudenum via \microtypecontext, so no
 %     other text is affected.
 \SetProtrusion
   [ context = verseprot ]
   { font = */*/*/*/* }
-  { 0 = {350,0} , 1 = {350,0} ,
-    2 = {350,0} , 3 = {350,0} ,
-    4 = {350,0} , 5 = {350,0} ,
-    6 = {350,0} , 7 = {350,0} ,
-    8 = {350,0} , 9 = {350,0} }
+  { "2070 = {350,0} ,  % superscript 0
+    "00B9 = {350,0} ,  % superscript 1
+    "00B2 = {350,0} ,  % superscript 2
+    "00B3 = {350,0} ,  % superscript 3
+    "2074 = {350,0} ,  % superscript 4
+    "2075 = {350,0} ,  % superscript 5
+    "2076 = {350,0} ,  % superscript 6
+    "2077 = {350,0} ,  % superscript 7
+    "2078 = {350,0} ,  % superscript 8
+    "2079 = {350,0} }  % superscript 9
 
 % --- Feature detection (by glyph-width measurement) + final decision.
 %     Done at begin-document when the real body font is active.
