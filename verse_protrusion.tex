@@ -7,10 +7,23 @@
 %% of the CURRENT body font; falls back to \textsuperscript if unavailable.
 %%
 %% WORKING MECHANISM (the bits that are easy to get wrong):
-%%   1. Use [ context = verseprot ], NOT [ name = ... ]. The `context' key is
-%%      what makes \microtypecontext{protrusion=verseprot} resolve to this list;
-%%      `name' only defines a list and leaves the context undefined (microtype
-%%      then warns "I cannot find a protrusion list ... Switching off").
+%%   1. *** NO named context, NO \microtypecontext. *** Use a PLAIN, default
+%%      \SetProtrusion (neither [name=...] nor [context=...]). microtype then
+%%      MERGES these entries into whatever protrusion list it loads for any
+%%      matching font, so the superior-figure instance gets the codepoints
+%%      automatically. The earlier [context=verseprot] +
+%%      \microtypecontext{protrusion=verseprot} approach was a NO-OP: the
+%%      verbose log showed the context switch loaded an auto-generated EMPTY
+%%      list named `<file>/<line>' and the named list never bound to the active
+%%      superior font, so lpcode stayed 0 (measured: zero movement at 600 dpi).
+%%      The global config is safe here because the superscript-codepoint glyphs
+%%      (U+00B9 etc.) appear in this document ONLY as verse numbers (body prose
+%%      never emits superior figures), so the entries are effectively scoped to
+%%      verse numbers already. PROOF the binding now works: with the global
+%%      config, `\the\lpcode\font 185' (U+00B9) reports a nonzero value on the
+%%      VerticalPosition=Superior instance (was 0/unset before), and 600 dpi
+%%      measurement shows the leading verse number's leftmost ink ~9 px left of
+%%      where it sits with the feature off.
 %%   2. Font set is the full 5-axis wildcard { font = */*/*/*/* } so it matches
 %%      BOTH the body font instance AND the separate font instance that fontspec
 %%      spins up for VerticalPosition=Superior (e.g. EBGaramond(1)).
@@ -18,7 +31,7 @@
 %%      hang -> {350,0}. Two separate braces {350}{0} is wrong syntax.
 %%   4. microtype does NOT expand a macro inside the value braces, so the factor
 %%      is an inlined literal (350) in every entry, not \verseprot@factor.
-%%   5. *** THE KEY FIX ***  microtype (luatex) keys protrusion by the codepoint
+%%   5. *** THE OTHER KEY FIX ***  microtype (luatex) keys protrusion by the codepoint
 %%      of the glyph AS IT APPEARS IN THE NODE LIST, i.e. AFTER GSUB shaping.
 %%      VerticalPosition=Superior runs the OpenType `sups' feature, which in
 %%      EB Garamond substitutes each ASCII digit for the glyph at its Unicode
@@ -59,13 +72,14 @@
 % --- Manual override (an edition may force the feature off):
 \newif\ifverseprotrusion  \verseprotrusiontrue
 
-% --- microtype protrusion context: left-only hang on the SUPERSCRIPT glyphs
-%     that the `sups' feature substitutes for the digits 0-9 (see header note
-%     #5). Keyed on the substituted Unicode codepoints, NOT on ASCII 0-9.
-%     Activated ONLY inside \verseprotrudenum via \microtypecontext, so no
-%     other text is affected.
+% --- Global (default) microtype protrusion: left-only hang on the SUPERSCRIPT
+%     glyphs that the `sups' feature substitutes for the digits 0-9 (see header
+%     note #5). Keyed on the substituted Unicode codepoints, NOT on ASCII 0-9.
+%     NO [name=...] and NO [context=...]: this MERGES into the protrusion list
+%     microtype loads for the VerticalPosition=Superior font instance, which is
+%     what actually binds the codepoints (header note #1). Safe globally because
+%     these superscript glyphs only ever appear as verse numbers in this doc.
 \SetProtrusion
-  [ context = verseprot ]
   { font = */*/*/*/* }
   { "2070 = {350,0} ,  % superscript 0
     "00B9 = {350,0} ,  % superscript 1
@@ -94,8 +108,7 @@
 % --- The formatter wired into scripture's verse/format.
 \NewDocumentCommand\verseprotrudenum{m}{%
   \ifverseprot@use
-    {\addfontfeature{VerticalPosition=Superior}%
-     \microtypecontext{protrusion=verseprot}#1}%
+    {\addfontfeature{VerticalPosition=Superior}#1}%
   \else
     \textsuperscript{#1}%
   \fi
