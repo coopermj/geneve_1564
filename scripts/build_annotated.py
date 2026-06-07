@@ -25,8 +25,8 @@ from latex_generator import generate_book_tex
 from overlap_detector import detect, detect_density_excess
 
 _MANIFEST_PATH = os.path.join(_PROJECT_ROOT, "data", "note_manifest.json")
-_PDF_PATH = os.path.join(_PROJECT_ROOT, "net_bible.pdf")
-_LUALATEX = ["lualatex", "-shell-escape", "-interaction=batchmode", "net_bible.tex"]
+_PDF_PATH = os.path.join(_PROJECT_ROOT, "geneva_bible.pdf")
+_LUALATEX = ["lualatex", "-shell-escape", "-interaction=batchmode", "geneva_bible.tex"]
 _ENV = {**os.environ, "OSFONTDIR": "fonts", "TEXINPUTS": "microtype:"}
 
 
@@ -89,7 +89,7 @@ def main():
                         help="Max density-prune iterations (default: 5). Stops early if "
                              "no excess found.")
     parser.add_argument("--output-dir",
-                        default=os.path.join(_PROJECT_ROOT, "livres"))
+                        default=os.path.join(_PROJECT_ROOT, "livres_geneva"))
     parser.add_argument("--cache-dir",
                         default=os.path.join(_PROJECT_ROOT, "data", "net_bible_cache"))
     parser.add_argument("--corrections-in",
