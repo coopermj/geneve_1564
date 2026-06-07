@@ -12,7 +12,6 @@ import argparse
 import json
 import os
 import sys
-from datetime import date as date_cls
 
 # Ensure the scripts directory is on the path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -22,7 +21,6 @@ from bible_fetcher import fetch_book
 from latex_generator import (
     generate_book_tex,
     generate_testament_tex,
-    generate_color_index_tex,
     generate_reading_plan_tex,
 )
 from reading_plan_parser import (
@@ -52,126 +50,65 @@ def _load_or_parse_plan():
     return entries
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Generate LaTeX files for the NET Bible"
-    )
-    parser.add_argument(
-        "--books",
-        nargs="+",
-        help="Specific books to generate (by name or slug). Default: all 66.",
-    )
-    parser.add_argument(
-        "--output-dir",
-        default=os.path.join(_PROJECT_ROOT, "livres"),
-        help="Output directory for generated .tex files (default: livres/)",
-    )
-    parser.add_argument(
-        "--cache-dir",
-        default=os.path.join(_PROJECT_ROOT, "data", "net_bible_cache"),
-        help="Cache directory for API responses (default: data/net_bible_cache/)",
-    )
-    parser.add_argument(
-        "--start-date",
-        default="2026-03-02",
-        help="Reading plan start date in YYYY-MM-DD format (default: 2026-03-02)",
-    )
-    args = parser.parse_args()
-
-    # Determine which books to generate
-    if args.books:
-        books_to_generate = []
-        for name in args.books:
-            book = get_book_by_name(name)
-            if book is None:
-                print(f"Error: Unknown book '{name}'", file=sys.stderr)
-                sys.exit(1)
-            books_to_generate.append(book)
-    else:
-        books_to_generate = BOOKS
-
-    output_dir = args.output_dir
-    cache_dir = args.cache_dir
-    start_date = date_cls.fromisoformat(args.start_date)
-
-    # 1. Parse reading plan PDF → JSON (if not cached)
+def run_net(output_dir: str, cache_dir: str, books=None,
+            annotated: bool = False, corrections_path: str | None = None,
+            start_date: str = "2026-03-02") -> None:
+    """Generate NET book .tex (plain or annotated) + testament + reading plan into output_dir."""
+    from datetime import date as date_cls
+    books_to_generate = books if books else BOOKS
     plan_entries = _load_or_parse_plan()
-
-    # 2. Schedule entries with start date → scheduled entries + endpoints
-    scheduled = schedule_plan(plan_entries, start_date)
+    scheduled = schedule_plan(plan_entries, date_cls.fromisoformat(start_date))
     plan_endpoints = build_plan_endpoints(scheduled)
-    print(f"Reading plan: {len(scheduled)} entries, "
-          f"{scheduled[0]['date']} to {scheduled[-1]['date']}")
-    print()
 
-    # 3. Generate book .tex files (with plan_endpoints for octagon markers)
-    print(f"Generating {len(books_to_generate)} book(s)...")
-    print(f"Output: {output_dir}")
-    print(f"Cache:  {cache_dir}")
-    print()
+    annotations: dict | None = {}  # empty dict = no annotations (avoids auto-load)
+    corrections = None
+    note_manifest = None
+    if annotated:
+        annotations = json.load(open(os.path.join(_PROJECT_ROOT, "data", "geneva_annotations.json"), encoding="utf-8"))
+        if corrections_path and os.path.exists(corrections_path):
+            raw = json.load(open(corrections_path, encoding="utf-8"))
+            corrections = {int(k): v for k, v in raw.items()}
+        note_manifest = []
 
+    label = "geneva" if annotated else "net"
+    print(f"[{label}] Generating {len(books_to_generate)} book(s) -> {output_dir}")
     for book in books_to_generate:
-        print(f"  {book.name} ({book.chapters} chapters)...", end=" ", flush=True)
-
-        # Fetch from API (or cache)
         chapters_data = fetch_book(book.abbreviation, book.chapters, cache_dir)
-
-        # Generate LaTeX
-        tex_content = generate_book_tex(book, chapters_data, plan_endpoints=plan_endpoints)
-
-        # Write to file
+        tex_content = generate_book_tex(
+            book, chapters_data, plan_endpoints=plan_endpoints,
+            annotations=annotations, corrections=corrections, note_manifest=note_manifest)
         book_dir = os.path.join(output_dir, book.directory)
         os.makedirs(book_dir, exist_ok=True)
-        tex_path = os.path.join(book_dir, f"{book.directory}.tex")
-        with open(tex_path, "w", encoding="utf-8") as f:
+        with open(os.path.join(book_dir, f"{book.directory}.tex"), "w", encoding="utf-8") as f:
             f.write(tex_content)
 
-        print("done")
-
-    # 4. Generate testament include files
-    print()
-    print("Generating testament include files...")
-
-    ot_books = [b for b in books_to_generate if b.testament == "OT"]
-    nt_books = [b for b in books_to_generate if b.testament == "NT"]
-
-    # Only write testament files when generating all books (or all of a testament)
     all_ot = get_books_by_testament("OT")
     all_nt = get_books_by_testament("NT")
+    gen = {b.directory for b in books_to_generate}
+    if {b.directory for b in all_ot} <= gen:
+        with open(os.path.join(output_dir, "old_testament.tex"), "w", encoding="utf-8") as f:
+            f.write(generate_testament_tex(all_ot, "Old Testament"))
+    if {b.directory for b in all_nt} <= gen:
+        with open(os.path.join(output_dir, "new_testament.tex"), "w", encoding="utf-8") as f:
+            f.write(generate_testament_tex(all_nt, "New Testament"))
+    with open(os.path.join(output_dir, "reading_plan.tex"), "w", encoding="utf-8") as f:
+        f.write(generate_reading_plan_tex(scheduled))
+    if note_manifest is not None:
+        with open(os.path.join(_PROJECT_ROOT, "data", "note_manifest.json"), "w", encoding="utf-8") as f:
+            json.dump(note_manifest, f)
 
-    if set(b.directory for b in ot_books) == set(b.directory for b in all_ot):
-        ot_tex = generate_testament_tex(all_ot, "Old Testament")
-        ot_path = os.path.join(output_dir, "old_testament.tex")
-        with open(ot_path, "w", encoding="utf-8") as f:
-            f.write(ot_tex)
-        print("  old_testament.tex written")
-    elif ot_books:
-        print("  (skipping old_testament.tex — not all OT books generated)")
 
-    if set(b.directory for b in nt_books) == set(b.directory for b in all_nt):
-        nt_tex = generate_testament_tex(all_nt, "New Testament")
-        nt_path = os.path.join(output_dir, "new_testament.tex")
-        with open(nt_path, "w", encoding="utf-8") as f:
-            f.write(nt_tex)
-        print("  new_testament.tex written")
-    elif nt_books:
-        print("  (skipping new_testament.tex — not all NT books generated)")
-
-    # 5. Generate color index page
-    index_tex = generate_color_index_tex()
-    index_path = os.path.join(output_dir, "color_index.tex")
-    with open(index_path, "w", encoding="utf-8") as f:
-        f.write(index_tex)
-    print("  color_index.tex written")
-
-    # 6. Generate reading plan pages
-    plan_tex = generate_reading_plan_tex(scheduled)
-    plan_path = os.path.join(output_dir, "reading_plan.tex")
-    with open(plan_path, "w", encoding="utf-8") as f:
-        f.write(plan_tex)
-    print("  reading_plan.tex written")
-
-    print()
+def main():
+    parser = argparse.ArgumentParser(description="Generate LaTeX files for the NET Bible")
+    parser.add_argument("--books", nargs="+")
+    parser.add_argument("--output-dir", default=os.path.join(_PROJECT_ROOT, "livres_net"))
+    parser.add_argument("--cache-dir", default=os.path.join(_PROJECT_ROOT, "data", "net_bible_cache"))
+    parser.add_argument("--start-date", default="2026-03-02")
+    args = parser.parse_args()
+    books = [get_book_by_name(n) for n in args.books] if args.books else None
+    if books and any(b is None for b in books):
+        print("Error: unknown book", file=sys.stderr); sys.exit(1)
+    run_net(args.output_dir, args.cache_dir, books, start_date=args.start_date)
     print("Done!")
 
 
