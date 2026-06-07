@@ -64,7 +64,6 @@ def run_esv(output_dir: str, cache_dir: str, books=None) -> None:
 
 
 def main():
-    import argparse
     parser = argparse.ArgumentParser(description="Generate LaTeX files for the ESV Bible")
     parser.add_argument("--books", nargs="+")
     parser.add_argument("--output-dir", default=os.path.join(_PROJECT_ROOT, "livres_esv"))

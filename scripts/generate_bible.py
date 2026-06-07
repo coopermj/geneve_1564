@@ -62,11 +62,14 @@ def run_net(output_dir: str, cache_dir: str, books=None,
 
     annotations: dict | None = {}  # empty dict = no annotations (avoids auto-load)
     corrections = None
+    # generate_book_tex appends note records to this list in-place
     note_manifest = None
     if annotated:
-        annotations = json.load(open(os.path.join(_PROJECT_ROOT, "data", "geneva_annotations.json"), encoding="utf-8"))
+        with open(os.path.join(_PROJECT_ROOT, "data", "geneva_annotations.json"), encoding="utf-8") as _af:
+            annotations = json.load(_af)
         if corrections_path and os.path.exists(corrections_path):
-            raw = json.load(open(corrections_path, encoding="utf-8"))
+            with open(corrections_path, encoding="utf-8") as _cf:
+                raw = json.load(_cf)
             corrections = {int(k): v for k, v in raw.items()}
         note_manifest = []
 
