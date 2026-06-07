@@ -22,7 +22,7 @@ def gen_net():
 
 def gen_geneva():
     run_net(os.path.join(_ROOT, "livres_geneva"), os.path.join(_ROOT, "data", "net_bible_cache"),
-            annotated=True, corrections_path=_CORRECTIONS)
+            annotated=True, corrections_path=_CORRECTIONS, plan_markers=False)
 
 def main():
     ap = argparse.ArgumentParser(description="Generate a Bible edition's book files (offline).")

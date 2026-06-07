@@ -52,13 +52,14 @@ def _load_or_parse_plan():
 
 def run_net(output_dir: str, cache_dir: str, books=None,
             annotated: bool = False, corrections_path: str | None = None,
-            start_date: str = "2026-03-02") -> None:
+            start_date: str = "2026-03-02", plan_markers: bool = True) -> None:
     """Generate NET book .tex (plain or annotated) + testament + reading plan into output_dir."""
     from datetime import date as date_cls
     books_to_generate = books if books else BOOKS
     plan_entries = _load_or_parse_plan()
     scheduled = schedule_plan(plan_entries, date_cls.fromisoformat(start_date))
     plan_endpoints = build_plan_endpoints(scheduled)
+    book_plan_endpoints = plan_endpoints if plan_markers else None
 
     annotations: dict | None = {}  # empty dict = no annotations (avoids auto-load)
     corrections = None
@@ -78,7 +79,7 @@ def run_net(output_dir: str, cache_dir: str, books=None,
     for book in books_to_generate:
         chapters_data = fetch_book(book.abbreviation, book.chapters, cache_dir)
         tex_content = generate_book_tex(
-            book, chapters_data, plan_endpoints=plan_endpoints,
+            book, chapters_data, plan_endpoints=book_plan_endpoints,
             annotations=annotations, corrections=corrections, note_manifest=note_manifest)
         book_dir = os.path.join(output_dir, book.directory)
         os.makedirs(book_dir, exist_ok=True)
