@@ -85,6 +85,8 @@ livres/revelation/
 livres/old_testament.tex
 livres/new_testament.tex
 livres_esv/
+livres_net/
+livres_geneva/
 
 # Environment / secrets
 .env
