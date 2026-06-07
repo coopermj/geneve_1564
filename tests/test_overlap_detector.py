@@ -47,9 +47,9 @@ def test_identify_margin_notes_filters_by_x():
         {"bbox": (10, 150, 60, 160), "text": "left margin note"},
     ]
     left, right = _identify_margin_notes(blocks, margin_x=435.0)
-    # Right: two blocks with x0 > 435
+    # All notes go to right margin (outer margin patch); left is always empty.
+    assert left == []
+    # Right: two blocks with x0 > 435 (the left-margin block at x0=10 is excluded)
     assert len(right) == 2
     assert right[0]["text"] == "(a) right margin note"
-    # Left: one block whose x1 < 435/0.86 * LEFT_MARGIN_FRAC ≈ 89
-    assert len(left) == 1
-    assert left[0]["text"] == "left margin note"
+    assert right[1]["text"] == "(b) another right note"

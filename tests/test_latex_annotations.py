@@ -27,7 +27,7 @@ def test_single_annotation():
     assert r"\marginnote" in result
     assert "First of all" in result
     assert counter[0] == 1
-    assert manifest == [{"idx": 0, "book": "genesis", "ch": 1, "verse": 1, "letter": "a"}]
+    assert manifest == [{"idx": 0, "book": "genesis", "ch": 1, "verse": 1, "letter": "a", "text_prefix": "First of all, and be"}]
 
 
 def test_two_annotations():
