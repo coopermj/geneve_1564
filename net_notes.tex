@@ -1,0 +1,221 @@
+% NET Bible — single-column notes layout
+% Text occupies ~66% of page width; right ~34% is a blank note-taking gutter.
+\documentclass[paper=179mm:239mm,pagesize=auto,12pt,headinclude=on,openany,oneside]{scrbook}
+
+% Layout: left 18mm | text 106mm (~59%) | right 55mm note gutter
+\usepackage[left=18mm,right=55mm,top=15mm,bottom=15mm,includeheadfoot]{geometry}
+
+\usepackage{ragged2e}
+
+\usepackage{fontspec}
+\setmainfont[
+  Path=fonts/,
+  Extension=.otf,
+  UprightFont=EBGaramond-Regular,
+  ItalicFont=EBGaramond-Italic,
+  BoldFont=EBGaramond-Bold,
+  BoldItalicFont=EBGaramond-BoldItalic,
+  Numbers=OldStyle,
+  RawFeature={+dlig},
+]{EB Garamond}
+\newfontfamily\booktitlefont[
+  Path=fonts/,
+  Extension=.otf,
+  UprightFont=EBGaramond-Regular,
+  ItalicFont=EBGaramond-Italic,
+  BoldFont=EBGaramond-Bold,
+  BoldItalicFont=EBGaramond-BoldItalic,
+  RawFeature={-ss02},
+  LetterSpace=40,
+  WordSpace=6,
+]{EB Garamond}
+\newfontfamily\spacedfont[
+  Path=fonts/,
+  Extension=.otf,
+  UprightFont=EBGaramond-Regular,
+  ItalicFont=EBGaramond-Italic,
+  BoldFont=EBGaramond-Bold,
+  BoldItalicFont=EBGaramond-BoldItalic,
+  RawFeature={-ss02},
+  LetterSpace=20,
+  WordSpace=3,
+]{EB Garamond}
+\newfontfamily\lettrinefont[Path=fonts/,Extension=.otf,UprightFont=EBGaramond-Initials]{EB Garamond Initials}
+\newfontfamily\headerfont[
+  Path=fonts/,
+  Extension=.otf,
+  UprightFont=EBGaramond-Regular,
+  ItalicFont=EBGaramond-Italic,
+  BoldFont=EBGaramond-Bold,
+  BoldItalicFont=EBGaramond-BoldItalic,
+]{EB Garamond}
+\newfontfamily\allurafont[Path=fonts/,Extension=.ttf,UprightFont=Allura-Regular]{Allura}
+
+\usepackage[
+  protrusion=true,
+  expansion=true,
+  tracking=true,
+  final
+]{microtype}
+
+\usepackage{graphicx}
+\usepackage{lettrine}
+
+\renewcommand{\LettrineFontHook}{\lettrinefont}
+
+% Colors — eInk-optimized palette for Remarkable Paper Pro (Gallery 3)
+\usepackage{xcolor}
+\definecolor{pentateuch}{HTML}{8B4513}
+\definecolor{historical}{HTML}{B22222}
+\definecolor{wisdom}{HTML}{2E8B57}
+\definecolor{majorprophets}{HTML}{4B0082}
+\definecolor{minorprophets}{HTML}{8B0000}
+\definecolor{gospels}{HTML}{00008B}
+\definecolor{acts}{HTML}{006400}
+\definecolor{pauline}{HTML}{4169E1}
+\definecolor{general}{HTML}{800080}
+\definecolor{revelation}{HTML}{DC143C}
+
+% Scripture package for verse/chapter markup
+\usepackage{scripture}
+\scripturesetup{
+  chapter/drop=false,
+  chapter/para=true,
+  chapter/font=\booktitlefont\scshape,
+  chapter/format=Chapter~#1,
+  chapter/para/aboveskip=\baselineskip,
+  chapter/para/belowskip=0pt,
+  verse/format=\textsuperscript{#1},
+  verse/sep=0.1em,
+  verse/first=false,
+  indent=true,
+  redletter=true,
+}
+
+% Allow page breaks after chapter heading (not needed in single-col but harmless)
+\makeatletter
+\newcommand{\allowchapbreak}{\penalty\z@\@nobreakfalse}
+\makeatother
+
+% Environments
+\usepackage{setspace}
+\newenvironment{bookcomment}
+  {\begin{spacing}{0.8}\itshape\scriptsize\hspace{-1em}}
+  {\end{spacing}}
+
+
+% Bible books
+\usepackage{titlesec}
+\usepackage{fourier-orns}
+
+\newsavebox{\bbookimgbox}
+\gdef\bbookchaptable{}
+\makeatletter
+\gdef\currentbookdir{}
+\newcommand{\chaptertablelink}{%
+  \ifx\currentbookdir\@empty\else
+    \hyperlink{book-\currentbookdir}{\headerfont\small\faBookmark}%
+  \fi}
+\makeatother
+
+% \bbook — single-column variant: outputs title block inline, no \twocolumn
+\NewDocumentCommand{\bbook}{O{} m m m m}{%
+  \clearpage
+  \gdef\currentbookdir{#5}%
+  \thispagestyle{scrheadings}%
+  \hypertarget{book-#5}{}%
+  \IfBlankTF{#1}{%
+    \savebox{\bbookimgbox}{}%
+  }{%
+    \savebox{\bbookimgbox}{\makebox[\textwidth][c]{\includegraphics[width=\textwidth]{#1}}}%
+  }%
+  \usebox{\bbookimgbox}\par\nobreak
+  \vspace*{-10pt}%
+  {\centering\huge\booktitlefont\scshape #2%
+    \IfBlankF{#3}{,\\\large #3}%
+    \\\char"2766\par}%
+  \IfBlankF{#4}{%
+    {\centering\booktitlefont\textsc{the argument.}\par}%
+    \vspace{2pt}%
+    {\centering\parbox{\dimexpr\textwidth-2em}{\itshape\scriptsize #4\par}\par}%
+    \vspace{5pt}%
+  }%
+  \bbookchaptable
+  \vspace{5pt}%
+  \gdef\bbookchaptable{}%
+}
+
+\titleformat{\chapter}[hang]%
+   {\centering\huge\booktitlefont\scshape}%
+   {}%
+   {0pt}%
+   {}
+\titlespacing*{\chapter}
+  {0pt}{0pt}{5pt}
+
+% Headings — running book+chapter headers, home-icon footer
+\usepackage{scrlayer-scrpage}
+\clearpairofpagestyles
+\ihead[\headerfont\small\upshape\rightmark]{\headerfont\small\upshape\rightmark}
+\ohead[\headerfont\small\upshape\leftmark]{\headerfont\small\upshape\leftmark}
+\chead[\chaptertablelink]{\chaptertablelink}
+\cfoot[\hyperlink{toc}{\faHome}\hspace{0.8em}\hyperlink{readingplan}{\faBook}]%
+      {\hyperlink{toc}{\faHome}\hspace{0.8em}\hyperlink{readingplan}{\faBook}}
+
+\pagestyle{scrheadings}
+\renewcommand*{\chapterpagestyle}{scrheadings}
+
+% Paragraphs — slightly more generous leading than two-column version
+\setlength{\parindent}{1em}
+\setlength{\parskip}{0pt}
+\linespread{1.0}
+\newcommand{\netnotesbodyfontsize}{\fontsize{11.4pt}{14pt}\selectfont}
+
+% Language
+\usepackage[english]{babel}
+
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\usepackage{needspace}
+\usepackage{changepage}
+\usepackage{eso-pic}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric}
+\usepackage[hidelinks]{hyperref}
+
+% Return-to-plan octagon marker
+\newcommand{\rpreturn}[1]{%
+  \hyperlink{#1}{\,\begin{tikzpicture}[baseline=-0.3ex]
+    \node[regular polygon, regular polygon sides=8, fill=red!20,
+          draw=red!40, inner sep=0pt, minimum size=5pt] {};
+  \end{tikzpicture}}%
+}
+
+% Override \twocolumn — keep single-column throughout (shared files use \twocolumn)
+% \twocolumn[optional-header] → just outputs the header; no column switch
+\renewcommand{\twocolumn}[1][]{#1}
+\renewcommand{\onecolumn}{}
+
+\begin{document}
+\netnotesbodyfontsize
+
+\begin{adjustwidth}{0pt}{-40mm}
+\input{livres/cover}
+\input{livres/color_index}
+\end{adjustwidth}
+\clearpage
+\input{livres/old_testament}
+\input{livres/new_testament}
+\input{livres/reading_plan}
+
+\vfill
+\begin{center}
+\small
+Scripture quoted by permission.\\
+Quotations designated (NET) are from the NET Bible\textregistered\\
+copyright \textcopyright 1996, 2019 by Biblical Studies Press, L.L.C.\\
+All rights reserved.
+\end{center}
+
+\end{document}

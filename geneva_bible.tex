@@ -1,0 +1,299 @@
+\documentclass[twocolumn,paper=179mm:239mm,pagesize=auto,fontsize=13pt,headinclude=on,openany,oneside]{scrbook}
+\areaset[8mm]{125mm}{210mm}
+
+\usepackage{marginnote}
+\renewcommand{\marginfont}{\fontsize{9}{10.5}\selectfont\itshape}
+% Force all \marginnote calls to the outer (right) margin in oneside twocolumn.
+% By default, marginnote sends left-column notes to the inner (binding) margin
+% by checking \@mn@currxpos against oddsidemargin+columnwidth+columnsep and
+% forcing \@tempswafalse for left-column text.  We redefine \@mn@margintest to
+% keep all xpos-detection logic but remove the \if@twocolumn overrides.
+\makeatletter
+\renewcommand*{\@mn@margintest}{%
+  \expandafter\ifx\csname @mn@thispage\endcsname\@empty
+    \gdef\@mn@atthispage{1}%
+  \else\expandafter\ifnum \@mn@thispage=\value{mn@abspage}%
+      \begingroup
+        \@tempcnta\@mn@atthispage\advance\@tempcnta by \@ne
+        \xdef\@mn@atthispage{\the\@tempcnta}%
+      \endgroup
+    \else
+      \gdef\@mn@atthispage{1}%
+    \fi
+  \fi
+  \xdef\@mn@thispage{\themn@abspage}%
+  \let\@mn@currpage\relax
+  \let\@mn@currxpos\relax
+  \mn@savepos
+  \protected@write\@auxout{\let\themn@abspage\relax}{%
+    \string\newmarginnote{note.\@mn@thispage.\@mn@atthispage}{%
+      {\themn@abspage}{\noexpand\number\mn@lastxpos sp}}%
+  }%
+  \expandafter\ifx\csname mn@note.\@mn@thispage.\@mn@atthispage\endcsname\relax
+    \if@twoside
+      \ifodd\value{mn@abspage}\@tempswatrue\else\@tempswafalse\fi
+    \else
+      \@tempswatrue
+    \fi
+  \else
+    \edef\@mn@currpage{\csname
+      mn@note.\@mn@thispage.\@mn@atthispage\endcsname}%
+    \edef\@mn@currxpos{\expandafter\@secondoftwo\@mn@currpage}%
+    \ifx\@mn@currxpos\@empty\else
+      \edef\@mn@currxpos{\the\dimexpr \@mn@currxpos -\hoffset\relax}%
+      \begingroup\expandafter\expandafter\expandafter\endgroup
+      \expandafter\ifx\csname pdfhorigin\endcsname\relax\else
+        \begingroup\expandafter\expandafter\expandafter\endgroup
+        \expandafter\ifx\csname pdfoutput\endcsname\relax
+          \begingroup\expandafter\expandafter\expandafter\endgroup
+          \expandafter\ifx\csname outputmode\endcsname\relax\else
+            \ifnum \outputmode=1 %
+              \edef\@mn@currxpos{\the\dimexpr \@mn@currxpos -\pdfhorigin
+                +1in\relax}%
+            \fi
+          \fi
+        \else
+          \ifnum \pdfoutput=1 %
+            \edef\@mn@currxpos{\the\dimexpr \@mn@currxpos -\pdfhorigin
+              +1in\relax}%
+          \fi
+        \fi
+      \fi
+      \ifdefined\mn@pagewidth
+        \@mn@if@RTL{%
+          \edef\@mn@currxpos{%
+            \the\dimexpr\mn@pagewidth-\@mn@currxpos\relax
+          }%
+        }{}%
+      \fi
+    \fi
+    \edef\@mn@currpage{\expandafter\@firstoftwo\@mn@currpage}%
+    % oneside layout: always use outer (right) margin regardless of column
+    \if@twoside
+      \ifodd\@mn@currpage\relax
+        \@tempswatrue
+      \else
+        \@tempswafalse
+      \fi
+    \else
+      \@tempswatrue
+    \fi
+  \fi
+}
+\makeatother
+\usepackage{ragged2e}
+
+\usepackage{fontspec}
+\setmainfont[
+  Path=fonts/,
+  Extension=.otf,
+  UprightFont=EBGaramond-Regular,
+  ItalicFont=EBGaramond-Italic,
+  BoldFont=EBGaramond-Bold,
+  BoldItalicFont=EBGaramond-BoldItalic,
+  Numbers=OldStyle,
+  RawFeature={+dlig},
+]{EB Garamond}
+\newfontfamily\booktitlefont[
+  Path=fonts/,
+  Extension=.otf,
+  UprightFont=EBGaramond-Regular,
+  ItalicFont=EBGaramond-Italic,
+  BoldFont=EBGaramond-Bold,
+  BoldItalicFont=EBGaramond-BoldItalic,
+  RawFeature={-ss02},
+  LetterSpace=40,
+  WordSpace=6,
+]{EB Garamond}
+\newfontfamily\spacedfont[
+  Path=fonts/,
+  Extension=.otf,
+  UprightFont=EBGaramond-Regular,
+  ItalicFont=EBGaramond-Italic,
+  BoldFont=EBGaramond-Bold,
+  BoldItalicFont=EBGaramond-BoldItalic,
+  RawFeature={-ss02},
+  LetterSpace=20,
+  WordSpace=3,
+]{EB Garamond}
+\newfontfamily\lettrinefont[Path=fonts/,Extension=.otf,UprightFont=EBGaramond-Initials]{EB Garamond Initials}
+\newfontfamily\headerfont[
+  Path=fonts/,
+  Extension=.otf,
+  UprightFont=EBGaramond-Regular,
+  ItalicFont=EBGaramond-Italic,
+  BoldFont=EBGaramond-Bold,
+  BoldItalicFont=EBGaramond-BoldItalic,
+]{EB Garamond}
+\newfontfamily\allurafont[Path=fonts/,Extension=.ttf,UprightFont=Allura-Regular]{Allura}
+
+\usepackage[
+  protrusion=true,
+  expansion=true,
+  tracking=true,
+  final
+]{microtype}
+
+\usepackage{graphicx}
+\usepackage{lettrine}
+
+\renewcommand{\LettrineFontHook}{\lettrinefont}
+
+% Colors — eInk-optimized palette for Remarkable Paper Pro (Gallery 3)
+\usepackage{xcolor}
+\definecolor{pentateuch}{HTML}{8B4513}
+\definecolor{historical}{HTML}{B22222}
+\definecolor{wisdom}{HTML}{2E8B57}
+\definecolor{majorprophets}{HTML}{4B0082}
+\definecolor{minorprophets}{HTML}{8B0000}
+\definecolor{gospels}{HTML}{00008B}
+\definecolor{acts}{HTML}{006400}
+\definecolor{pauline}{HTML}{4169E1}
+\definecolor{general}{HTML}{800080}
+\definecolor{revelation}{HTML}{DC143C}
+
+% Scripture package for verse/chapter markup
+\usepackage{scripture}
+\scripturesetup{
+  chapter/drop=false,
+  chapter/para=true,
+  chapter/font=\booktitlefont\scshape,
+  chapter/format=Chapter~#1,
+  chapter/para/aboveskip=\baselineskip,
+  chapter/para/belowskip=0pt,
+  verse/format=\textsuperscript{#1},
+  verse/sep=0.1em,
+  verse/first=false,
+  indent=true,
+  redletter=true,
+}
+% Allow column/page breaks between chapter heading and first verse.
+% The scripture package puts \nobreak + \@afterheading after the heading
+% paragraph, gluing heading to verse 1.  With large lettrines in a
+% two-column layout this forces the whole block to the next column,
+% leaving large blank gaps.  \allowchapbreak cancels both mechanisms.
+\makeatletter
+\newcommand{\allowchapbreak}{\penalty\z@\@nobreakfalse}
+\makeatother
+
+% Environments
+\usepackage{setspace}
+\newenvironment{bookcomment}
+  {\begin{spacing}{0.8}\itshape\scriptsize\hspace{-1em}}
+  {\end{spacing}}
+
+% Footnotes
+\usepackage{alphalph}
+
+% Bible books
+\usepackage{titlesec}
+\usepackage{fourier-orns}
+\newcommand{\gva}[1]{\textsuperscript{\textit{#1}}}
+
+\newsavebox{\bbookimgbox}
+% Chapter table helper — set with \gdef\bbookchaptable{...} before \bbook, auto-reset after.
+\gdef\bbookchaptable{}
+% Current book tracking for chapter-table header link
+\makeatletter
+\gdef\currentbookdir{}
+\newcommand{\chaptertablelink}{%
+  \ifx\currentbookdir\@empty\else
+    \hyperlink{book-\currentbookdir}{\headerfont\small\faBookmark}%
+  \fi}
+\makeatother
+% \bbook[image]{Main Title}{Subtitle}{Argument text}{book-dir}
+% Chapter table (if any) must be set via \gdef\bbookchaptable{...} BEFORE calling \bbook.
+\NewDocumentCommand{\bbook}{O{} m m m m}{%
+  \clearpage
+  \gdef\currentbookdir{#5}%
+  \thispagestyle{scrheadings}%
+  \hypertarget{book-#5}{}%
+  \IfBlankTF{#1}{%
+    \savebox{\bbookimgbox}{}%
+  }{%
+    \savebox{\bbookimgbox}{\makebox[\textwidth][c]{\includegraphics[width=\textwidth]{#1}}}%
+  }%
+  \twocolumn[%
+    \usebox{\bbookimgbox}\par\nobreak
+    \vspace*{-10pt}%
+    {\centering\huge\booktitlefont\scshape #2%
+      \IfBlankF{#3}{,\\\large #3}%
+      \\\char"2766\par}%
+    \IfBlankF{#4}{%
+      {\centering\booktitlefont\textsc{the argument.}\par}%
+      \vspace{2pt}%
+      {\centering\parbox{\dimexpr\textwidth-2em}{\itshape\scriptsize #4\par}\par}%
+      \vspace{5pt}%
+    }%
+    \bbookchaptable
+    \vspace{5pt}%
+  ]%
+  \gdef\bbookchaptable{}
+}
+\titleformat{\chapter}[hang]%
+   {\centering\huge\booktitlefont\scshape}%
+   {}%
+   {0pt}%
+   {}
+\titlespacing*{\chapter}
+  {0pt}{0pt}{5pt}
+
+
+% Headings — running book+chapter headers, home-icon footer
+\usepackage{scrlayer-scrpage}
+\clearpairofpagestyles
+\ihead[\headerfont\small\upshape\rightmark]{\headerfont\small\upshape\rightmark}
+\ohead[\headerfont\small\upshape\leftmark]{\headerfont\small\upshape\leftmark}
+\chead[\chaptertablelink]{\chaptertablelink}
+\cfoot[\hyperlink{toc}{\faHome}\hspace{0.8em}\hyperlink{readingplan}{\faBook}]%
+      {\hyperlink{toc}{\faHome}\hspace{0.8em}\hyperlink{readingplan}{\faBook}}
+
+\pagestyle{scrheadings}
+\renewcommand*{\chapterpagestyle}{scrheadings}
+
+
+% Paragraphs
+\setlength{\parindent}{1em}
+\setlength{\parskip}{0pt}
+
+\linespread{0.9}
+\setlength{\columnsep}{6mm}
+
+% Language
+\usepackage[english]{babel}
+
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\usepackage{needspace}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric}
+\usepackage[hidelinks]{hyperref}
+
+
+% Return-to-plan octagon marker
+\newcommand{\rpreturn}[1]{%
+  \hyperlink{#1}{\,\begin{tikzpicture}[baseline=-0.3ex]
+    \node[regular polygon, regular polygon sides=8, fill=red!20,
+          draw=red!40, inner sep=0pt, minimum size=5pt] {};
+  \end{tikzpicture}}%
+}
+
+\begin{document}
+\onecolumn
+\input{livres/cover}
+\input{livres/color_index}
+\input{livres/old_testament}
+\input{livres/new_testament}
+\input{livres/reading_plan}
+
+\vfill
+\begin{center}
+\small
+Scripture quoted by permission.\\
+Quotations designated (NET) are from the NET Bible\textregistered\\
+copyright \textcopyright 1996, 2019 by Biblical Studies Press, L.L.C.\\
+All rights reserved.
+\end{center}
+
+\end{document}
