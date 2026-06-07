@@ -12,16 +12,18 @@ import sys
 
 from dotenv import load_dotenv
 
-load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = os.path.dirname(_SCRIPT_DIR)
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+load_dotenv(os.path.join(_PROJECT_ROOT, ".env"))
+
+sys.path.insert(0, _SCRIPT_DIR)
 
 from bible_config import BOOKS, get_book_by_name, get_books_by_testament
 from esv_fetcher import fetch_chapter
 from esv_latex_generator import (
     generate_book_tex,
     generate_testament_tex,
-    generate_color_index_tex,
 )
 
 ESV_API_KEY = os.environ.get("ESV_API_KEY", "")
@@ -39,104 +41,38 @@ def fetch_book(book_name: str, num_chapters: int, api_key: str,
     return chapters
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Generate LaTeX files for the ESV Bible"
-    )
-    parser.add_argument(
-        "--books",
-        nargs="+",
-        help="Specific books to generate (by name or slug). Default: all 66.",
-    )
-    parser.add_argument(
-        "--output-dir",
-        default=os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "livres_esv",
-        ),
-        help="Output directory (default: livres_esv/)",
-    )
-    parser.add_argument(
-        "--cache-dir",
-        default=os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "data",
-            "esv_cache",
-        ),
-        help="Cache directory for API responses (default: data/esv_cache/)",
-    )
-    args = parser.parse_args()
-
-    if args.books:
-        books_to_generate = []
-        for name in args.books:
-            book = get_book_by_name(name)
-            if book is None:
-                print(f"Error: Unknown book '{name}'", file=sys.stderr)
-                sys.exit(1)
-            books_to_generate.append(book)
-    else:
-        books_to_generate = BOOKS
-
-    output_dir = args.output_dir
-    cache_dir = args.cache_dir
-
-    print(f"Generating {len(books_to_generate)} ESV book(s)...")
-    print(f"Output: {output_dir}")
-    print(f"Cache:  {cache_dir}")
-    print()
-
+def run_esv(output_dir: str, cache_dir: str, books=None) -> None:
+    """Generate ESV book .tex + testament includes into output_dir (offline from cache)."""
+    books_to_generate = books if books else BOOKS
+    print(f"[esv] Generating {len(books_to_generate)} book(s) -> {output_dir}")
     for book in books_to_generate:
-        print(f"  {book.name} ({book.chapters} chapters)...", end=" ", flush=True)
-
-        chapters_html = fetch_book(
-            book.name, book.chapters, ESV_API_KEY, cache_dir
-        )
-
+        chapters_html = fetch_book(book.name, book.chapters, ESV_API_KEY, cache_dir)
         tex_content = generate_book_tex(book, chapters_html)
-
         book_dir = os.path.join(output_dir, book.directory)
         os.makedirs(book_dir, exist_ok=True)
-        tex_path = os.path.join(book_dir, f"{book.directory}.tex")
-        with open(tex_path, "w", encoding="utf-8") as f:
+        with open(os.path.join(book_dir, f"{book.directory}.tex"), "w", encoding="utf-8") as f:
             f.write(tex_content)
-
-        print("done")
-
-    print()
-    print("Generating testament include files...")
-
-    ot_books = [b for b in books_to_generate if b.testament == "OT"]
-    nt_books = [b for b in books_to_generate if b.testament == "NT"]
-
     all_ot = get_books_by_testament("OT")
     all_nt = get_books_by_testament("NT")
+    gen = {b.directory for b in books_to_generate}
+    if {b.directory for b in all_ot} <= gen:
+        with open(os.path.join(output_dir, "old_testament.tex"), "w", encoding="utf-8") as f:
+            f.write(generate_testament_tex(all_ot, "Old Testament"))
+    if {b.directory for b in all_nt} <= gen:
+        with open(os.path.join(output_dir, "new_testament.tex"), "w", encoding="utf-8") as f:
+            f.write(generate_testament_tex(all_nt, "New Testament"))
 
-    if set(b.directory for b in ot_books) == set(b.directory for b in all_ot):
-        ot_tex = generate_testament_tex(all_ot, "Old Testament")
-        ot_path = os.path.join(output_dir, "old_testament.tex")
-        with open(ot_path, "w", encoding="utf-8") as f:
-            f.write(ot_tex)
-        print("  old_testament.tex written")
-    elif ot_books:
-        print("  (skipping old_testament.tex — not all OT books generated)")
 
-    if set(b.directory for b in nt_books) == set(b.directory for b in all_nt):
-        nt_tex = generate_testament_tex(all_nt, "New Testament")
-        nt_path = os.path.join(output_dir, "new_testament.tex")
-        with open(nt_path, "w", encoding="utf-8") as f:
-            f.write(nt_tex)
-        print("  new_testament.tex written")
-    elif nt_books:
-        print("  (skipping new_testament.tex — not all NT books generated)")
-
-    index_tex = generate_color_index_tex()
-    index_path = os.path.join(output_dir, "color_index.tex")
-    with open(index_path, "w", encoding="utf-8") as f:
-        f.write(index_tex)
-    print("  color_index.tex written")
-
-    print()
+def main():
+    parser = argparse.ArgumentParser(description="Generate LaTeX files for the ESV Bible")
+    parser.add_argument("--books", nargs="+")
+    parser.add_argument("--output-dir", default=os.path.join(_PROJECT_ROOT, "livres_esv"))
+    parser.add_argument("--cache-dir", default=os.path.join(_PROJECT_ROOT, "data", "esv_cache"))
+    args = parser.parse_args()
+    books = [get_book_by_name(n) for n in args.books] if args.books else None
+    if books and any(b is None for b in books):
+        print("Error: unknown book", file=sys.stderr); sys.exit(1)
+    run_esv(args.output_dir, args.cache_dir, books)
     print("Done!")
 
 

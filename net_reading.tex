@@ -1,6 +1,7 @@
 \documentclass[twocolumn,paper=179mm:239mm,pagesize=auto,11pt,headinclude=on,openany,oneside]{scrbook}
 \areaset[8mm]{130mm}{210mm}
 
+\usepackage{bigfoot}
 \usepackage{ragged2e}
 
 \usepackage{fontspec}
@@ -61,9 +62,6 @@
 
 % Colors — eInk-optimized palette for Remarkable Paper Pro (Gallery 3)
 \usepackage{xcolor}
-\usepackage{tikz}
-\usetikzlibrary{shapes.geometric}
-\usepackage{eso-pic}
 \definecolor{pentateuch}{HTML}{8B4513}
 \definecolor{historical}{HTML}{B22222}
 \definecolor{wisdom}{HTML}{2E8B57}
@@ -77,7 +75,6 @@
 
 % Scripture package for verse/chapter markup
 \usepackage{scripture}
-\input{verse_protrusion}
 \scripturesetup{
   chapter/drop=false,
   chapter/para=true,
@@ -85,12 +82,20 @@
   chapter/format=Chapter~#1,
   chapter/para/aboveskip=\baselineskip,
   chapter/para/belowskip=0pt,
-  verse/format=\verseprotrudenum{#1},
+  verse/format=\textsuperscript{#1},
   verse/sep=0.1em,
   verse/first=false,
   indent=true,
   redletter=true,
 }
+% Allow column/page breaks between chapter heading and first verse.
+% The scripture package puts \nobreak + \@afterheading after the heading
+% paragraph, gluing heading to verse 1.  With large lettrines in a
+% two-column layout this forces the whole block to the next column,
+% leaving large blank gaps.  \allowchapbreak cancels both mechanisms.
+\makeatletter
+\newcommand{\allowchapbreak}{\penalty\z@\@nobreakfalse}
+\makeatother
 
 % Environments
 \usepackage{setspace}
@@ -98,10 +103,10 @@
   {\begin{spacing}{0.8}\itshape\scriptsize\hspace{-1em}}
   {\end{spacing}}
 
-% Margin notes (like Geneva 1564 original)
-\usepackage{marginnote}
-\setlength{\marginparwidth}{3.5em}
-\setlength{\marginparsep}{0.3em}
+% Footnotes
+\usepackage{alphalph}
+\DeclareNewFootnote{main}[alph]
+\renewcommand{\thefootnotemain}{\alphalph{\value{footnotemain}}}
 
 % Bible books
 \usepackage{titlesec}
@@ -119,6 +124,7 @@
   \fi}
 \makeatother
 % \bbook[image]{Main Title}{Subtitle}{Argument text}{book-dir}
+% Chapter table (if any) must be set via \gdef\bbookchaptable{...} BEFORE calling \bbook.
 \NewDocumentCommand{\bbook}{O{} m m m m}{%
   \clearpage
   \gdef\currentbookdir{#5}%
@@ -161,7 +167,8 @@
 \ihead[\headerfont\small\upshape\rightmark]{\headerfont\small\upshape\rightmark}
 \ohead[\headerfont\small\upshape\leftmark]{\headerfont\small\upshape\leftmark}
 \chead[\chaptertablelink]{\chaptertablelink}
-\cfoot[\hyperlink{toc}{\faHome}]{\hyperlink{toc}{\faHome}}
+\cfoot[\hyperlink{toc}{\faHome}\hspace{0.8em}\hyperlink{readingplan}{\faBook}]%
+      {\hyperlink{toc}{\faHome}\hspace{0.8em}\hyperlink{readingplan}{\faBook}}
 
 \pagestyle{scrheadings}
 \renewcommand*{\chapterpagestyle}{scrheadings}
@@ -179,24 +186,36 @@
 
 \usepackage{fontawesome5}
 \usepackage{multicol}
+\usepackage{needspace}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric}
 \usepackage[hidelinks]{hyperref}
 
 
+% Return-to-plan octagon marker
+\newcommand{\rpreturn}[1]{%
+  \hyperlink{#1}{\,\begin{tikzpicture}[baseline=-0.3ex]
+    \node[regular polygon, regular polygon sides=8, fill=red!20,
+          draw=red!40, inner sep=0pt, minimum size=5pt] {};
+  \end{tikzpicture}}%
+}
+
 \begin{document}
 \onecolumn
-\input{editions/esv/cover}
-\input{editions/esv/color_index}
-\input{livres_esv/old_testament}
-\input{livres_esv/new_testament}
+\input{editions/net_reading/cover}
+\input{editions/net_reading/color_index}
+\input{livres_net/old_testament}
+\input{livres_net/new_testament}
+\input{livres_net/reading_plan}
 
 \vfill
 \begin{center}
 \small
-Scripture quotations are from the ESV\textregistered\ Bible\\
-(The Holy Bible, English Standard Version\textregistered),\\
-copyright \textcopyright\ 2001 by Crossway,\\
-a publishing ministry of Good News Publishers.\\
-Used by permission. All rights reserved.
+Scripture quoted by permission.\\
+Quotations designated (NET) are from the NET Bible\textregistered\\
+copyright \textcopyright 1996, 2019 by Biblical Studies Press, L.L.C.\\
+All rights reserved.
 \end{center}
 
 \end{document}

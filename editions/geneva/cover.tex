@@ -1,0 +1,53 @@
+% Cover — NET Bible with Geneva Annotations
+\clearpage
+\thispagestyle{empty}%
+\begin{tikzpicture}[remember picture,overlay]
+  % Top-left corner bracket
+  \draw[color=majorprophets!40,line width=1pt]
+    ([xshift=14mm,yshift=-38mm]current page.north west) --
+    ([xshift=14mm,yshift=-14mm]current page.north west) --
+    ([xshift=38mm,yshift=-14mm]current page.north west);
+  % Top-right corner bracket
+  \draw[color=majorprophets!40,line width=1pt]
+    ([xshift=-38mm,yshift=-14mm]current page.north east) --
+    ([xshift=-14mm,yshift=-14mm]current page.north east) --
+    ([xshift=-14mm,yshift=-38mm]current page.north east);
+  % Bottom-left corner bracket
+  \draw[color=majorprophets!40,line width=1pt]
+    ([xshift=14mm,yshift=38mm]current page.south west) --
+    ([xshift=14mm,yshift=14mm]current page.south west) --
+    ([xshift=38mm,yshift=14mm]current page.south west);
+  % Bottom-right corner bracket
+  \draw[color=majorprophets!40,line width=1pt]
+    ([xshift=-38mm,yshift=14mm]current page.south east) --
+    ([xshift=-14mm,yshift=14mm]current page.south east) --
+    ([xshift=-14mm,yshift=38mm]current page.south east);
+  % Margin annotation text — faint, right side
+  \node[text width=30mm, align=left,
+        font=\fontsize{7}{9.5}\selectfont\itshape\color{majorprophets!18}]
+    at ([xshift=151mm,yshift=-115mm]current page.north west) {%
+      In the beginning God\linebreak
+      created — that is, the\linebreak
+      eternal power and\linebreak
+      wisdom of the Father.\linebreak
+      \vspace{2pt}%
+      So that we might know\linebreak
+      him to be not only the\linebreak
+      Creator but also the\linebreak
+      Redeemer of the world.%
+    };
+\end{tikzpicture}%
+\null\vspace*{72mm}
+\begin{center}
+  {\large\booktitlefont\scshape the holy bible\par}
+  \vspace{5pt}
+  {\color{majorprophets}\rule{26mm}{0.4pt}\enspace{\large\char"2766}\enspace\rule{26mm}{0.4pt}\par}
+  \vspace{12pt}
+  {\fontsize{44}{50}\selectfont\allurafont\color{majorprophets}Net Bible\par}
+  \vspace{8pt}
+  {\small\spacedfont\scshape with the Geneva Annotations\par}
+  \vspace{16pt}
+  {\color{majorprophets!40}\rule{55mm}{0.3pt}\par}
+\end{center}
+\vfill
+\clearpage
