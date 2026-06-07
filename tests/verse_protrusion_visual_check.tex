@@ -1,5 +1,7 @@
 % Manual visual regression fixture for verse-number margin protrusion.
-% Build: cd tests && OSFONTDIR=/Users/micahcooper/geneve_1564/fonts lualatex verse_protrusion_visual_check.tex
+% Build:  tests/build_visual_check.sh   (uses an ABSOLUTE OSFONTDIR; a relative
+%   one makes luaotfload resolve "EB Garamond" to a broken system font at
+%   embedding time and aborts with "invalid font type (ttf)").
 % Then eyeball (or pixel-measure) the line-start verse number vs the column rule: it should hang slightly left.
 \documentclass[11pt]{article}
 \usepackage{fontspec}

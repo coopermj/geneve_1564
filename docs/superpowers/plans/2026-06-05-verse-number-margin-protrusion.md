@@ -84,7 +84,7 @@ ordered by the word of his power forever and ever amen.
 
 Run:
 ```bash
-cd tests && OSFONTDIR=../fonts lualatex -interaction=nonstopmode verse_protrusion_visual_check.tex; cd ..
+tests/build_visual_check.sh
 ```
 Expected: FAIL with `! LaTeX Error: File 'verse_protrusion.tex' not found` (or `\input` cannot find it). This confirms the fixture is wired to our file.
 
@@ -166,7 +166,7 @@ Create `verse_protrusion.tex` (repo root):
 
 Run:
 ```bash
-cd tests && OSFONTDIR=../fonts lualatex -interaction=nonstopmode verse_protrusion_visual_check.tex; cd ..
+tests/build_visual_check.sh
 pdftoppm -png -r 220 tests/verse_protrusion_visual_check.pdf /tmp/vp_out && echo /tmp/vp_out-1.png
 ```
 Then read `/tmp/vp_out-1.png`.
@@ -272,7 +272,7 @@ Read the PNG. Expected: superior-figure verse numbers throughout; any number tha
 ```
 Render:
 ```bash
-cd tests && OSFONTDIR=../fonts lualatex -interaction=nonstopmode verse_protrusion_visual_check.tex; cd ..
+tests/build_visual_check.sh
 pdftoppm -png -r 220 tests/verse_protrusion_visual_check.pdf /tmp/vp_fb && echo /tmp/vp_fb-1.png
 ```
 Read the PNG. Expected: verse numbers render as ordinary `\textsuperscript` (no margin hang, no superior-figure styling) — i.e. today's behavior, no errors.
@@ -296,7 +296,7 @@ git checkout tests/verse_protrusion_visual_check.tex
 
 - [ ] **Step 2: Re-render the fixture to confirm the new factor.**
 ```bash
-cd tests && OSFONTDIR=../fonts lualatex -interaction=nonstopmode verse_protrusion_visual_check.tex; cd ..
+tests/build_visual_check.sh
 pdftoppm -png -r 220 tests/verse_protrusion_visual_check.pdf /tmp/vp_tune && echo /tmp/vp_tune-1.png
 ```
 Read the PNG and confirm the hang looks right.
