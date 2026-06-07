@@ -105,6 +105,24 @@ Dispatch:
   dir is already current.
 - The old three scripts are removed; their tests are repointed at `generate.py`.
 
+## Data seeding (no re-download)
+
+The consolidated build seeds **entirely from previously-downloaded data —
+fully offline, no API re-fetch and no Geneva re-scrape**:
+
+- **Bible text:** `data/esv_cache/` (1189 chapters) and `data/net_bible_cache/`
+  (1189 chapters) are already present on the branch (inherited from master) and
+  complete. `generate.py` reads chapter JSON from these; it only hits the
+  network on a cache miss, which will not occur for a full edition.
+- **Geneva annotations:** `data/geneva_annotations.json` (the 15k scraped
+  notes), `data/geneva_arguments.json`, and `data/corrections_final.json` are
+  copied in from the geneva branch (where they are force-added). The
+  `geneva` generation reuses these directly. `note_manifest.json` is a
+  build-derived artifact and is regenerated, not seeded.
+
+No step in the migration or build requires re-downloading or re-scraping any
+source data.
+
 ## Build interface (Makefile)
 
 ```
