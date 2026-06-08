@@ -152,6 +152,11 @@ def main():
         if not new_corrections:
             print(f"none found.")
             print(f"\nDone — no overlaps after {iteration} iteration(s).")
+            if args.corrections_out:
+                os.makedirs(os.path.dirname(args.corrections_out), exist_ok=True)
+                with open(args.corrections_out, "w") as f:
+                    json.dump({str(k): v for k, v in corrections.items()}, f)
+                print(f"Saved {len(corrections)} corrections to {args.corrections_out}")
             return
 
         n_offsets = sum(1 for v in new_corrections.values() if v != "footnote")
