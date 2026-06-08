@@ -370,6 +370,7 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                     lettrine_src, lettrine_lines=8, color=book.group)
             else:
                 lettrine_text = _make_lettrine(lettrine_src, lettrine_lines=5, color=book.group)
+            lines.append(f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}")
             lines.append(f"\\ch{{{ch_num}}} \\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{rl_prefix}{lettrine_text}\\everypar{{}}")
             first_verse_seen = True
         else:
@@ -414,6 +415,8 @@ def generate_book_tex(
     else:
         lines.append(f"\\bbook{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}")
 
+    # PDF outline: top-level bookmark for the book (points to the \bbook anchor)
+    lines.append(f"\\bookmark[dest={{book-{book.directory}}},level=0]{{{book.name}}}")
     lines.append("")
     lines.append("\\begin{scripture}")
 

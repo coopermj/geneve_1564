@@ -491,6 +491,8 @@ def generate_book_tex(
     else:
         lines.append(f"\\bbook{{{escaped_title}}}{{{escaped_sub}}}{{{argument}}}{{{book.directory}}}")
 
+    # PDF outline: top-level bookmark for the book (points to the \bbook anchor)
+    lines.append(f"\\bookmark[dest={{book-{book.directory}}},level=0]{{{book.name}}}")
     lines.append("")
     lines.append("\\begin{scripture}")
 
@@ -549,6 +551,7 @@ def generate_book_tex(
                 # the whole block out, leaving large blank gaps.
                 if ch_num > 1:
                     lines.append("\\Needspace*{8\\baselineskip}")
+                lines.append(f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}")
                 lines.append(f"\\ch{{{ch_num}}} \\allowchapbreak\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{lettrine_text}{ann_suffix}\\everypar{{}}")
             else:
                 lettrine_char_budget -= len(text)
