@@ -89,12 +89,13 @@ def run_net(output_dir: str, cache_dir: str, books=None,
     all_ot = get_books_by_testament("OT")
     all_nt = get_books_by_testament("NT")
     gen = {b.directory for b in books_to_generate}
+    subdir = os.path.basename(output_dir)
     if {b.directory for b in all_ot} <= gen:
         with open(os.path.join(output_dir, "old_testament.tex"), "w", encoding="utf-8") as f:
-            f.write(generate_testament_tex(all_ot, "Old Testament"))
+            f.write(generate_testament_tex(all_ot, "Old Testament", subdir=subdir))
     if {b.directory for b in all_nt} <= gen:
         with open(os.path.join(output_dir, "new_testament.tex"), "w", encoding="utf-8") as f:
-            f.write(generate_testament_tex(all_nt, "New Testament"))
+            f.write(generate_testament_tex(all_nt, "New Testament", subdir=subdir))
     with open(os.path.join(output_dir, "reading_plan.tex"), "w", encoding="utf-8") as f:
         f.write(generate_reading_plan_tex(scheduled))
     if note_manifest is not None:
