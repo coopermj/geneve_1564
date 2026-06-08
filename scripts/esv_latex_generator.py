@@ -284,10 +284,11 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
         if not re.match(r'<p\b', block):
             continue
 
-        # Check if this is a new paragraph (not the very first verse of ch)
-        is_chapter_start = "starts-chapter" in block
-
-        # Extract chapter number marker
+        # Detect chapter start by the chapter-num marker (the "N:1" <b> tag),
+        # present at verse 1 of every chapter in BOTH prose and poetry. The old
+        # "starts-chapter" CSS class is prose-only, so it silently dropped the
+        # \ch heading (and its anchor/bookmark) for every poetry chapter --
+        # e.g. all 150 Psalms, Lamentations, Song of Solomon.
         ch_match = re.search(
             r'<b class="chapter-num[^"]*"[^>]*>\s*\d+:\s*(\d+)[^<]*</b>',
             block,
@@ -356,7 +357,7 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
         if not para_text:
             continue
 
-        if is_chapter_start and ch_match:
+        if ch_match:
             # Chapter start — emit \ch{N} + lettrine.
             # Strip any leading \redletteron before passing to _make_lettrine
             # (lettrine must receive plain text as its first character).
@@ -365,7 +366,15 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
             if lettrine_src.startswith("\\redletteron "):
                 rl_prefix = "\\redletteron "
                 lettrine_src = lettrine_src[len("\\redletteron "):]
-            if is_first_chapter and ch_num == 1:
+            if is_poetry:
+                # Poetry: NO drop cap. The first poetic line is short and is
+                # immediately followed by a stanza break / mid-psalm section
+                # heading, which ends the paragraph before a \lettrine can fill
+                # its lines ("Paragraph ended before \lettrine was complete").
+                # Emit just the chapter number + first line; the \ch anchor and
+                # bookmark still work.
+                lettrine_text = lettrine_src
+            elif is_first_chapter and ch_num == 1:
                 lettrine_text = _make_lettrine(
                     lettrine_src, lettrine_lines=8, color=book.group)
             else:
