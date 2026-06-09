@@ -96,3 +96,8 @@ fntest*
 
 # Git worktrees
 .worktrees/
+
+# OS / Python bytecode junk
+.DS_Store
+*.pyc
+__pycache__/
