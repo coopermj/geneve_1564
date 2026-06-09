@@ -9,6 +9,12 @@
 % forcing \@tempswafalse for left-column text.  We redefine \@mn@margintest to
 % keep all xpos-detection logic but remove the \if@twocolumn overrides.
 \makeatletter
+% Record each margin note's vertical anchor position (y) in the aux, in a
+% SEPARATE command so marginnote's own {{page}{xpos}} group stays intact (its
+% \@secondoftwo xpos-extraction would break if we added a 3rd element there).
+% The overlap detector reads \mnypos for accurate anchor-based overlap
+% detection; here it is a no-op so the aux reads back cleanly.
+\providecommand\mnypos[2]{}
 \renewcommand*{\@mn@margintest}{%
   \expandafter\ifx\csname @mn@thispage\endcsname\@empty
     \gdef\@mn@atthispage{1}%
@@ -29,6 +35,8 @@
     \string\newmarginnote{note.\@mn@thispage.\@mn@atthispage}{%
       {\themn@abspage}{\noexpand\number\mn@lastxpos sp}}%
   }%
+  \protected@write\@auxout{}{%
+    \string\mnypos{note.\@mn@thispage.\@mn@atthispage}{\noexpand\number\lastypos sp}}%
   \expandafter\ifx\csname mn@note.\@mn@thispage.\@mn@atthispage\endcsname\relax
     \if@twoside
       \ifodd\value{mn@abspage}\@tempswatrue\else\@tempswafalse\fi

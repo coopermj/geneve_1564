@@ -1,6 +1,7 @@
 """Detect overlapping margin notes in a compiled PDF using PyMuPDF."""
 
 import json
+import math
 import os
 import re
 
@@ -328,3 +329,132 @@ def detect(
 
     doc.close()
     return all_corrections
+
+
+# ---------------------------------------------------------------------------
+# Anchor-based detection (accurate for dense/overlapping margins)
+#
+# The rendered-block detectors above fail on crowded pages: when margin notes
+# overlap, PyMuPDF does not segment them into one-block-per-note, so they go
+# undetected.  This detector instead uses the *anchor* position of each note
+# (where its \marginnote sits in the body text), recorded in the .aux by the
+# geneva_bible.tex \@mn@margintest patch as:
+#     \newmarginnote{note.P.N}{{page}{Xsp}}   (page + x of the anchor)
+#     \mnypos{note.P.N}{Ysp}                   (y of the anchor, \lastypos)
+# Y is measured from the page bottom, so top-down position = PAGE_HEIGHT - Y.
+# Each note's height is estimated from its annotation text.  Notes that would
+# overlap a kept note (or run off the page) are demoted to footnotes.
+# ---------------------------------------------------------------------------
+
+PAGE_HEIGHT_PT = 677.5          # geneva paper height in points (239mm)
+_SP = 65536.0                   # scaled points per point
+_CHARS_PER_LINE = 12.0          # calibrated from a 197-char / 16-line note
+_LINE_HEIGHT_PT = 10.5          # \fontsize{9}{10.5}; slight over-estimate is safe
+
+
+def estimate_note_height(text: str, letter: str,
+                         chars_per_line: float = _CHARS_PER_LINE,
+                         line_height: float = _LINE_HEIGHT_PT) -> float:
+    """Estimate a margin note's rendered height (pt) from its text length.
+
+    The note renders as ``<letter> <text>``.  Over-estimating slightly is the
+    safe direction (footnotes a few more notes -> guarantees no overlap)."""
+    n = len(text) + len(letter) + 1
+    lines = max(1, math.ceil(n / chars_per_line))
+    return lines * line_height
+
+
+def _parse_anchor_aux(aux_path: str):
+    """Parse \\newmarginnote (page,x) and \\mnypos (y) keyed by note name.
+
+    Returns (order, page_of, y_of): order = note names in document order,
+    page_of[name] = int page, y_of[name] = int y in sp."""
+    order: list[str] = []
+    page_of: dict[str, int] = {}
+    y_of: dict[str, int] = {}
+    nm_pat = re.compile(r"\\newmarginnote\{(note\.\d+\.\d+)\}\{\{(\d+)\}\{(-?\d+)sp\}\}")
+    y_pat = re.compile(r"\\mnypos\{(note\.\d+\.\d+)\}\{(-?\d+)sp\}")
+    with open(aux_path, encoding="utf-8", errors="replace") as f:
+        for line in f:
+            m = nm_pat.match(line)
+            if m:
+                name = m.group(1)
+                order.append(name)
+                page_of[name] = int(m.group(2))
+                continue
+            m = y_pat.match(line)
+            if m:
+                y_of[m.group(1)] = int(m.group(2))
+    return order, page_of, y_of
+
+
+def _annotation_text(annotations: dict, entry: dict) -> str:
+    """Full annotation text for a manifest entry (book/ch/verse/letter)."""
+    try:
+        notes = annotations[entry["book"]][str(entry["ch"])][str(entry["verse"])]
+    except (KeyError, TypeError):
+        return entry.get("text_prefix", "")
+    for n in notes:
+        if n.get("letter") == entry["letter"]:
+            return n.get("text", "")
+    return entry.get("text_prefix", "")
+
+
+def detect_from_anchors(
+    aux_path: str,
+    manifest_path: str,
+    annotations_path: str,
+    already_footnoted: set | None = None,
+    gap: float = GAP,
+    bottom_margin: float = BOTTOM_MARGIN,
+    page_height: float = PAGE_HEIGHT_PT,
+) -> dict:
+    """Footnote margin notes that would overlap, using anchor positions.
+
+    Robust on dense pages (independent of how the overlapping text renders).
+    Per page, notes are sorted top-to-bottom by anchor position; a note is
+    demoted to a footnote if its anchor falls within the previous kept note's
+    extent (+gap) or it would run past the usable bottom of the page.
+
+    Returns {manifest_idx: "footnote"} for notes to demote (beyond those
+    already in ``already_footnoted``).
+    """
+    with open(manifest_path) as f:
+        manifest = json.load(f)
+    if not manifest:
+        return {}
+    with open(annotations_path, encoding="utf-8") as f:
+        annotations = json.load(f)
+
+    footnoted = already_footnoted or set()
+    margin_manifest = [e for e in manifest if e["idx"] not in footnoted]
+
+    order, page_of, y_of = _parse_anchor_aux(aux_path)
+
+    # aux entries (one \newmarginnote per non-footnoted \marginnote, document
+    # order) align entry-for-entry with margin_manifest.
+    per_page: dict[int, list] = {}
+    for k, entry in enumerate(margin_manifest):
+        if k >= len(order):
+            break
+        name = order[k]
+        y_sp = y_of.get(name)
+        if y_sp is None:
+            continue
+        top = page_height - (y_sp / _SP)            # top-down anchor position
+        height = estimate_note_height(_annotation_text(annotations, entry), entry["letter"])
+        per_page.setdefault(page_of[name], []).append((entry["idx"], top, height))
+
+    usable_bottom = page_height - bottom_margin
+    corrections: dict = {}
+    for notes in per_page.values():
+        notes.sort(key=lambda t: t[1])
+        last_bottom = None
+        for idx, top, height in notes:
+            overlaps_prev = last_bottom is not None and top < last_bottom + gap
+            runs_off = (top + height) > usable_bottom
+            if overlaps_prev or runs_off:
+                corrections[idx] = "footnote"
+            else:
+                last_bottom = top + height
+    return corrections
