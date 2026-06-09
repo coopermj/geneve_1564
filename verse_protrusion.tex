@@ -124,8 +124,14 @@
 %     these superscript glyphs only ever appear as verse numbers in this doc.
 %     \verseprot@list is passed via \edef so the literal text (not the macro
 %     name) is baked into the call before microtype reads it (header note #4).
+% [load=default]: INHERIT microtype's built-in protrusion (quotes, hyphens,
+% dashes, periods -- the hanging punctuation) and ADD the superscript-figure
+% codepoints on top.  Without load=, a global \SetProtrusion REPLACES the
+% font's whole protrusion vector, silently disabling all default hanging
+% punctuation across the edition.
 \edef\verseprot@do@protrusion{%
   \noexpand\SetProtrusion
+    [ load = default ]%
     { font = */*/*/*/* }%
     {\verseprot@list}%
 }%
