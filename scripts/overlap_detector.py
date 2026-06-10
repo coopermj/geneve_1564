@@ -408,6 +408,8 @@ def detect_from_anchors(
     gap: float = GAP,
     bottom_margin: float = BOTTOM_MARGIN,
     page_height: float = PAGE_HEIGHT_PT,
+    chars_per_line: float = _CHARS_PER_LINE,
+    line_height: float = _LINE_HEIGHT_PT,
 ) -> dict:
     """Footnote margin notes that would overlap, using anchor positions.
 
@@ -442,7 +444,8 @@ def detect_from_anchors(
         if y_sp is None:
             continue
         top = page_height - (y_sp / _SP)            # top-down anchor position
-        height = estimate_note_height(_annotation_text(annotations, entry), entry["letter"])
+        height = estimate_note_height(_annotation_text(annotations, entry), entry["letter"],
+                                      chars_per_line=chars_per_line, line_height=line_height)
         per_page.setdefault(page_of[name], []).append((entry["idx"], top, height))
 
     usable_bottom = page_height - bottom_margin

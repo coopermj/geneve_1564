@@ -22,9 +22,11 @@ sys.path.insert(0, _SCRIPT_DIR)
 from bible_config import BOOKS, get_book_by_name
 from bible_fetcher import fetch_book
 from latex_generator import generate_book_tex
-from overlap_detector import detect, detect_density_excess
+from overlap_detector import detect, detect_density_excess, detect_from_anchors
 
 _MANIFEST_PATH = os.path.join(_PROJECT_ROOT, "data", "note_manifest.json")
+_ANNOT_PATH = os.path.join(_PROJECT_ROOT, "data", "geneva_annotations.json")
+_AUX_PATH = os.path.join(_PROJECT_ROOT, "geneva_bible.aux")
 _PDF_PATH = os.path.join(_PROJECT_ROOT, "geneva_bible.pdf")
 _LUALATEX = ["lualatex", "-shell-escape", "-interaction=batchmode", "geneva_bible.tex"]
 _ENV = {**os.environ, "OSFONTDIR": "fonts", "TEXINPUTS": "microtype:"}
@@ -144,10 +146,11 @@ def main():
 
         _compile()
 
-        print("Detecting overlaps...", end=" ", flush=True)
+        print("Detecting overlaps (anchor-based)...", end=" ", flush=True)
         already_footnoted = {k for k, v in corrections.items() if v == "footnote"}
-        new_corrections = detect(_PDF_PATH, _MANIFEST_PATH, max_offset=args.max_offset,
-                                 already_footnoted=already_footnoted)
+        new_corrections = detect_from_anchors(
+            _AUX_PATH, _MANIFEST_PATH, _ANNOT_PATH,
+            already_footnoted=already_footnoted)
 
         if not new_corrections:
             print(f"none found.")
@@ -164,6 +167,14 @@ def main():
         print(f"{n_offsets} offset(s), {n_footnotes} footnote demotion(s)")
 
         corrections.update(new_corrections)
+
+        # Persist after every iteration so a killed run can resume via
+        # --corrections-in (full-book convergence is many long compiles).
+        if args.corrections_out:
+            os.makedirs(os.path.dirname(args.corrections_out), exist_ok=True)
+            with open(args.corrections_out, "w") as f:
+                json.dump({str(k): v for k, v in corrections.items()}, f)
+            print(f"  (saved {len(corrections)} corrections so far)")
 
     # Reached max iterations — apply all accumulated corrections in a final pass
     print(f"\n=== Final pass (corrections applied) ===")
