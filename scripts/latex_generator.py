@@ -437,7 +437,16 @@ def _build_annotation_suffix(
 
         correction = corrections.get(idx, 0) if corrections else 0
         if correction == "footnote":
-            parts.append(f"{inline}\\footnote{{{note_content}}}")
+            # Use the annotation letter as the footnote mark (matching the
+            # margin-note \gva scheme). With ~11k footnotes, the default
+            # continuous numbering produces 4-5 digit superscripts inline.
+            # \thefootnote is redefined group-locally, so the letter appears
+            # as the mark both inline and at the column bottom; the \gva
+            # prefixes become redundant and are dropped.
+            parts.append(
+                f"{{\\renewcommand{{\\thefootnote}}{{\\textit{{{letter}}}}}"
+                f"\\footnote{{{text}}}}}"
+            )
         else:
             parts.append(f"{inline}\\marginnote{{{note_content}}}")
 

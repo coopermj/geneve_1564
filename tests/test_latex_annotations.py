@@ -56,7 +56,10 @@ def test_footnote_fallback():
     )
     assert r"\footnote" in result
     assert r"\marginnote" not in result
-    assert r"\gva{a}" in result  # inline marker stays
+    # The annotation letter IS the footnote mark (group-local \thefootnote),
+    # replacing both the inline \gva marker and the default numeric mark.
+    assert r"\renewcommand{\thefootnote}{\textit{a}}" in result
+    assert r"\gva" not in result
 
 
 def test_offset_correction():
