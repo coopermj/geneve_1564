@@ -759,6 +759,9 @@ def generate_reading_plan_tex(scheduled_entries: list[dict]) -> str:
             current_month = month_key
             lines.append("\\clearpage")
             if first_month:
+                # Clear the running-header marks: without this the plan pages
+                # inherit the last scripture reference (Revelation 22:21).
+                lines.append("\\markboth{}{}")
                 lines.append("\\hypertarget{readingplan}{}")
                 first_month = False
             lines.append("\\twocolumn[%")
