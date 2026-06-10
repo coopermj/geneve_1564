@@ -571,14 +571,14 @@ def generate_book_tex(
                         # Within lettrine zone: line break (not \par) to
                         # preserve \parshape and avoid drop-cap overlap.
                         # Skipped in poetry: \obeylines makes \\ invalid.
-                        lines.append(f"\\\\\\indent{mark}\\vs{{{verse_num}}} {text}{ann_suffix}")
+                        lines.append(f"\\\\\\indent{mark}\\vs{{{verse_num}}}{text}{ann_suffix}")
                     else:
                         lines.append("\\everypar{}")
                         lines.append("")
                         lines.append("\\parshape=0")
-                        lines.append(f"{mark}\\vs{{{verse_num}}} {text}{ann_suffix}")
+                        lines.append(f"{mark}\\vs{{{verse_num}}}{text}{ann_suffix}")
                 else:
-                    lines.append(f"{mark}\\vs{{{verse_num}}} {text}{ann_suffix}")
+                    lines.append(f"{mark}\\vs{{{verse_num}}}{text}{ann_suffix}")
 
         # Return-to-plan octagon after last verse of endpoint chapters
         if plan_endpoints and (book.directory, ch_num) in plan_endpoints:

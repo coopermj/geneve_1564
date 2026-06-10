@@ -344,12 +344,18 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
         def _restore_verse(m: re.Match) -> str:
             v = m.group(1)
             mark = f"\\markboth{{{book.name} {ch_num}:{v}}}{{{book.name} {ch_num}:{v}}}"
-            return f"{mark}\\vs{{{v}}} "
+            # No trailing space: the gap is carried entirely by scripture's
+            # fixed verse/sep kern, so it can't stretch with justification.
+            return f"{mark}\\vs{{{v}}}"
         para_text = re.sub('\x03(\\d+)\x04', _restore_verse, para_text)
         # Restore woc sentinels as redletter commands
         para_text = para_text.replace('\x01', '\\redletteron ')
         para_text = para_text.replace('\x02', '\\redletteroff ')
         para_text = re.sub(r'\s+', ' ', para_text).strip()
+        # The ESV HTML often follows the verse-num tag with &nbsp; entities,
+        # which survive as a stretchable space after \vs{N}. Remove it so the
+        # number->text gap is carried solely by the fixed verse/sep kern.
+        para_text = re.sub(r'(\\vs\{\d+\}) ', r'\1', para_text)
         # Append this block's combined footnote margin note (already escaped),
         # after escaping so its \marginnote braces survive intact.
         para_text = (para_text + margin_note).strip()
