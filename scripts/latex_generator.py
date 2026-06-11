@@ -401,6 +401,145 @@ def _make_lettrine(text: str, lettrine_lines: int | None = None,
     return f"{prefix}\\lettrine{opts}{{{first_arg}}}{{{second_arg}}}{remainder}"
 
 
+_HEBREW_RE = re.compile(r"[֐-׿]+\s*")
+
+
+def _make_poetry_initial(text: str, color: str) -> str:
+    r"""Colored decorative initial at body size (no drop cap).
+
+    Poetry lines are short, separate paragraphs, so a multi-line
+    \\lettrine would overlap line 2.  Uses the EB Garamond Initials
+    face for the first letter only, colored by book group.
+    """
+    prefix = ""
+    if text.startswith("\\redletteron "):
+        prefix = "\\redletteron "
+        text = text[len("\\redletteron "):]
+    if not text:
+        return prefix
+
+    # Strip leading LaTeX opening quotes (``, `) and open parens — same as
+    # _make_lettrine — so the decorative initial is the first real letter.
+    while True:
+        if text.startswith("``"):
+            prefix += "``"
+            text = text[2:]
+        elif text.startswith("`"):
+            prefix += "`"
+            text = text[1:]
+        elif m := re.match(r'\(\d+:\d+[a-z]?\)\s*', text):
+            prefix += m.group(0)
+            text = text[m.end():]
+        elif text.startswith("("):
+            prefix += "("
+            text = text[1:]
+        else:
+            break
+
+    text = text.lstrip()
+    if not text:
+        return prefix
+
+    first, rest = text[0], text[1:]
+    return f"{prefix}{{\\lettrinefont\\color{{{color}}}{first}}}{rest}"
+
+
+def _style_poetry_segment(kind: str, text: str) -> str:
+    if kind == "lamhebrew":
+        text = _HEBREW_RE.sub("", text).strip()
+        # Use \textit{} (not {\itshape}) so the line does NOT start with a
+        # bare ``{`` — the scripture poetry obeylines handler fails on lines
+        # that begin with a begin-group token.
+        return f"\\textit{{{text}}}"
+    if kind == "psasuper":
+        return f"\\textit{{{text}}}"
+    if kind == "sosspeaker":
+        return f"\\textbf{{\\textit{{{text}}}}}"
+    return text
+
+
+def _emit_poetry_verse(out: list, kinds: list, texts: list,
+                       verse_num: int, mark: str, ann_suffix: str,
+                       ch_open, initial_color) -> None:
+    """Append the poetic lines of one verse to *out*.
+
+    ch_open: when set (verse 1), ALL segments go on the ``\\ch{N} ...`` source
+    line because a blank line after ``\\ch{N}`` creates a \\par that confuses
+    the scripture package's chapter machinery.  The first kind=="line" segment
+    gets the colored initial.
+
+    IMPORTANT: decorated segments (psasuper, sosspeaker, lamhebrew) start
+    with ``{...}`` and MUST NOT appear as the first token of a new blank-line-
+    separated paragraph in the obeylines poetry environment — the scripture
+    package's peek_analysis_map fails with a bare ``{``.  Such segments are
+    queued and prepended inline to the next "line" segment.
+    """
+    first_emitted = False
+    in_ch_open = False   # True once we've appended to the \ch{N} source line
+    pending = ""         # decorated segments queued for next "line"
+
+    for kind, text in zip(kinds, texts):
+        text = text.strip()
+        if not text:
+            continue
+
+        # Apply styling
+        if kind == "line" and initial_color is not None:
+            styled = _make_poetry_initial(text, initial_color)
+            initial_color = None
+        else:
+            styled = _style_poetry_segment(kind, text)
+
+        # Decorated kinds must not open a new source-line paragraph alone.
+        # Queue them to be prepended to the next "line" segment (or the
+        # \ch{N} line for verse 1).
+        is_decorated = kind in ("psasuper", "sosspeaker", "lamhebrew")
+        if is_decorated and not in_ch_open:
+            pending += styled + " "
+            continue
+
+        # --- First content segment of this verse ---
+        if not first_emitted:
+            first_emitted = True
+            if ch_open is not None:
+                out.append(f"{ch_open}{pending}{styled}")
+                pending = ""
+                in_ch_open = True
+            elif kind == "cont":
+                out[-1] += f" \\vs{{{verse_num}}}{mark}{pending}{styled}"
+                pending = ""
+            elif kind == "break":
+                # A verse that starts with a stanza break (unusual but possible)
+                out.append("\\extraskip")
+                out.append("")
+                out.append(f"\\vs{{{verse_num}}}{mark}{pending}{styled}")
+                pending = ""
+            else:
+                out.append("")
+                out.append(f"\\vs{{{verse_num}}}{mark}{pending}{styled}")
+                pending = ""
+            continue
+
+        # --- Subsequent segments ---
+        if in_ch_open:
+            # Verse 1: keep everything on the \ch{N} source line
+            out[-1] += f" {pending}{styled}"
+            pending = ""
+        elif kind == "break":
+            out.append("\\extraskip")
+        else:
+            out.append("")
+            out.append(f"{pending}{styled}")
+            pending = ""
+
+    # Flush any trailing decorated segments (e.g. sosspeaker at end of verse)
+    if pending.strip() and first_emitted:
+        out[-1] += f" {pending.strip()}"
+
+    if first_emitted and ann_suffix:
+        out[-1] += ann_suffix
+
+
 def _starts_paragraph(raw_html: str) -> bool:
     """Check if this verse starts a new paragraph (has a <p> tag)."""
     return bool(re.search(r'<p\b[^>]*>', raw_html))
@@ -575,16 +714,31 @@ def generate_book_tex(
                 _counter, _manifest, corrections
             )
 
-            if verse_num == 1:
+            if is_poetry:
+                segs = _split_poetry_segments(raw_html)
+                seg_texts = [_process_verse_text(h) for _, h in segs]
+                joined = _render_red_letter("\x05".join(seg_texts), desc, rl_state)
+                seg_texts = joined.split("\x05")
+                kinds = [k for k, _ in segs]
+                mark = (f"\\markboth{{{book.name} {ch_num}:{verse_num}}}"
+                        f"{{{book.name} {ch_num}:{verse_num}}}")
+                ch_open = None
+                initial_color = None
+                if verse_num == 1:
+                    lines.append(f"\\markboth{{{book.name} {ch_num}:1}}"
+                                 f"{{{book.name} {ch_num}:1}}")
+                    if ch_num > 1:
+                        lines.append("\\Needspace*{8\\baselineskip}")
+                    lines.append(f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},"
+                                 f"level=1]{{{book.name} {ch_num}}}")
+                    ch_open = (f"\\ch{{{ch_num}}} \\allowchapbreak"
+                               f"\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}")
+                    initial_color = book.group
+                _emit_poetry_verse(lines, kinds, seg_texts, verse_num, mark,
+                                   ann_suffix, ch_open, initial_color)
+            elif verse_num == 1:
                 # Chapter start — use \ch{N} with lettrine drop cap.
-                # Poetry sections use smaller lettrines (2 lines) because
-                # each verse is its own paragraph; \par resets \parshape
-                # so a tall drop cap would overlap into verse 2.
-                if is_poetry:
-                    lettrine_text = _make_lettrine(
-                        text, lettrine_lines=2, color=book.group)
-                    lettrine_char_budget = 0  # no budget tracking needed
-                elif ch_num == 1:
+                if ch_num == 1:
                     lettrine_text = _make_lettrine(
                         text, lettrine_lines=8, color=book.group)
                     lettrine_char_budget = 8 * 80
@@ -608,10 +762,9 @@ def generate_book_tex(
                 text = _render_red_letter(text, desc, rl_state)
                 mark = f"\\markboth{{{book.name} {ch_num}:{verse_num}}}{{{book.name} {ch_num}:{verse_num}}}"
                 if new_para:
-                    if lettrine_char_budget > 0 and not is_poetry:
+                    if lettrine_char_budget > 0:
                         # Within lettrine zone: line break (not \par) to
                         # preserve \parshape and avoid drop-cap overlap.
-                        # Skipped in poetry: \obeylines makes \\ invalid.
                         lines.append(f"\\\\\\indent{mark}\\vs{{{verse_num}}}{text}{ann_suffix}")
                     else:
                         lines.append("\\everypar{}")
