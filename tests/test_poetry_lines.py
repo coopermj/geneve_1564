@@ -103,7 +103,39 @@ def test_poetry_chapter_start_colored_initial_no_lettrine():
     tex = _gen(chapters)
     # No drop-cap \lettrine{}{} command inside the poetry block
     assert "\\lettrine{" not in tex.split("\\begin{poetry}")[1]
-    assert "{\\lettrinefont\\color{majorprophets}P}romote" in tex
+    # textcolor-first form is safe at line start (no bare { opener)
+    assert "\\textcolor{majorprophets}{\\lettrinefont P}romote" in tex
+
+
+def test_verse1_two_segments_second_on_own_line():
+    """Verse 1 with psasuper + poetry line: superscription on \\ch line,
+    initial-bearing poetry line on its own flush source line below."""
+    # Psalms chapter 1, verse 1 has a psasuper + poetry line
+    psa_v1 = ('<p class="psasuper">A psalm of David.'
+              '<p class="poetry">I will sing about loyalty. </p>')
+    chapters = {1: [
+        {"verse": "1", "text": psa_v1},
+    ]}
+    tex = _gen(chapters, book="psalms")
+    body = tex.split("\\begin{poetry}")[1].split("\\end{poetry}")[0]
+    source_lines = body.split("\n")
+
+    # The \ch{1} line must contain the psasuper text but NOT the poetry line
+    ch_lines = [l for l in source_lines if "\\ch{1}" in l]
+    assert len(ch_lines) == 1
+    assert "A psalm of David." in ch_lines[0]
+    assert "will sing" not in ch_lines[0]
+
+    # The poetry line ("will sing about loyalty") must appear on its own source
+    # line preceded by a blank line.  Note: the initial letter "I" is extracted
+    # into the colored-initial command, so the literal text starts with " will".
+    sing_idx = next(i for i, l in enumerate(source_lines) if "will sing about loyalty" in l)
+    assert source_lines[sing_idx - 1] == ""
+
+    # And it must carry the colored initial (psalms group = wisdom)
+    book = get_book_by_name("psalms")
+    assert book.group == "wisdom"
+    assert f"\\textcolor{{wisdom}}{{\\lettrinefont I}}" in source_lines[sing_idx]
 
 
 def test_continuation_verse_appends_to_previous_line():

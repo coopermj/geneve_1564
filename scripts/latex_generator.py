@@ -441,7 +441,7 @@ def _make_poetry_initial(text: str, color: str) -> str:
         return prefix
 
     first, rest = text[0], text[1:]
-    return f"{prefix}{{\\lettrinefont\\color{{{color}}}{first}}}{rest}"
+    return f"{prefix}\\textcolor{{{color}}}{{\\lettrinefont {first}}}{rest}"
 
 
 def _style_poetry_segment(kind: str, text: str) -> str:
@@ -463,10 +463,12 @@ def _emit_poetry_verse(out: list, kinds: list, texts: list,
                        ch_open, initial_color) -> None:
     """Append the poetic lines of one verse to *out*.
 
-    ch_open: when set (verse 1), ALL segments go on the ``\\ch{N} ...`` source
-    line because a blank line after ``\\ch{N}`` creates a \\par that confuses
-    the scripture package's chapter machinery.  The first kind=="line" segment
-    gets the colored initial.
+    ch_open: when set (verse 1), the FIRST segment goes on the ``\\ch{N} ...``
+    source line.  Every SUBSEQUENT segment (including in verse 1) is emitted
+    on its own source line preceded by a blank line — this is safe because
+    Fix A ensures the colored initial uses ``\\textcolor{...}{...}`` (a
+    control-sequence-first form) rather than a bare ``{`` at line start, which
+    would crash the scripture obeylines peek handler.
 
     IMPORTANT: decorated segments (psasuper, sosspeaker, lamhebrew) start
     with ``{...}`` and MUST NOT appear as the first token of a new blank-line-
@@ -475,7 +477,6 @@ def _emit_poetry_verse(out: list, kinds: list, texts: list,
     queued and prepended inline to the next "line" segment.
     """
     first_emitted = False
-    in_ch_open = False   # True once we've appended to the \ch{N} source line
     pending = ""         # decorated segments queued for next "line"
 
     for kind, text in zip(kinds, texts):
@@ -490,11 +491,14 @@ def _emit_poetry_verse(out: list, kinds: list, texts: list,
         else:
             styled = _style_poetry_segment(kind, text)
 
-        # Decorated kinds must not open a new source-line paragraph alone.
-        # Queue them to be prepended to the next "line" segment (or the
-        # \ch{N} line for verse 1).
+        # Decorated kinds (psasuper, sosspeaker, lamhebrew) start with ``{``
+        # and MUST NOT open a new blank-line-separated source paragraph on
+        # their own — the scripture obeylines handler crashes on a bare ``{``
+        # at line start.  For verse 1 they are safe on the ``\ch{N}`` line
+        # (which starts with a control sequence); for all other contexts they
+        # are queued and prepended to the next "line" segment.
         is_decorated = kind in ("psasuper", "sosspeaker", "lamhebrew")
-        if is_decorated and not in_ch_open:
+        if is_decorated and ch_open is None:
             pending += styled + " "
             continue
 
@@ -502,9 +506,9 @@ def _emit_poetry_verse(out: list, kinds: list, texts: list,
         if not first_emitted:
             first_emitted = True
             if ch_open is not None:
-                out.append(f"{ch_open}{pending}{styled}")
-                pending = ""
-                in_ch_open = True
+                # Verse 1: this segment (decorated or not) goes on the \ch line.
+                out.append(f"{ch_open}{styled}")
+                ch_open = None  # consumed; subsequent segments go on own lines
             elif kind == "cont":
                 out[-1] += f" \\vs{{{verse_num}}}{mark}{pending}{styled}"
                 pending = ""
@@ -520,12 +524,8 @@ def _emit_poetry_verse(out: list, kinds: list, texts: list,
                 pending = ""
             continue
 
-        # --- Subsequent segments ---
-        if in_ch_open:
-            # Verse 1: keep everything on the \ch{N} source line
-            out[-1] += f" {pending}{styled}"
-            pending = ""
-        elif kind == "break":
+        # --- Subsequent segments (including verse 1's 2nd+ segments) ---
+        if kind == "break":
             out.append("\\extraskip")
         else:
             out.append("")
