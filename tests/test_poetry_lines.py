@@ -86,11 +86,50 @@ def test_poetry_verse_emits_one_source_line_per_segment():
     assert len(vs_lines) == 1
     assert "\\markboth{Isaiah 56:3}" in vs_lines[0]
     idx = lines.index(vs_lines[0])
-    assert lines[idx - 1] == ""          # blank → flush
-    # remaining 3 segments each on own line preceded by blank
-    assert "The eunuch should not say," in body
-    seg_idx = next(i for i, l in enumerate(lines) if "eunuch should not" in l)
-    assert lines[seg_idx - 1] == ""
+    assert lines[idx - 1] == ""          # blank → verse start is flush
+    # remaining 3 segments: line-after-line → CONSECUTIVE source lines
+    # (no blank between) so they take the 1em second-half indent, ESV-style
+    assert lines[idx + 1] != "" and "exclude me" in lines[idx + 1]
+    assert lines[idx + 2] != "" and "eunuch should not" in lines[idx + 2]
+    assert lines[idx + 3] != "" and "dried-up tree" in lines[idx + 3]
+
+
+def test_verse1_line_couplet_indent_after_ch():
+    # Verse 1 with two plain line segments: first rides the \ch line, the
+    # second follows DIRECTLY (no blank) so it takes the 1em indent —
+    # mirroring the ESV no-title chapter start.
+    chapters = {56: [
+        {"verse": "1", "text": ('<p class="poetry">First hemistich,'
+                                '<p class="poetry">second hemistich. </p>')},
+    ]}
+    tex = _gen(chapters)
+    body = tex.split("\\begin{poetry}")[1].split("\\end{poetry}")[0]
+    lines = body.split("\n")
+    ch_idx = next(i for i, l in enumerate(lines) if "\\ch{56}" in l)
+    # the colored initial absorbs the first letter: ...{\lettrinefont F}irst
+    assert "irst hemistich," in lines[ch_idx]
+    assert "second hemistich." in lines[ch_idx + 1]   # consecutive → indent
+
+
+def test_prose_segment_resets_to_flush():
+    # [prose, line, line]: the prose intro is flush, the first poetry line
+    # after it starts a NEW unit (flush, blank-preceded), subsequent lines
+    # of the verse indent.
+    isa_56_4_full = ('<p class="bodytext">For this is what the Lord says:'
+                     '<p class="poetry">"For the eunuchs who observe my Sabbaths'
+                     '<p class="poetry">and choose what pleases me, </p>')
+    chapters = {56: [
+        {"verse": "1", "text": '<p class="poetry">Opening line. </p>'},
+        {"verse": "4", "text": isa_56_4_full},
+    ]}
+    tex = _gen(chapters)
+    body = tex.split("\\begin{poetry}")[1].split("\\end{poetry}")[0]
+    lines = body.split("\n")
+    vs_idx = next(i for i, l in enumerate(lines) if l.startswith("\\vs{4}"))
+    assert lines[vs_idx - 1] == ""                       # prose verse start flush
+    eun_idx = next(i for i, l in enumerate(lines) if "eunuchs who observe" in l)
+    assert lines[eun_idx - 1] == ""                      # line after prose → flush
+    assert "choose what pleases" in lines[eun_idx + 1]   # line after line → indent
 
 
 def test_poetry_chapter_start_colored_initial_no_lettrine():
@@ -167,9 +206,11 @@ def test_mixed_cont_and_line_same_verse():
     # \vs{2} must appear mid-line (not at start of a source line)
     assert not any(l.startswith("\\vs{2}") for l in source_lines)
     assert "\\vs{2}" in body
-    # "then a new line" must start its own flush source line
+    # "then a new line" follows a poetry line (the continuation) directly:
+    # consecutive source line → 1em indent, no blank between
     new_line_idx = next(i for i, l in enumerate(source_lines) if "then a new line" in l)
-    assert source_lines[new_line_idx - 1] == ""
+    assert source_lines[new_line_idx - 1] != ""
+    assert "\\vs{2}" in source_lines[new_line_idx - 1]
 
 
 def test_all_decorated_verse_not_dropped():

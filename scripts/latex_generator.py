@@ -463,12 +463,20 @@ def _emit_poetry_verse(out: list, kinds: list, texts: list,
                        ch_open, initial_color) -> None:
     """Append the poetic lines of one verse to *out*.
 
+    Layout (ESV-style two-level): a segment that STARTS a unit — the verse's
+    first segment, any prose interlude, or the first line after a label or
+    stanza break — is emitted flush (preceded by a blank line, which resets
+    the obeylines indent).  A "line" segment directly following another
+    poetry line goes on the very next source line with NO blank between, so
+    the scripture poetry environment gives it the 1em second-half indent.
+
     ch_open: when set (verse 1), the FIRST segment goes on the ``\\ch{N} ...``
-    source line.  Every SUBSEQUENT segment (including in verse 1) is emitted
-    on its own source line preceded by a blank line — this is safe because
-    Fix A ensures the colored initial uses ``\\textcolor{...}{...}`` (a
-    control-sequence-first form) rather than a bare ``{`` at line start, which
-    would crash the scripture obeylines peek handler.
+    source line.  If that segment is itself a poetry line, the next line
+    follows consecutively (couplet indent, mirroring the ESV no-title
+    chapter start); if it is a superscription, the first poetry line below
+    starts flush.  The colored initial uses ``\\textcolor{...}{...}`` (a
+    control-sequence-first form) rather than a bare ``{`` at line start,
+    which would crash the scripture obeylines peek handler.
 
     IMPORTANT: decorated segments (psasuper, sosspeaker, lamhebrew) start
     with ``{...}`` and MUST NOT appear as the first token of a new blank-line-
@@ -478,6 +486,7 @@ def _emit_poetry_verse(out: list, kinds: list, texts: list,
     """
     first_emitted = False
     pending = ""         # decorated segments queued for next "line"
+    prev_line = False    # previous emitted segment was a poetry line
 
     for kind, text in zip(kinds, texts):
         text = text.strip()
@@ -500,6 +509,7 @@ def _emit_poetry_verse(out: list, kinds: list, texts: list,
         is_decorated = kind in ("psasuper", "sosspeaker", "lamhebrew")
         if is_decorated and ch_open is None:
             pending += styled + " "
+            prev_line = False  # a label starts a new unit → next line flush
             continue
 
         # --- First content segment of this verse ---
@@ -509,28 +519,40 @@ def _emit_poetry_verse(out: list, kinds: list, texts: list,
                 # Verse 1: this segment (decorated or not) goes on the \ch line.
                 out.append(f"{ch_open}{styled}")
                 ch_open = None  # consumed; subsequent segments go on own lines
+                prev_line = (kind == "line")
             elif kind == "cont":
                 out[-1] += f" \\vs{{{verse_num}}}{mark}{pending}{styled}"
                 pending = ""
+                prev_line = True
             elif kind == "break":
                 # A verse that starts with a stanza break (unusual but possible)
                 out.append("\\extraskip")
                 out.append("")
                 out.append(f"\\vs{{{verse_num}}}{mark}{pending}{styled}")
                 pending = ""
+                prev_line = True
             else:
                 out.append("")
                 out.append(f"\\vs{{{verse_num}}}{mark}{pending}{styled}")
                 pending = ""
+                prev_line = (kind == "line")
             continue
 
         # --- Subsequent segments (including verse 1's 2nd+ segments) ---
         if kind == "break":
             out.append("\\extraskip")
+            out.append("")
+            out.append(f"{pending}{styled}")
+            pending = ""
+            prev_line = True
+        elif kind == "line" and prev_line and not pending:
+            # line directly after line → consecutive source line → 1em indent
+            out.append(styled)
         else:
             out.append("")
             out.append(f"{pending}{styled}")
             pending = ""
+            prev_line = (kind == "line")
 
     # Flush any trailing decorated segments (e.g. sosspeaker at end of verse)
     if pending.strip() and first_emitted:
