@@ -7,14 +7,15 @@ statistics and saves first-page PNGs for each book section.
 
 Usage: python3 scripts/sample_poetry.py
 """
-import json, os, subprocess, sys
+import json, os, re, subprocess, sys
+
+import fitz
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _CACHE = os.path.join(_ROOT, "data", "net_bible_cache")
 
 from bible_config import get_book_by_name
-from bible_fetcher import fetch_chapter
 from latex_generator import generate_book_tex
 
 
@@ -70,7 +71,7 @@ with open(out_stem + ".tex", "w", encoding="utf-8") as f:
     f.write(full)
 
 # ── Compile twice ────────────────────────────────────────────────────────────
-env = dict(os.environ, OSFONTDIR="fonts")
+env = dict(os.environ, OSFONTDIR="fonts", TEXINPUTS="microtype:")
 for i in range(2):
     r = subprocess.run(
         ["lualatex", "-interaction=nonstopmode", "sample_poetry.tex"],
@@ -80,12 +81,10 @@ for i in range(2):
 
 # ── Log summary ──────────────────────────────────────────────────────────────
 log = open(out_stem + ".log", encoding="utf-8", errors="replace").read()
-import re
 m = re.search(r"Output written.*?\((\d+) page", log)
 print("pages:", m.group(1) if m else "?")
 
 # ── X-position analysis ──────────────────────────────────────────────────────
-import fitz
 doc_pdf = fitz.open(out_stem + ".pdf")
 xs: dict[int, int] = {}
 for page in doc_pdf:

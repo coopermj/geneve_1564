@@ -64,9 +64,6 @@ def test_speaker_and_lamhebrew_kinds():
 # ---------------------------------------------------------------------------
 # Task-3 emission tests
 # ---------------------------------------------------------------------------
-import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'scripts'))
-
 from latex_generator import generate_book_tex
 from bible_config import get_book_by_name
 
@@ -173,3 +170,54 @@ def test_mixed_cont_and_line_same_verse():
     # "then a new line" must start its own flush source line
     new_line_idx = next(i for i, l in enumerate(source_lines) if "then a new line" in l)
     assert source_lines[new_line_idx - 1] == ""
+
+
+def test_all_decorated_verse_not_dropped():
+    """A verse whose ONLY segment is a sosspeaker (decorated kind) must NOT be
+    silently dropped.  When ch_open is None and every segment is decorated, the
+    pending queue never gets flushed via the normal first_emitted path.
+    The fix must emit \\vs{N} + pending as a standalone flush source line.
+    """
+    # Song of Solomon ch 1 is full_book poetry; verse 2 has no \ch open.
+    sos_v2 = '<p class="sosspeaker"><b><i>The Maidens:</i></b> </p>'
+    chapters = {1: [
+        # verse 1 to open the chapter (gives us a \ch line, consumes ch_open)
+        {"verse": "1", "text": '<p class="sosspeaker"><b><i>She:</i></b> <p class="poetry">Let him kiss me. </p>'},
+        # verse 2 is ALL sosspeaker — was silently dropped before the fix
+        {"verse": "2", "text": sos_v2},
+    ]}
+    tex = _gen(chapters, book="songofsolomon")
+    body = tex.split("\\begin{poetry}")[1].split("\\end{poetry}")[0]
+    source_lines = body.split("\n")
+    # The verse 2 text must appear somewhere in the output
+    assert "The Maidens:" in body, "sosspeaker text was silently dropped"
+    # \vs{2} must appear at the start of a source line (flush line)
+    vs2_lines = [l for l in source_lines if l.startswith("\\vs{2}")]
+    assert vs2_lines, "\\vs{2} must open its own source line"
+    # That source line must be preceded by a blank line
+    idx = next(i for i, l in enumerate(source_lines) if l.startswith("\\vs{2}"))
+    assert source_lines[idx - 1] == "", "flush line must be preceded by blank line"
+
+
+def test_break_kind_emits_extraskip():
+    """A verse starting with <p class="poetrybreak"> must emit \\extraskip
+    immediately before the blank+\\vs{N} pair.
+    """
+    # Amos is full_book poetry; use chapter 3 verse 14 with AMOS_BREAK text.
+    chapters = {3: [
+        {"verse": "1", "text": '<p class="poetry">Hear this word. </p>'},
+        {"verse": "14", "text": AMOS_BREAK},
+    ]}
+    tex = _gen(chapters, book="amos")
+    body = tex.split("\\begin{poetry}")[1].split("\\end{poetry}")[0]
+    source_lines = body.split("\n")
+    # Find the \vs{14} line
+    vs14_lines = [(i, l) for i, l in enumerate(source_lines) if "\\vs{14}" in l]
+    assert vs14_lines, "\\vs{14} must appear in output"
+    idx = vs14_lines[0][0]
+    # The line before \vs{14} must be blank (flush separator)
+    assert source_lines[idx - 1] == "", "\\vs{14} must be preceded by a blank line"
+    # The line before that blank must be \\extraskip
+    assert source_lines[idx - 2] == "\\extraskip", (
+        f"expected \\extraskip before blank+\\vs{{14}}, got {source_lines[idx-2]!r}"
+    )

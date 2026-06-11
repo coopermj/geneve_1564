@@ -536,6 +536,15 @@ def _emit_poetry_verse(out: list, kinds: list, texts: list,
     if pending.strip() and first_emitted:
         out[-1] += f" {pending.strip()}"
 
+    # Handle the case where ALL segments were decorated kinds (psasuper,
+    # sosspeaker, lamhebrew) and ch_open was None — every segment went into
+    # ``pending`` but ``first_emitted`` never became True, so the verse text
+    # was silently dropped.  Emit as its own flush source line with \vs{N}.
+    if pending.strip() and not first_emitted:
+        first_emitted = True
+        out.append("")
+        out.append(f"\\vs{{{verse_num}}}{mark}{pending.strip()}")
+
     if first_emitted and ann_suffix:
         out[-1] += ann_suffix
 
