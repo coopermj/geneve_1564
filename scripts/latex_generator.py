@@ -183,6 +183,47 @@ def _escape_latex(text: str) -> str:
     return "".join(_LATEX_SPECIAL.get(ch, ch) for ch in text)
 
 
+# Map NET <p class="..."> classes to poetry segment kinds.
+_POETRY_CLASS_KINDS = {
+    "poetry": "line",
+    "otpoetry": "line",
+    "poetrybreak": "break",
+    "bodytext": "prose",
+    "bodyblock": "prose",
+    "quote": "prose",
+    "paragraphtitle": "prose",
+    "psasuper": "psasuper",
+    "lamhebrew": "lamhebrew",
+    "sosspeaker": "sosspeaker",
+}
+
+_P_TAG_RE = re.compile(r'<p class="([^"]*)">')
+
+
+def _split_poetry_segments(raw_html: str) -> list[tuple[str, str]]:
+    """Split a poetry-chapter verse's HTML into (kind, html) segments.
+
+    Each <p class="..."> opens a new segment; text before the first <p>
+    is a continuation of the previous poetic line (kind "cont").  Closing
+    </p> tags are dropped.  Kinds: line, break, prose, psasuper,
+    lamhebrew, sosspeaker, cont.
+    """
+    html = raw_html.replace("</p>", " ")
+    segments: list[tuple[str, str]] = []
+    matches = list(_P_TAG_RE.finditer(html))
+    lead = html[: matches[0].start()] if matches else html
+    if lead.strip():
+        segments.append(("cont", lead))
+    for i, m in enumerate(matches):
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(html)
+        seg = html[m.end():end]
+        if not seg.strip():
+            continue
+        kind = _POETRY_CLASS_KINDS.get(m.group(1), "line")
+        segments.append((kind, seg))
+    return segments
+
+
 def _strip_html_tags(html: str) -> str:
     """Strip HTML tags from API response, converting notes to footnotes.
 
