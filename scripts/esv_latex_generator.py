@@ -440,33 +440,39 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
 
             if ch_match:
                 lines.append(f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}")
-                # Build the \ch line from the first content piece (flush line
-                # containing verse 1 text). No drop cap in poetry.
-                # Find the first flush/indent piece — it carries the verse 1 text.
-                first_piece_txt = ""
-                rest_pieces: list[tuple[str, str]] = []
-                found_first = False
-                for kind, txt in pieces:
-                    if not found_first and kind in ('flush', 'indent'):
-                        first_piece_txt = txt
-                        found_first = True
-                    else:
-                        rest_pieces.append((kind, txt))
-                ch_line = (f"\\ch{{{ch_num}}} "
-                           f"\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}"
-                           f"{first_piece_txt}\\everypar{{}}")
-                lines.append(ch_line)
-                # Psalm superscription comes right after the \ch line
                 if pending_psalm_title:
-                    lines.append("")
-                    lines.append(pending_psalm_title)
+                    # When a psalm title is pending: the title rides the \ch line
+                    # and ALL verse-text pieces are emitted as normal flush/indent
+                    # lines below it. This preserves the first-verse couplet indent
+                    # because both pieces stay in the same poetry paragraph.
+                    ch_line = (f"\\ch{{{ch_num}}} "
+                               f"\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}"
+                               f"{pending_psalm_title}\\everypar{{}}")
+                    lines.append(ch_line)
                     pending_psalm_title = ""
-                # Remaining pieces: flush = blank + line, indent = consecutive line
-                for idx, (kind, txt) in enumerate(rest_pieces):
+                    emit_pieces = pieces
+                else:
+                    # No psalm title: first piece rides the \ch line (current
+                    # behaviour for ordinary poetry chapter starts).
+                    first_piece_txt = ""
+                    emit_pieces = []
+                    found_first = False
+                    for kind, txt in pieces:
+                        if not found_first and kind in ('flush', 'indent'):
+                            first_piece_txt = txt
+                            found_first = True
+                        else:
+                            emit_pieces.append((kind, txt))
+                    ch_line = (f"\\ch{{{ch_num}}} "
+                               f"\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}"
+                               f"{first_piece_txt}\\everypar{{}}")
+                    lines.append(ch_line)
+                # Emit remaining (or all) pieces: flush = blank + line, indent = consecutive line
+                for idx, (kind, txt) in enumerate(emit_pieces):
                     if kind == 'flush':
                         lines.append("")
                     # Last piece gets the margin note
-                    if idx == len(rest_pieces) - 1:
+                    if idx == len(emit_pieces) - 1:
                         txt = (txt + margin_note).strip()
                     lines.append(txt)
                 first_verse_seen = True

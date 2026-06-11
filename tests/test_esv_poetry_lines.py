@@ -18,11 +18,45 @@ def _convert(html, ch=3):
 
 
 def test_psalm_title_emitted_italic_after_ch():
+    r"""Title is still after \ch{3} in string order (now on the \ch line itself)."""
     tex = _convert(PSALM_HTML)
     assert "A Psalm of David, when he fled" in tex
     i_ch = tex.index("\\ch{3}")
     i_title = tex.index("A Psalm of David")
     assert i_title > i_ch
+
+
+def test_psalm_title_rides_ch_line_not_verse_text():
+    """When a psalm title is pending, the \\ch line carries the title (not verse 1 text)."""
+    tex = _convert(PSALM_HTML)
+    ch_line = next(l for l in tex.split("\n") if "\\ch{3}" in l)
+    # The title text must be ON the \ch line
+    assert "A Psalm of David" in ch_line
+    # Verse 1 text must NOT be on the \ch line
+    assert "how many are my foes" not in ch_line
+
+
+def test_verse1_text_as_flush_line_after_title():
+    """Verse 1 first piece (O LORD...) appears as a flush line (preceded by blank)."""
+    tex = _convert(PSALM_HTML)
+    lines = tex.split("\n")
+    # Find the "O LORD" line
+    olord_idx = next(i for i, l in enumerate(lines) if "O \\textsc{Lord}" in l and "how many" in l)
+    # It must be preceded by a blank line (flush = blank + content)
+    assert lines[olord_idx - 1] == "", (
+        f"Expected blank before 'O LORD' line, got: {repr(lines[olord_idx - 1])}")
+
+
+def test_couplet_indent_restored():
+    """'Many are rising' (indent piece) directly follows 'O LORD' — no blank between, couplet intact."""
+    tex = _convert(PSALM_HTML)
+    lines = tex.split("\n")
+    olord_idx = next(i for i, l in enumerate(lines) if "O \\textsc{Lord}" in l and "how many" in l)
+    rising_idx = next(i for i, l in enumerate(lines) if "Many are rising" in l)
+    # The indent piece must be the very next line after its flush partner
+    assert rising_idx == olord_idx + 1, (
+        f"Expected 'Many are rising' at line {olord_idx + 1}, got {rising_idx}. "
+        f"Intervening lines: {lines[olord_idx:rising_idx + 1]}")
 
 
 def test_lines_split_flush_and_indent():
