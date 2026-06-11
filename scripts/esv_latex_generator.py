@@ -249,10 +249,12 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
 
     # Apply per-block footnote grouping, then split
     # First strip the footnotes div so we don't process it
-    # Split into block-level elements (h3 headings and p paragraphs)
-    blocks = re.split(r'(?=<h3\b|<p\b)', body)
+    # Split into block-level elements (h3/h4 headings and p paragraphs)
+    blocks = re.split(r'(?=<h3\b|<h4\b|<p\b)', body)
 
     first_verse_seen = False
+    # Psalm superscription (h4.psalm-title) found before the chapter's first p block.
+    pending_psalm_title = ""
 
     for block in blocks:
         block = block.strip()
@@ -278,6 +280,14 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                 f"{{\\small\\itshape {heading_text}\\par}}"
                 f"\\nobreak\\endgroup"
             )
+            continue
+
+        # Psalm superscription (<h4 class="psalm-title">)
+        h4 = re.match(r'<h4[^>]*class="psalm-title"[^>]*>(.*?)</h4>', block)
+        if h4:
+            t = unescape(re.sub(r'<[^>]+>', '', h4.group(1))).strip()
+            t = _escape_latex(_convert_smart_quotes(t))
+            pending_psalm_title = f"\\textit{{{t}}}"
             continue
 
         # Paragraph
@@ -323,6 +333,23 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
             return ''.join(result)
         para_text = _close_woc(para_text)
 
+        # In poetry chapters, mark line boundaries with sentinels BEFORE
+        # tag stripping. \x05 = flush line start; \x06 = indented line start.
+        # Must come after woc sentinel conversion (woc uses </span> tracking)
+        # and before the generic tag strip.
+        if is_poetry:
+            # Strip begin/end-line-group markers (they carry no text)
+            para_text = re.sub(
+                r'<span[^>]*class="(?:begin|end)-line-group"[^>]*>\s*</span>',
+                '', para_text)
+            # Exact class "line" (flush)
+            para_text = re.sub(r'<span[^>]*class="line"[^>]*>', '\x05', para_text)
+            # Any span whose class contains "line" as a word (indent, declares,
+            # psalm-doxology, indent-2, etc.) → indented line start
+            para_text = re.sub(r'<span[^>]*class="[^"]*\bline\b[^"]*"[^>]*>',
+                               '\x06', para_text)
+        # (</span> and <br /> are removed by the generic tag strip below)
+
         # Replace verse-num <b> tags with a numeric sentinel (\x03 N \x04).
         # The real \markboth/\vs commands are restored AFTER escaping so the
         # command braces are not escaped.
@@ -341,60 +368,170 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
         para_text = _apply_divine_names(para_text)
 
         # Restore verse-number sentinels -> running header + \vs.
+        # In poetry: \vs{N} FIRST so it is the first token on the source line
+        # (scripture's obeylines peek handler requires this for the flush+hung
+        # verse-number layout). In prose: markboth first (current behavior).
         def _restore_verse(m: re.Match) -> str:
             v = m.group(1)
             mark = f"\\markboth{{{book.name} {ch_num}:{v}}}{{{book.name} {ch_num}:{v}}}"
             # No trailing space: the gap is carried entirely by scripture's
             # fixed verse/sep kern, so it can't stretch with justification.
+            if is_poetry:
+                return f"\\vs{{{v}}}{mark}"
             return f"{mark}\\vs{{{v}}}"
         para_text = re.sub('\x03(\\d+)\x04', _restore_verse, para_text)
         # Restore woc sentinels as redletter commands
         para_text = para_text.replace('\x01', '\\redletteron ')
         para_text = para_text.replace('\x02', '\\redletteroff ')
-        para_text = re.sub(r'\s+', ' ', para_text).strip()
-        # The ESV HTML often follows the verse-num tag with &nbsp; entities,
-        # which survive as a stretchable space after \vs{N}. Remove it so the
-        # number->text gap is carried solely by the fixed verse/sep kern.
-        para_text = re.sub(r'(\\vs\{\d+\}) ', r'\1', para_text)
-        # Append this block's combined footnote margin note (already escaped),
-        # after escaping so its \marginnote braces survive intact.
-        para_text = (para_text + margin_note).strip()
 
-        if not para_text:
-            continue
+        # In poetry chapters split on line sentinels now (before whitespace
+        # collapse, so that \s+ doesn't eat the sentinel chars — though
+        # Python \s does not match \x05/\x06, collapsing is still fine to
+        # do per-piece after splitting).
+        has_line_sentinels = is_poetry and ('\x05' in para_text or '\x06' in para_text)
 
-        if ch_match:
-            # Chapter start — emit \ch{N} + lettrine.
-            # Strip any leading \redletteron before passing to _make_lettrine
-            # (lettrine must receive plain text as its first character).
-            rl_prefix = ""
-            lettrine_src = para_text
-            if lettrine_src.startswith("\\redletteron "):
-                rl_prefix = "\\redletteron "
-                lettrine_src = lettrine_src[len("\\redletteron "):]
-            if is_poetry:
-                # Poetry: NO drop cap. The first poetic line is short and is
-                # immediately followed by a stanza break / mid-psalm section
-                # heading, which ends the paragraph before a \lettrine can fill
-                # its lines ("Paragraph ended before \lettrine was complete").
-                # Emit just the chapter number + first line; the \ch anchor and
-                # bookmark still work.
-                lettrine_text = lettrine_src
-            elif is_first_chapter and ch_num == 1:
-                lettrine_text = _make_lettrine(
-                    lettrine_src, lettrine_lines=8, color=book.group)
+        if has_line_sentinels:
+            # Split into (kind, text) pairs: \x05 = flush, \x06 = indent.
+            # Everything before the first sentinel is a leading fragment
+            # (typically empty after the chapter-num strip, but preserve if not).
+            raw_pieces: list[tuple[str, str]] = []
+            remainder = para_text
+            # Find first sentinel
+            idx5 = para_text.find('\x05')
+            idx6 = para_text.find('\x06')
+            first = min((i for i in [idx5, idx6] if i >= 0), default=-1)
+            if first > 0:
+                raw_pieces.append(('pre', para_text[:first]))
+                remainder = para_text[first:]
+            elif first == -1:
+                # No sentinels (shouldn't happen given guard above, but safe)
+                remainder = para_text
+
+            # Now split remainder on sentinel chars, keeping kind
+            i = 0
+            while i < len(remainder):
+                ch_char = remainder[i]
+                if ch_char in ('\x05', '\x06'):
+                    kind = 'flush' if ch_char == '\x05' else 'indent'
+                    # Find next sentinel
+                    next_sent = len(remainder)
+                    for j in range(i + 1, len(remainder)):
+                        if remainder[j] in ('\x05', '\x06'):
+                            next_sent = j
+                            break
+                    piece = remainder[i + 1:next_sent]
+                    raw_pieces.append((kind, piece))
+                    i = next_sent
+                else:
+                    # Should not happen if first sentinel was at position 0
+                    i += 1
+
+            # Clean each piece: collapse whitespace, strip nbsp, strip edges
+            def _clean_piece(text: str) -> str:
+                text = re.sub(r'\s+', ' ', text)
+                text = re.sub(r'(\\vs\{\d+\}) ', r'\1', text)
+                return text.strip()
+
+            pieces: list[tuple[str, str]] = [
+                (kind, _clean_piece(txt)) for kind, txt in raw_pieces
+            ]
+            # Drop empty pieces
+            pieces = [(kind, txt) for kind, txt in pieces if txt]
+
+            if ch_match:
+                lines.append(f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}")
+                # Build the \ch line from the first content piece (flush line
+                # containing verse 1 text). No drop cap in poetry.
+                # Find the first flush/indent piece — it carries the verse 1 text.
+                first_piece_txt = ""
+                rest_pieces: list[tuple[str, str]] = []
+                found_first = False
+                for kind, txt in pieces:
+                    if not found_first and kind in ('flush', 'indent'):
+                        first_piece_txt = txt
+                        found_first = True
+                    else:
+                        rest_pieces.append((kind, txt))
+                ch_line = (f"\\ch{{{ch_num}}} "
+                           f"\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}"
+                           f"{first_piece_txt}\\everypar{{}}")
+                lines.append(ch_line)
+                # Psalm superscription comes right after the \ch line
+                if pending_psalm_title:
+                    lines.append("")
+                    lines.append(pending_psalm_title)
+                    pending_psalm_title = ""
+                # Remaining pieces: flush = blank + line, indent = consecutive line
+                for idx, (kind, txt) in enumerate(rest_pieces):
+                    if kind == 'flush':
+                        lines.append("")
+                    # Last piece gets the margin note
+                    if idx == len(rest_pieces) - 1:
+                        txt = (txt + margin_note).strip()
+                    lines.append(txt)
+                first_verse_seen = True
             else:
-                lettrine_text = _make_lettrine(lettrine_src, lettrine_lines=5, color=book.group)
-            lines.append(f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}")
-            lines.append(f"\\ch{{{ch_num}}} \\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{rl_prefix}{lettrine_text}\\everypar{{}}")
-            first_verse_seen = True
+                # Non-chapter-start block inside poetry with line sentinels.
+                # Flush/indent structure replaces the \everypar{}/\parshape=0 prelude.
+                for idx, (kind, txt) in enumerate(pieces):
+                    if kind == 'flush':
+                        lines.append("")
+                    # Last piece gets the margin note
+                    if idx == len(pieces) - 1:
+                        txt = (txt + margin_note).strip()
+                    lines.append(txt)
+                first_verse_seen = True
         else:
-            if first_verse_seen:
-                lines.append("\\everypar{}")
-                lines.append("")
-                lines.append("\\parshape=0")
-            lines.append(para_text)
-            first_verse_seen = True
+            # No line sentinels: collapse whitespace and emit as a single block.
+            para_text = re.sub(r'\s+', ' ', para_text).strip()
+            # The ESV HTML often follows the verse-num tag with &nbsp; entities,
+            # which survive as a stretchable space after \vs{N}. Remove it so the
+            # number->text gap is carried solely by the fixed verse/sep kern.
+            para_text = re.sub(r'(\\vs\{\d+\}) ', r'\1', para_text)
+            # Append this block's combined footnote margin note (already escaped),
+            # after escaping so its \marginnote braces survive intact.
+            para_text = (para_text + margin_note).strip()
+
+            if not para_text:
+                continue
+
+            if ch_match:
+                # Chapter start — emit \ch{N} + lettrine.
+                # Strip any leading \redletteron before passing to _make_lettrine
+                # (lettrine must receive plain text as its first character).
+                rl_prefix = ""
+                lettrine_src = para_text
+                if lettrine_src.startswith("\\redletteron "):
+                    rl_prefix = "\\redletteron "
+                    lettrine_src = lettrine_src[len("\\redletteron "):]
+                if is_poetry:
+                    # Poetry: NO drop cap. The first poetic line is short and is
+                    # immediately followed by a stanza break / mid-psalm section
+                    # heading, which ends the paragraph before a \lettrine can fill
+                    # its lines ("Paragraph ended before \lettrine was complete").
+                    # Emit just the chapter number + first line; the \ch anchor and
+                    # bookmark still work.
+                    lettrine_text = lettrine_src
+                elif is_first_chapter and ch_num == 1:
+                    lettrine_text = _make_lettrine(
+                        lettrine_src, lettrine_lines=8, color=book.group)
+                else:
+                    lettrine_text = _make_lettrine(lettrine_src, lettrine_lines=5, color=book.group)
+                lines.append(f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}")
+                lines.append(f"\\ch{{{ch_num}}} \\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{rl_prefix}{lettrine_text}\\everypar{{}}")
+                # Psalm superscription: emit after \ch line if pending
+                if pending_psalm_title:
+                    lines.append("")
+                    lines.append(pending_psalm_title)
+                    pending_psalm_title = ""
+                first_verse_seen = True
+            else:
+                if first_verse_seen:
+                    lines.append("\\everypar{}")
+                    lines.append("")
+                    lines.append("\\parshape=0")
+                lines.append(para_text)
+                first_verse_seen = True
 
     if is_poetry:
         lines.append("\\end{poetry}")
