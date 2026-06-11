@@ -546,7 +546,17 @@ def _emit_poetry_verse(out: list, kinds: list, texts: list,
         out.append(f"\\vs{{{verse_num}}}{mark}{pending.strip()}")
 
     if first_emitted and ann_suffix:
-        out[-1] += ann_suffix
+        # Guard: never append ann_suffix to a bare \extraskip line.
+        # If the last emitted line is \extraskip (verse ended on a stanza
+        # break — unusual but latently possible), walk back to the last
+        # non-extraskip line and append the suffix there.
+        target = len(out) - 1
+        while target >= 0 and out[target] == "\\extraskip":
+            target -= 1
+        if target >= 0:
+            out[target] += ann_suffix
+        else:
+            out.append(ann_suffix)
 
 
 def _starts_paragraph(raw_html: str) -> bool:

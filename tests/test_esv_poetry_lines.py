@@ -92,6 +92,21 @@ def test_vs_before_markboth_in_poetry():
     assert line.index("\\vs{2}") < line.index("\\markboth")
 
 
+def test_no_stretchable_space_after_markboth_in_poetry():
+    r"""After \vs{N}\markboth{...}{...} there must be NO literal space before
+    the verse text — any such space is justification-stretchable and causes
+    visible verse-number gap wobble.  The cleanup regex must match the
+    vs+markboth pair, not just bare \vs{N}.
+    """
+    tex = _convert(PSALM_HTML)
+    line = next(l for l in tex.split("\n") if l.startswith("\\vs{2}"))
+    # Immediately after the closing brace of the second markboth arg there
+    # must be a non-space character (the verse text begins immediately).
+    assert re.search(r'\\vs\{2\}\\markboth\{[^}]*\}\{[^}]*\}\S', line), (
+        f"stretchable space found after markboth in poetry line: {repr(line)}"
+    )
+
+
 # ---------------------------------------------------------------------------
 # Non-poetry chapter: line spans flattened, no sentinels, no crash
 # ---------------------------------------------------------------------------

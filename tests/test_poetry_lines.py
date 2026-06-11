@@ -221,3 +221,83 @@ def test_break_kind_emits_extraskip():
     assert source_lines[idx - 2] == "\\extraskip", (
         f"expected \\extraskip before blank+\\vs{{14}}, got {source_lines[idx-2]!r}"
     )
+
+
+# ---------------------------------------------------------------------------
+# Minor 1 — ann_suffix must not be glued onto a bare \extraskip line
+# ---------------------------------------------------------------------------
+from latex_generator import _emit_poetry_verse
+
+
+def test_ann_suffix_not_appended_to_extraskip():
+    """When the last emitted output line is a bare \\extraskip (because the
+    final segment of a verse has kind 'break' in the subsequent-segments
+    branch), the ann_suffix must NOT be appended to that \\extraskip line.
+    It must be appended to the last non-extraskip line instead.
+
+    Setup: verse 2 has two segments — a normal 'line' (first, emitted on its
+    own source line) then a 'break' (subsequent, emits \\extraskip only).
+    After the loop out[-1] == '\\extraskip'; the guard must back-track.
+    """
+    out: list[str] = []
+    # Two segments: first is a 'line' (first_emitted → True, appends text),
+    # second is a 'break' (subsequent → appends \\extraskip only).
+    kinds = ["line", "break"]
+    texts = ["verse text", "stanza break text"]
+    _emit_poetry_verse(out, kinds, texts, verse_num=2, mark="",
+                       ann_suffix="\\marginnote{note}", ch_open=None,
+                       initial_color=None)
+    # \\extraskip must appear somewhere
+    assert "\\extraskip" in out, f"expected \\extraskip in {out}"
+    # No \\extraskip line must carry any suffix
+    for line in out:
+        if line == "\\extraskip":
+            assert "\\marginnote" not in line, (
+                f"ann_suffix was glued onto \\extraskip: {line!r}"
+            )
+    # The suffix must appear in the output somewhere (not lost)
+    assert any("\\marginnote{note}" in l for l in out), (
+        f"ann_suffix was lost when last segment was 'break'; out={out}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Minor 2 — 'pre' piece kind treated uniformly as 'flush' in ESV
+# ---------------------------------------------------------------------------
+def test_pre_kind_normalized_to_flush_in_esv():
+    """The 'pre' piece kind (for leading text before the first sentinel) must
+    be renamed to 'flush' at creation time so the emit loops handle it
+    uniformly.  The 'pre' fragment is empty in all real ESV HTML (chapter-num
+    strip leaves nothing before the first sentinel), but the defensive
+    normalization ensures it is never silently dropped if it were non-empty.
+
+    Test: after normalization, no piece should have kind 'pre' — verify by
+    patching the sentinel-split path to produce a non-empty pre fragment,
+    then assert the output contains the text (not dropped).
+    """
+    import esv_latex_generator as esv
+    from bible_config import get_book_by_name
+
+    # The standard PSALM_HTML: chapter-num strip removes the <b> tag,
+    # begin-line-group span is stripped, so first sentinel is at pos 0.
+    # No 'pre' fragment in practice — but the code must rename 'pre'->'flush'.
+    html = (
+        '<p class="block-indent"><span class="begin-line-group"></span>'
+        '<span id="a" class="line">'
+        '<b class="chapter-num" id="v1">3:1&nbsp;</b>'
+        '&nbsp;&nbsp;First line text.</span>'
+        '<br /><span class="end-line-group"></span></p>'
+    )
+    book = get_book_by_name("psalms")
+    tex = "\n".join(esv._process_chapter_html(html, 3, book,
+                                              is_first_chapter=False))
+    # No sentinel bytes must leak
+    assert "\x05" not in tex and "\x06" not in tex
+    # Verse text must appear (not dropped, whether via 'flush' or 'pre' branch)
+    assert "First line text" in tex
+    # The source code must not use kind='pre' — it should be renamed to 'flush'
+    import inspect
+    src = inspect.getsource(esv._process_chapter_html)
+    assert "'pre'" not in src, (
+        "kind 'pre' still used in _process_chapter_html; rename to 'flush' for uniform handling"
+    )

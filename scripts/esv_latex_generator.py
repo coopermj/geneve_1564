@@ -417,7 +417,13 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
             idx6 = para_text.find('\x06')
             first = min((i for i in [idx5, idx6] if i >= 0), default=-1)
             if first > 0:
-                raw_pieces.append(('pre', para_text[:first]))
+                # Treat any leading text before the first sentinel as a
+                # flush piece so the emit loops handle it uniformly.
+                # In practice this fragment is always empty (the chapter-num
+                # <b> tag is stripped before sentinel injection and the
+                # begin-line-group span is removed too), but normalising here
+                # is defensive against future HTML variations.
+                raw_pieces.append(('flush', para_text[:first]))
                 remainder = para_text[first:]
             elif first == -1:
                 # No sentinels (shouldn't happen given guard above, but safe)
@@ -445,7 +451,10 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
             # Clean each piece: collapse whitespace, strip nbsp, strip edges
             def _clean_piece(text: str) -> str:
                 text = re.sub(r'\s+', ' ', text)
+                # Strip stretchable space after bare \vs{N} (prose path)
                 text = re.sub(r'(\\vs\{\d+\}) ', r'\1', text)
+                # Strip stretchable space after \vs{N}\markboth{}{} (poetry path)
+                text = re.sub(r'(\\vs\{\d+\}\\markboth\{[^}]*\}\{[^}]*\}) ', r'\1', text)
                 return text.strip()
 
             pieces: list[tuple[str, str]] = [
