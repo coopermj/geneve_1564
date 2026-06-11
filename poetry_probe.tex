@@ -1,0 +1,42 @@
+\documentclass[fontsize=13pt]{scrbook}
+\usepackage{geometry}
+\geometry{paperwidth=80mm, paperheight=200mm, margin=8mm}
+\usepackage{fontspec}
+\setmainfont[
+  Path=fonts/,
+  Extension=.otf,
+  UprightFont=EBGaramond-Regular,
+  ItalicFont=EBGaramond-Italic,
+  BoldFont=EBGaramond-Bold,
+  BoldItalicFont=EBGaramond-BoldItalic,
+  Numbers=OldStyle,
+]{EB Garamond}
+\usepackage{scripture}
+\scripturesetup{
+  chapter/drop=false,
+  chapter/para=true,
+  verse/sep=0.3em,
+  poetry/verse/sep=0.3em,
+  poetry/bigindent=2em,
+  verse/first=false,
+  indent=true,
+}
+\pagestyle{empty}
+\begin{document}
+
+\begin{scripture}
+\begin{poetry}
+\vs{3}AAA first line of verse three,
+BBB second consecutive line,
+CCC third consecutive line,
+
+DDD line after blank,
+EEE consecutive after DDD which is long enough that it will definitely wrap onto another physical line in this narrow measure,
+
+\extraskip
+\vs{4}FFF first line of verse four,
+GGG consecutive line v4,
+\end{poetry}
+\end{scripture}
+
+\end{document}
