@@ -264,6 +264,16 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
         # Strip footnote markers; the margin note is appended after escaping.
         block, margin_note = _collect_and_replace_fns(block)
 
+        def _emit_section_heading(heading_text: str) -> None:
+            """Append a section-heading block (h3 / acrostic h4) to ``lines``."""
+            lines.append("")
+            lines.append(
+                f"\\begingroup\\parshape=0\\everypar{{}}"
+                f"\\vspace{{\\baselineskip}}\\noindent"
+                f"{{\\small\\itshape {heading_text}\\par}}"
+                f"\\nobreak\\endgroup"
+            )
+
         # Section heading
         h3 = re.match(r'<h3[^>]*>(.*?)</h3>', block)
         if h3:
@@ -273,13 +283,18 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                 continue
             heading_text = _convert_smart_quotes(heading_text)
             heading_text = _escape_latex(heading_text)
-            lines.append("")
-            lines.append(
-                f"\\begingroup\\parshape=0\\everypar{{}}"
-                f"\\vspace{{\\baselineskip}}\\noindent"
-                f"{{\\small\\itshape {heading_text}\\par}}"
-                f"\\nobreak\\endgroup"
-            )
+            _emit_section_heading(heading_text)
+            continue
+
+        # Psalm acrostic stanza heading (<h4 class="psalm-acrostic-title">)
+        h4_acrostic = re.match(
+            r'<h4[^>]*class="psalm-acrostic-title"[^>]*>(.*?)</h4>', block)
+        if h4_acrostic:
+            heading_text = re.sub(r'<[^>]+>', '', h4_acrostic.group(1))
+            heading_text = unescape(heading_text).strip()
+            heading_text = _convert_smart_quotes(heading_text)
+            heading_text = _escape_latex(heading_text)
+            _emit_section_heading(heading_text)
             continue
 
         # Psalm superscription (<h4 class="psalm-title">)

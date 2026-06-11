@@ -115,3 +115,97 @@ def test_non_poetry_line_spans_flattened_no_sentinels():
     assert "set apart for the gospel" in tex
     # Chapter heading must appear
     assert "\\ch{1}" in tex
+
+
+# ---------------------------------------------------------------------------
+# Finding 2 — h3 section heading in poetry chapter
+# ---------------------------------------------------------------------------
+
+def test_h3_heading_in_poetry_output():
+    """The h3 'Save Me, O My God' heading appears inside the section-heading wrapper."""
+    tex = _convert(PSALM_HTML)
+    # Must contain the heading text inside \small\itshape block
+    assert "Save Me, O My God" in tex
+    assert "\\small\\itshape Save Me, O My God" in tex
+
+
+# ---------------------------------------------------------------------------
+# Finding 3 — no-title poetry chapter start
+# ---------------------------------------------------------------------------
+
+# PSALM_HTML stripped of its h4 title — chapter starts directly with verse text.
+PSALM_HTML_NO_TITLE = '''<h3 id="x">Save Me, O My God</h3>
+<p class="block-indent"><span class="begin-line-group"></span>
+<span id="a" class="line"><b class="chapter-num" id="v1">3:1&nbsp;</b>&nbsp;&nbsp;O LORD, how many are my foes!</span><br /><span id="a" class="indent line">&nbsp;&nbsp;&nbsp;&nbsp;Many are rising against me;</span><br /><span class="end-line-group"></span>
+</p>'''
+
+
+def test_no_title_chapter_start_ch_carries_first_verse():
+    r"""Without a psalm title, \ch{3} line carries the first verse piece."""
+    tex = _convert(PSALM_HTML_NO_TITLE)
+    ch_line = next(l for l in tex.split("\n") if "\\ch{3}" in l)
+    assert "how many are my foes" in ch_line
+
+
+def test_no_title_chapter_start_indent_partner_consecutive():
+    """The indent partner ('Many are rising') follows directly after the \\ch line."""
+    tex = _convert(PSALM_HTML_NO_TITLE)
+    lines = tex.split("\n")
+    ch_idx = next(i for i, l in enumerate(lines) if "\\ch{3}" in l)
+    # Next non-empty line after \ch must be the indent partner (no blank between)
+    following = lines[ch_idx + 1]
+    assert "Many are rising" in following, (
+        f"Expected indent partner right after \\ch line, got: {repr(following)}")
+
+
+# ---------------------------------------------------------------------------
+# Finding 1 — Psalm 119 acrostic headings
+# ---------------------------------------------------------------------------
+
+# Two stanzas separated by an acrostic heading: Beth between Aleph stanza and
+# the next stanza. The block layout mirrors what the ESV splitter produces.
+PSALM_119_ACROSTIC_HTML = '''\
+<h4 id="aleph" class="psalm-acrostic-title">Aleph</h4>
+<p class="block-indent"><span class="begin-line-group"></span>
+<span id="a" class="line"><b class="chapter-num" id="v1">119:1&nbsp;</b>&nbsp;&nbsp;Blessed are those whose way is blameless,</span><br /><span id="a" class="indent line">&nbsp;&nbsp;&nbsp;&nbsp;who walk in the law of the LORD!</span><br /><span class="end-line-group"></span>
+</p><h4 id="beth" class="psalm-acrostic-title">Beth</h4>
+<p class="block-indent"><span class="begin-line-group"></span>
+<span id="b" class="line"><b class="verse-num" id="v9">9&nbsp;</b>&nbsp;&nbsp;How can a young man keep his way pure?</span><br /><span id="b" class="indent line">&nbsp;&nbsp;&nbsp;&nbsp;By guarding it according to your word.</span><br /><span class="end-line-group"></span>
+</p>'''
+
+
+def _convert_ps119(html, ch=119):
+    book = get_book_by_name("psalms")
+    return "\n".join(esv._process_chapter_html(html, ch, book,
+                                               is_first_chapter=False))
+
+
+def test_acrostic_heading_appears_in_output():
+    """Acrostic heading 'Beth' appears in output."""
+    tex = _convert_ps119(PSALM_119_ACROSTIC_HTML)
+    assert "Beth" in tex
+
+
+def test_acrostic_heading_in_small_itshape_wrapper():
+    """Acrostic heading is emitted inside the \\small\\itshape heading block."""
+    tex = _convert_ps119(PSALM_119_ACROSTIC_HTML)
+    assert "\\small\\itshape Beth" in tex
+
+
+def test_acrostic_heading_between_stanzas_not_glued_to_line():
+    """'Beth' appears between the two stanzas and is NOT glued onto a verse line."""
+    tex = _convert_ps119(PSALM_119_ACROSTIC_HTML)
+    lines = tex.split("\n")
+    # Stanza 1 text
+    aleph_idx = next(i for i, l in enumerate(lines) if "blameless" in l)
+    # Beth heading
+    beth_idx = next(i for i, l in enumerate(lines) if "Beth" in l and "\\small\\itshape" in l)
+    # Stanza 2 text
+    beth_stanza_idx = next(i for i, l in enumerate(lines) if "young man" in l)
+    assert aleph_idx < beth_idx < beth_stanza_idx, (
+        f"Expected aleph({aleph_idx}) < beth_heading({beth_idx}) < beth_stanza({beth_stanza_idx})"
+    )
+    # Beth must NOT appear on the same line as verse text
+    beth_heading_line = lines[beth_idx]
+    assert "blameless" not in beth_heading_line
+    assert "young man" not in beth_heading_line
