@@ -89,10 +89,15 @@ out = render_chapter([
     ("``Blessed are those who mourn.''", D([], True)),
 ])
 check("v3 leading wraps quote",
-      out[0] == "\\redletteron ``Blessed are the poor in spirit.''\\redletteroff ", out[0])
+      out[0] == "\\redletteron{}``Blessed are the poor in spirit.''\\redletteroff{}", out[0])
 check("v4 continuation is red",
-      out[1].startswith("\\redletteron ") and out[1].rstrip().endswith("\\redletteroff"),
+      out[1].startswith("\\redletteron{}") and out[1].rstrip().endswith("\\redletteroff{}"),
       out[1])
+# The toggles must be emitted in the {}-terminated form: a bare control word
+# followed by a space lets TeX's tokenizer EAT that space, gluing following
+# verse numbers / black text against the last red glyph.
+check("toggles are {}-terminated (no space-eating form)",
+      "\\redletteron " not in out[0] and "\\redletteroff " not in out[0], out[0])
 
 # Plain narration after Jesus stops: descriptor None closes red, stays off.
 st = lg._RLState()
@@ -109,7 +114,7 @@ m = lg._render_red_letter(
 check("mixed: crowd quote not preceded by redletteron",
       m.index("``We") < m.find("\\redletteron") if "\\redletteron" in m else False, m)
 check("mixed: jesus quote turns red",
-      "\\redletteron ``Neither.''\\redletteroff" in m, m)
+      "\\redletteron{}``Neither.''\\redletteroff{}" in m, m)
 
 # 3rd-level nesting: inner double must NOT end the red early.
 st = lg._RLState()
@@ -119,14 +124,14 @@ n = lg._render_red_letter(
 check("nesting: exactly one redletteron", n.count("\\redletteron") == 1, n)
 check("nesting: exactly one redletteroff", n.count("\\redletteroff") == 1, n)
 check("nesting: red closes at the very end",
-      n.rstrip().endswith("\\redletteroff"), n)
+      n.rstrip().endswith("\\redletteroff{}"), n)
 
 # Robustness: an unclosed quote must not leak depth past a non-Jesus verse.
 st = lg._RLState()
 lg._render_red_letter("``unclosed jesus", D([True], False), st)   # leaves depth high
 lg._render_red_letter("narration.", None, st)                     # resync point
 leak = lg._render_red_letter("crowd ``A'' jesus ``B''", D([False, True], False), st)
-check("no depth leak after non-jesus verse", "\\redletteron ``B''" in leak, leak)
+check("no depth leak after non-jesus verse", "\\redletteron{}``B''" in leak, leak)
 check("depth reset to 0 on None verse", st.depth == 0, st.depth)
 
 print("latex_generator._get_red_letter_desc")

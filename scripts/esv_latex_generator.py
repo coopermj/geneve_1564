@@ -397,8 +397,8 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
             return f"{mark}\\vs{{{v}}}"
         para_text = re.sub('\x03(\\d+)\x04', _restore_verse, para_text)
         # Restore woc sentinels as redletter commands
-        para_text = para_text.replace('\x01', '\\redletteron ')
-        para_text = para_text.replace('\x02', '\\redletteroff ')
+        para_text = para_text.replace('\x01', '\\redletteron{}')
+        para_text = para_text.replace('\x02', '\\redletteroff{}')
 
         # In poetry chapters split on line sentinels now (before whitespace
         # collapse, so that \s+ doesn't eat the sentinel chars — though
@@ -536,9 +536,9 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                 # (lettrine must receive plain text as its first character).
                 rl_prefix = ""
                 lettrine_src = para_text
-                if lettrine_src.startswith("\\redletteron "):
-                    rl_prefix = "\\redletteron "
-                    lettrine_src = lettrine_src[len("\\redletteron "):]
+                if lettrine_src.startswith("\\redletteron{}"):
+                    rl_prefix = "\\redletteron{}"
+                    lettrine_src = lettrine_src[len("\\redletteron{}"):]
                 if is_poetry:
                     # Poetry: NO drop cap. The first poetic line is short and is
                     # immediately followed by a stanza break / mid-psalm section

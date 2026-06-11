@@ -67,7 +67,7 @@ def _render_red_letter(text: str, desc, state: "_RLState") -> str:
 
     if desc is None:
         if state.in_jesus:
-            out.append("\\redletteroff ")
+            out.append("\\redletteroff{}")
         # A non-Jesus verse is a safe resync point: clear all quote state so a
         # stray unclosed quote in earlier text cannot leak depth into later verses.
         state.in_jesus = False
@@ -80,7 +80,7 @@ def _render_red_letter(text: str, desc, state: "_RLState") -> str:
         if not state.in_jesus:
             state.in_jesus = True
             state.open_depth = 0
-        out.append("\\redletteron ")
+        out.append("\\redletteron{}")
 
     opens = desc.get("opens", [])
     k = 0
@@ -93,7 +93,7 @@ def _render_red_letter(text: str, desc, state: "_RLState") -> str:
                 if not state.in_jesus:
                     is_j = opens[k] if k < len(opens) else False
                     if is_j:
-                        out.append("\\redletteron ")
+                        out.append("\\redletteron{}")
                         state.in_jesus = True
                         state.open_depth = state.depth
                 k += 1
@@ -106,7 +106,7 @@ def _render_red_letter(text: str, desc, state: "_RLState") -> str:
             out.append(CLOSE)
             i += 2
             if state.in_jesus and state.depth == state.open_depth:
-                out.append("\\redletteroff ")
+                out.append("\\redletteroff{}")
                 state.in_jesus = False
                 state.open_depth = None
             continue
@@ -114,7 +114,7 @@ def _render_red_letter(text: str, desc, state: "_RLState") -> str:
         i += 1
 
     if state.in_jesus:
-        out.append("\\redletteroff ")
+        out.append("\\redletteroff{}")
         state.in_jesus = False
         state.open_depth = None
     return "".join(out)
@@ -412,9 +412,9 @@ def _make_poetry_initial(text: str, color: str) -> str:
     face for the first letter only, colored by book group.
     """
     prefix = ""
-    if text.startswith("\\redletteron "):
-        prefix = "\\redletteron "
-        text = text[len("\\redletteron "):]
+    if text.startswith("\\redletteron{}"):
+        prefix = "\\redletteron{}"
+        text = text[len("\\redletteron{}"):]
     if not text:
         return prefix
 
