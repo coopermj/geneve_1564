@@ -101,3 +101,4 @@ fntest*
 .DS_Store
 *.pyc
 __pycache__/
+archive/
