@@ -209,3 +209,28 @@ def test_acrostic_heading_between_stanzas_not_glued_to_line():
     beth_heading_line = lines[beth_idx]
     assert "blameless" not in beth_heading_line
     assert "young man" not in beth_heading_line
+
+
+# ---------------------------------------------------------------------------
+# Fix 1 — margin_note not dropped when ch_match + no psalm title + 1 line piece
+# ---------------------------------------------------------------------------
+
+# Single-line poetry chapter-open with a footnote in the only line span.
+# emit_pieces ends up empty (the one piece rides the \ch line), so the
+# margin note must be appended to the \ch line itself.
+_SINGLE_LINE_FN_HTML = '''\
+<p class="block-indent"><span class="begin-line-group"></span>
+<span id="a" class="line"><b class="chapter-num" id="v1">3:1&nbsp;</b>&nbsp;&nbsp;O LORD, how many are my foes!<sup class="footnote"><a href="#fb1-1" id="fb1-1">1</a></sup></span><br /><span class="end-line-group"></span>
+</p>
+<div class="footnotes"><span class="footnote"><span class="footnote-label"><a href="#fb1-1" id="fb1-1">[1]</a></span><span class="footnote-ref">3:1 </span>Or <i>foes indeed</i></span></p></div>'''
+
+
+def test_single_line_ch_match_margin_note_not_dropped():
+    r"""\marginnote must appear in output when the chapter-open block has exactly
+    one line piece (so emit_pieces is empty and the margin note would otherwise
+    be silently lost).
+    """
+    tex = _convert(_SINGLE_LINE_FN_HTML)
+    assert "\\marginnote" in tex, (
+        "margin note was silently dropped when emit_pieces is empty"
+    )

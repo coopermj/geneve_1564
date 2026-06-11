@@ -357,7 +357,8 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
             para_text = re.sub(
                 r'<span[^>]*class="(?:begin|end)-line-group"[^>]*>\s*</span>',
                 '', para_text)
-            # Exact class "line" (flush)
+            # Exact class "line" (flush) must run first: the word-boundary pattern
+            # below also matches class="line", so this one consumes those spans first.
             para_text = re.sub(r'<span[^>]*class="line"[^>]*>', '\x05', para_text)
             # Any span whose class contains "line" as a word (indent, declares,
             # psalm-doxology, indent-2, etc.) → indented line start
@@ -490,6 +491,10 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                     if idx == len(emit_pieces) - 1:
                         txt = (txt + margin_note).strip()
                     lines.append(txt)
+                # If emit_pieces was empty the margin note was never consumed above
+                # (the only piece rode the \ch line). Append it to that line now.
+                if not emit_pieces and margin_note:
+                    lines[-1] = (lines[-1] + margin_note).strip()
                 first_verse_seen = True
             else:
                 # Non-chapter-start block inside poetry with line sentinels.
