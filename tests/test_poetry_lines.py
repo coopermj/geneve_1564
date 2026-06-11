@@ -106,8 +106,7 @@ def test_verse1_line_couplet_indent_after_ch():
     body = tex.split("\\begin{poetry}")[1].split("\\end{poetry}")[0]
     lines = body.split("\n")
     ch_idx = next(i for i, l in enumerate(lines) if "\\ch{56}" in l)
-    # the colored initial absorbs the first letter: ...{\lettrinefont F}irst
-    assert "irst hemistich," in lines[ch_idx]
+    assert "First hemistich," in lines[ch_idx]
     assert "second hemistich." in lines[ch_idx + 1]   # consecutive → indent
 
 
@@ -132,15 +131,17 @@ def test_prose_segment_resets_to_flush():
     assert "choose what pleases" in lines[eun_idx + 1]   # line after line → indent
 
 
-def test_poetry_chapter_start_colored_initial_no_lettrine():
+def test_poetry_chapter_start_plain_no_lettrine_no_initial():
     chapters = {56: [
         {"verse": "1", "text": '<p class="poetry">Promote justice! </p>'},
     ]}
     tex = _gen(chapters)
-    # No drop-cap \lettrine{}{} command inside the poetry block
-    assert "\\lettrine{" not in tex.split("\\begin{poetry}")[1]
-    # textcolor-first form is safe at line start (no bare { opener)
-    assert "\\textcolor{majorprophets}{\\lettrinefont P}romote" in tex
+    body = tex.split("\\begin{poetry}")[1]
+    # No drop-cap \lettrine{}{} and no decorated initial — plain text on \ch line
+    assert "\\lettrine{" not in body
+    assert "\\lettrinefont" not in body
+    assert "\\textcolor" not in body
+    assert "Promote justice!" in body
 
 
 def test_verse1_two_segments_second_on_own_line():
@@ -162,16 +163,11 @@ def test_verse1_two_segments_second_on_own_line():
     assert "A psalm of David." in ch_lines[0]
     assert "will sing" not in ch_lines[0]
 
-    # The poetry line ("will sing about loyalty") must appear on its own source
-    # line preceded by a blank line.  Note: the initial letter "I" is extracted
-    # into the colored-initial command, so the literal text starts with " will".
-    sing_idx = next(i for i, l in enumerate(source_lines) if "will sing about loyalty" in l)
+    # The poetry line must appear on its own source line preceded by a blank
+    # line, as plain text (no decorated initial).
+    sing_idx = next(i for i, l in enumerate(source_lines) if "I will sing about loyalty" in l)
     assert source_lines[sing_idx - 1] == ""
-
-    # And it must carry the colored initial (psalms group = wisdom)
-    book = get_book_by_name("psalms")
-    assert book.group == "wisdom"
-    assert f"\\textcolor{{wisdom}}{{\\lettrinefont I}}" in source_lines[sing_idx]
+    assert "\\lettrinefont" not in source_lines[sing_idx]
 
 
 def test_continuation_verse_appends_to_previous_line():
@@ -286,8 +282,7 @@ def test_ann_suffix_not_appended_to_extraskip():
     kinds = ["line", "break"]
     texts = ["verse text", "stanza break text"]
     _emit_poetry_verse(out, kinds, texts, verse_num=2, mark="",
-                       ann_suffix="\\marginnote{note}", ch_open=None,
-                       initial_color=None)
+                       ann_suffix="\\marginnote{note}", ch_open=None)
     # \\extraskip must appear somewhere
     assert "\\extraskip" in out, f"expected \\extraskip in {out}"
     # No \\extraskip line must carry any suffix

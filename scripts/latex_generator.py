@@ -404,46 +404,6 @@ def _make_lettrine(text: str, lettrine_lines: int | None = None,
 _HEBREW_RE = re.compile(r"[֐-׿]+\s*")
 
 
-def _make_poetry_initial(text: str, color: str) -> str:
-    r"""Colored decorative initial at body size (no drop cap).
-
-    Poetry lines are short, separate paragraphs, so a multi-line
-    \\lettrine would overlap line 2.  Uses the EB Garamond Initials
-    face for the first letter only, colored by book group.
-    """
-    prefix = ""
-    if text.startswith("\\redletteron{}"):
-        prefix = "\\redletteron{}"
-        text = text[len("\\redletteron{}"):]
-    if not text:
-        return prefix
-
-    # Strip leading LaTeX opening quotes (``, `) and open parens — same as
-    # _make_lettrine — so the decorative initial is the first real letter.
-    while True:
-        if text.startswith("``"):
-            prefix += "``"
-            text = text[2:]
-        elif text.startswith("`"):
-            prefix += "`"
-            text = text[1:]
-        elif m := re.match(r'\(\d+:\d+[a-z]?\)\s*', text):
-            prefix += m.group(0)
-            text = text[m.end():]
-        elif text.startswith("("):
-            prefix += "("
-            text = text[1:]
-        else:
-            break
-
-    text = text.lstrip()
-    if not text:
-        return prefix
-
-    first, rest = text[0], text[1:]
-    return f"{prefix}\\textcolor{{{color}}}{{\\lettrinefont {first}}}{rest}"
-
-
 def _style_poetry_segment(kind: str, text: str) -> str:
     if kind == "lamhebrew":
         text = _HEBREW_RE.sub("", text).strip()
@@ -460,7 +420,7 @@ def _style_poetry_segment(kind: str, text: str) -> str:
 
 def _emit_poetry_verse(out: list, kinds: list, texts: list,
                        verse_num: int, mark: str, ann_suffix: str,
-                       ch_open, initial_color) -> None:
+                       ch_open) -> None:
     """Append the poetic lines of one verse to *out*.
 
     Layout (ESV-style two-level): a segment that STARTS a unit — the verse's
@@ -494,11 +454,7 @@ def _emit_poetry_verse(out: list, kinds: list, texts: list,
             continue
 
         # Apply styling
-        if kind == "line" and initial_color is not None:
-            styled = _make_poetry_initial(text, initial_color)
-            initial_color = None
-        else:
-            styled = _style_poetry_segment(kind, text)
+        styled = _style_poetry_segment(kind, text)
 
         # Decorated kinds (psasuper, sosspeaker, lamhebrew) start with ``{``
         # and MUST NOT open a new blank-line-separated source paragraph on
@@ -764,7 +720,6 @@ def generate_book_tex(
                 mark = (f"\\markboth{{{book.name} {ch_num}:{verse_num}}}"
                         f"{{{book.name} {ch_num}:{verse_num}}}")
                 ch_open = None
-                initial_color = None
                 if verse_num == 1:
                     lines.append(f"\\markboth{{{book.name} {ch_num}:1}}"
                                  f"{{{book.name} {ch_num}:1}}")
@@ -774,9 +729,8 @@ def generate_book_tex(
                                  f"level=1]{{{book.name} {ch_num}}}")
                     ch_open = (f"\\ch{{{ch_num}}} \\allowchapbreak"
                                f"\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}")
-                    initial_color = book.group
                 _emit_poetry_verse(lines, kinds, seg_texts, verse_num, mark,
-                                   ann_suffix, ch_open, initial_color)
+                                   ann_suffix, ch_open)
             elif verse_num == 1:
                 # Chapter start — use \ch{N} with lettrine drop cap.
                 if ch_num == 1:
