@@ -479,3 +479,23 @@ def test_pre_kind_normalized_to_flush_in_esv():
     assert "'pre'" not in src, (
         "kind 'pre' still used in _process_chapter_html; rename to 'flush' for uniform handling"
     )
+
+
+def test_inline_poetry_class_in_prose_chapter():
+    """<p class="poetry"> in a chapter NOT classed as a poetry chapter
+    (e.g. Zech 11:1-3 taunt poem, Deut 32 Song of Moses) must also get the
+    inline \\begin{poetry} treatment, same as otpoetry."""
+    zech_11_2 = ('<p class="poetry">Howl, fir tree,'
+                 '<p class="poetry">for the cedar has fallen! </p>')
+    chapters = {11: [
+        {"verse": "1", "text": '<p class="bodytext">A long opening verse of plain prose narrative, easily exceeding any lettrine budget when repeated. ' + 'More prose text here. ' * 30 + '</p>'},
+        {"verse": "2", "text": zech_11_2},
+    ]}
+    from bible_config import get_book_by_name
+    tex = generate_book_tex(get_book_by_name("zechariah"), chapters)
+    assert "\\begin{poetry}" in tex
+    body = tex.split("\\begin{poetry}")[1].split("\\end{poetry}")[0]
+    assert "Howl, fir tree," in body
+    lines = tex.split("\n")
+    howl = next(i for i, l in enumerate(lines) if "Howl, fir tree," in l)
+    assert "cedar has fallen!" in lines[howl + 1]   # consecutive → indent

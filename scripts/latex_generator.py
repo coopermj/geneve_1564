@@ -543,12 +543,15 @@ def _starts_paragraph(raw_html: str) -> bool:
 
 
 def _has_inline_otpoetry(raw_html: str) -> bool:
-    """Return True if the verse contains any <p class="otpoetry"> segments.
+    """Return True if the verse contains poetic-line segments.
 
     Used to decide whether to emit an inline \\begin{poetry}...\\end{poetry}
     block inside a prose chapter verse (when outside the lettrine zone).
+    Matches both <p class="otpoetry"> (OT quotes in the NT) and
+    <p class="poetry"> (poetic passages in chapters not classed as poetry
+    chapters, e.g. Deut 32, Isa 16/18, Jer 12, Zech 11).
     """
-    return bool(re.search(r'<p class="otpoetry">', raw_html))
+    return bool(re.search(r'<p class="(?:ot)?poetry">', raw_html))
 
 
 def _emit_inline_poetry_verse(
