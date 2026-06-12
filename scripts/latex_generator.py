@@ -597,12 +597,6 @@ def _emit_inline_poetry_verse(
             groups.append(("prose", [texts[i]]))
             i += 1
 
-    # Determine if verse starts with a line run (no leading prose)
-    starts_with_line = groups and groups[0][0] == "line_run"
-
-    # We'll track the last non-empty text line index for ann_suffix
-    # Build the output first, then attach ann_suffix at the end.
-
     emitted_vs = False  # True once \vs{N} has been emitted
 
     for g_idx, (gtype, gtexts) in enumerate(groups):
@@ -633,6 +627,9 @@ def _emit_inline_poetry_verse(
                 out.append("")
                 out.append("\\parshape=0")
             out.append("\\begin{poetry}")
+            # Find the last non-empty line index for suffix placement
+            last_nonempty = max(
+                (i for i, t in enumerate(gtexts) if t.strip()), default=-1)
             for l_idx, line_text in enumerate(gtexts):
                 line_text = line_text.strip()
                 if not line_text:
@@ -643,7 +640,7 @@ def _emit_inline_poetry_verse(
                     emitted_vs = True
                 else:
                     line_out = line_text
-                if is_last_group and l_idx == len(gtexts) - 1:
+                if is_last_group and l_idx == last_nonempty:
                     line_out += group_suffix
                 out.append(line_out)
             out.append("\\end{poetry}")
