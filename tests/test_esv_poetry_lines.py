@@ -249,3 +249,146 @@ def test_single_line_ch_match_margin_note_not_dropped():
     assert "\\marginnote" in tex, (
         "margin note was silently dropped when emit_pieces is empty"
     )
+
+
+# ---------------------------------------------------------------------------
+# (e) Prose chapter: block-indent with line spans → inline poetry env
+# ---------------------------------------------------------------------------
+
+# 1 Cor 15:54 – prose paragraph then a block-indent with one line span.
+# Verse 54 starts in the prose paragraph; the OT quote is in the block.
+COR15_PART1_HTML = '''\
+<p id="p46015053_06-1"><b class="verse-num" id="v46015053-1">53&nbsp;</b>For this perishable body must put on the imperishable. <b class="verse-num" id="v46015054-1">54&nbsp;</b>When the perishable puts on the imperishable, then shall come to pass the saying that is written:</p>
+<p class="block-indent"><span class="begin-line-group"></span>
+<span id="p46015054_16-1" class="line">&nbsp;&nbsp;"Death is swallowed up in victory."</span><br />
+<span class="end-line-group"></span>
+</p>'''
+
+# 1 Cor 15:55 – entirely a block-indent with two line spans; verse num inside first span.
+COR15_55_HTML = '''\
+<p class="block-indent"><span class="begin-line-group"></span>
+<span id="p46015055_16-1" class="line"><b class="verse-num" id="v46015055-1">55&nbsp;</b>&nbsp;&nbsp;"O death, where is your victory?</span><br /><span id="p46015055_16-1" class="indent line">&nbsp;&nbsp;&nbsp;&nbsp;O death, where is your sting?"</span><br /><span class="end-line-group"></span>
+</p>'''
+
+# Prose chapter fixture: verse 1 (plain prose) + verse 53/54 (inline quote)
+COR15_PROSE_CHAPTER_HTML = '''\
+<p class="starts-chapter"><b class="chapter-num" id="v46015001-1">15:1&nbsp;</b>Now I would remind you, brothers, of the gospel I preached to you.</p>
+''' + COR15_PART1_HTML
+
+# Prose chapter fixture for verse 55 (starts a new block after prior prose)
+COR15_55_CHAPTER_HTML = '''\
+<p class="starts-chapter"><b class="chapter-num" id="v46015001-1">15:1&nbsp;</b>Now I would remind you, brothers, of the gospel I preached to you.</p>
+''' + COR15_55_HTML
+
+# Poetry chapter fixture: Psalm 23 (a poetry chapter) with line spans
+PSALM23_POETRY_HTML = '''\
+<p class="block-indent"><span class="begin-line-group"></span>
+<span id="a" class="line"><b class="chapter-num" id="v1">23:1&nbsp;</b>&nbsp;&nbsp;The LORD is my shepherd;</span><br /><span id="a" class="indent line">&nbsp;&nbsp;&nbsp;&nbsp;I shall not want.</span><br />
+<span class="end-line-group"></span>
+</p>'''
+
+# Block with a footnote on the one line span (single-piece edge case)
+COR15_SINGLE_LINE_FN_HTML = '''\
+<p id="p46015001_06-1"><b class="chapter-num" id="v46015001-1">15:1&nbsp;</b>Prose text before the quote.</p>
+<p class="block-indent"><span class="begin-line-group"></span>
+<span id="p46015054_16-1" class="line">&nbsp;&nbsp;"Death is swallowed up in victory."<sup class="footnote"><a href="#fb1-1" id="fb1-1">1</a></sup></span><br />
+<span class="end-line-group"></span>
+</p>
+<div class="footnotes"><span class="footnote"><span class="footnote-label"><a href="#fb1-1" id="fb1-1">[1]</a></span><span class="footnote-ref">15:54 </span>Or <i>swallowed forever</i></span></p></div>'''
+
+
+def _convert_prose(html, ch=15, book_name="1 corinthians"):
+    """Convert for a non-poetry chapter (1 Corinthians 15 is prose)."""
+    book = get_book_by_name(book_name)
+    return "\n".join(esv._process_chapter_html(html, ch, book,
+                                               is_first_chapter=False))
+
+
+def _convert_poetry(html, ch=23, book_name="psalms"):
+    """Convert for a poetry chapter."""
+    book = get_book_by_name(book_name)
+    return "\n".join(esv._process_chapter_html(html, ch, book,
+                                               is_first_chapter=False))
+
+
+def test_prose_chapter_block_indent_produces_inline_poetry_env():
+    """(e) Prose chapter with block-indent line spans → \\begin{poetry}...\\end{poetry}."""
+    tex = _convert_prose(COR15_PROSE_CHAPTER_HTML)
+    # Must contain exactly one poetry env for the quote block
+    assert tex.count("\\begin{poetry}") == 1, (
+        f"Expected 1 begin{{poetry}}, got {tex.count(chr(92)+'begin{poetry}')}")
+    assert tex.count("\\end{poetry}") == 1
+    # The quote must be inside the env
+    idx_begin = tex.index("\\begin{poetry}")
+    idx_end = tex.index("\\end{poetry}")
+    body = tex[idx_begin:idx_end]
+    assert "swallowed up in victory" in body, "line text must be inside poetry env"
+    # No sentinel leaks
+    assert "\x05" not in tex and "\x06" not in tex
+
+
+def test_prose_chapter_vs_inside_env_when_verse_starts_in_block():
+    """(e) When a verse starts inside the block-indent, \\vs{N} is the first
+    token of the first line inside the env (\\vs-first layout)."""
+    tex = _convert_prose(COR15_55_CHAPTER_HTML)
+    assert tex.count("\\begin{poetry}") == 1
+    idx_begin = tex.index("\\begin{poetry}")
+    idx_end = tex.index("\\end{poetry}")
+    body = tex[idx_begin:idx_end]
+    # \vs{55} must be inside the env
+    assert "\\vs{55}" in body, "\\vs{55} must be inside the poetry env"
+    # The second line directly follows the first (no blank between → 1em indent)
+    lines_in_body = body.split("\n")
+    vic_idx = next(i for i, l in enumerate(lines_in_body) if "your victory" in l)
+    sting_idx = next(i for i, l in enumerate(lines_in_body) if "your sting" in l)
+    assert sting_idx == vic_idx + 1, (
+        f"Second poetry line must directly follow first; got {lines_in_body[vic_idx:sting_idx+1]}"
+    )
+
+
+def test_poetry_chapter_no_nested_env():
+    """(f) Poetry chapter: \\begin{poetry} count == 1 (no nested inner env)."""
+    tex = _convert_poetry(PSALM23_POETRY_HTML)
+    count = tex.count("\\begin{poetry}")
+    assert count == 1, (
+        f"Poetry chapter must have exactly 1 begin{{poetry}}, got {count}"
+    )
+
+
+def test_prose_chapter_margin_note_on_last_line():
+    """(g) margin_note for a single-piece block rides the one emitted line inside env."""
+    tex = _convert_prose(COR15_SINGLE_LINE_FN_HTML)
+    assert tex.count("\\begin{poetry}") == 1
+    idx_begin = tex.index("\\begin{poetry}")
+    idx_end = tex.index("\\end{poetry}")
+    body = tex[idx_begin:idx_end]
+    # The margin note must be INSIDE the env (on the one poetry line)
+    assert "\\marginnote" in body, (
+        "margin_note must be on the last line inside the inline poetry env"
+    )
+
+
+def test_guard_chapter_num_in_line_span_no_inner_env():
+    """Guard: when chapter-num <b> is inside a line span (verse 1 is itself a
+    poetry line), flatten that block — do NOT emit an inner poetry env, since
+    it would collide with the \\ch + lettrine emission.
+    The guard case is prose chapters like Isaiah 16/18, Zechariah 11,
+    Deuteronomy 32, Jeremiah 12 (12 chapters total in esv_cache).
+    """
+    # Isaiah 16:1 — chapter-num inside line span (prose chapter; not in poetry_sections)
+    isa16_html = '''\
+<p class="block-indent"><span class="begin-line-group"></span>
+<span id="p23016001_01-1" class="line"><b class="chapter-num" id="v23016001-1">16:1&nbsp;</b>&nbsp;&nbsp;Send the lamb to the ruler of the land,</span><br />
+<span id="p23016001_01-1" class="indent line">&nbsp;&nbsp;&nbsp;&nbsp;to the mount of the daughter of Zion.</span><br />
+<span class="end-line-group"></span>
+</p>'''
+    book = get_book_by_name("isaiah")
+    tex = "\n".join(esv._process_chapter_html(isa16_html, 16, book, is_first_chapter=False))
+    # Must NOT emit a \begin{poetry} env — block is flattened (it's a chapter-start block)
+    assert "\\begin{poetry}" not in tex, (
+        "Must not emit inline poetry env when chapter-num is in a line span (chapter-start block)"
+    )
+    # The verse text must still appear (flattened; lettrine wraps first word)
+    assert "lamb to the ruler" in tex
+    # The \ch{16} heading must also appear
+    assert "\\ch{16}" in tex

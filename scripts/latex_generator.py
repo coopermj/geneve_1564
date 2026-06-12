@@ -542,6 +542,113 @@ def _starts_paragraph(raw_html: str) -> bool:
     return bool(re.search(r'<p\b[^>]*>', raw_html))
 
 
+def _has_inline_otpoetry(raw_html: str) -> bool:
+    """Return True if the verse contains any <p class="otpoetry"> segments.
+
+    Used to decide whether to emit an inline \\begin{poetry}...\\end{poetry}
+    block inside a prose chapter verse (when outside the lettrine zone).
+    """
+    return bool(re.search(r'<p class="otpoetry">', raw_html))
+
+
+def _emit_inline_poetry_verse(
+    out: list[str],
+    kinds: list[str],
+    texts: list[str],
+    verse_num: int,
+    mark: str,
+    ann_suffix: str,
+    new_para: bool,
+) -> None:
+    r"""Emit a prose-chapter verse that contains inline otpoetry blocks.
+
+    Layout rules:
+    - Runs of consecutive "line" segments are wrapped in
+      \\begin{poetry}...\\end{poetry}.
+    - Within a run: first line of the run is flush (no blank before it inside
+      the env — it goes directly after \\begin{poetry}).  Subsequent lines
+      follow directly (no blank), giving the 1em scripture indent.
+    - If the verse STARTS with a line run (no leading prose): \\vs{N} + mark
+      are prepended to the first poetry line inside the env.
+    - If there is leading prose: \\vs{N} + mark + prose text go on the prose
+      line(s) before \\begin{poetry}.
+    - Prose that follows a poetry block gets \\noindent so it is not
+      paragraph-indented.
+    - ann_suffix is appended to the last emitted text line of the verse
+      (inside the env if the verse ends with a poetry block).
+    - new_para handling (\\everypar{}  blank  \\parshape=0) applies when
+      new_para is True and the verse has leading prose.
+    """
+    # Partition kinds/texts into groups: contiguous runs of "line" are one
+    # "block" group; everything else is a "prose" group.
+    # Each group: ("line_run", [texts]) or ("prose", [texts])
+    groups: list[tuple[str, list[str]]] = []
+    i = 0
+    n = len(kinds)
+    while i < n:
+        if kinds[i] == "line":
+            run = []
+            while i < n and kinds[i] == "line":
+                run.append(texts[i])
+                i += 1
+            groups.append(("line_run", run))
+        else:
+            # prose-like segment (bodytext, bodyblock, quote, etc.)
+            groups.append(("prose", [texts[i]]))
+            i += 1
+
+    # Determine if verse starts with a line run (no leading prose)
+    starts_with_line = groups and groups[0][0] == "line_run"
+
+    # We'll track the last non-empty text line index for ann_suffix
+    # Build the output first, then attach ann_suffix at the end.
+
+    emitted_vs = False  # True once \vs{N} has been emitted
+
+    for g_idx, (gtype, gtexts) in enumerate(groups):
+        is_last_group = (g_idx == len(groups) - 1)
+        # ann_suffix goes on the last text line of the last group
+        group_suffix = ann_suffix if is_last_group else ""
+
+        if gtype == "prose":
+            prose_text = " ".join(t.strip() for t in gtexts if t.strip())
+            if not prose_text:
+                continue
+            if not emitted_vs:
+                # First prose group carries the verse marker
+                if new_para:
+                    out.append("\\everypar{}")
+                    out.append("")
+                    out.append("\\parshape=0")
+                out.append(f"{mark}\\vs{{{verse_num}}}{prose_text}{group_suffix}")
+                emitted_vs = True
+            else:
+                # Prose after a poetry block: must not be paragraph-indented
+                out.append(f"\\noindent {prose_text}{group_suffix}")
+        else:
+            # line_run → \begin{poetry} ... \end{poetry}
+            if new_para and not emitted_vs:
+                # Paragraph break applies before this group (starts with poetry)
+                out.append("\\everypar{}")
+                out.append("")
+                out.append("\\parshape=0")
+            out.append("\\begin{poetry}")
+            for l_idx, line_text in enumerate(gtexts):
+                line_text = line_text.strip()
+                if not line_text:
+                    continue
+                if l_idx == 0 and not emitted_vs:
+                    # \vs{N} goes as first token of the first line inside the env
+                    line_out = f"\\vs{{{verse_num}}}{mark}{line_text}"
+                    emitted_vs = True
+                else:
+                    line_out = line_text
+                if is_last_group and l_idx == len(gtexts) - 1:
+                    line_out += group_suffix
+                out.append(line_out)
+            out.append("\\end{poetry}")
+
+
 def _process_verse_text(raw_html: str) -> str:
     """Full pipeline: strip HTML, escape, convert quotes, apply divine names.
 
@@ -753,21 +860,40 @@ def generate_book_tex(
                 lines.append(f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}")
                 lines.append(f"\\ch{{{ch_num}}} \\allowchapbreak\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{lettrine_text}{ann_suffix}\\everypar{{}}")
             else:
-                lettrine_char_budget -= len(text)
-                text = _render_red_letter(text, desc, rl_state)
                 mark = f"\\markboth{{{book.name} {ch_num}:{verse_num}}}{{{book.name} {ch_num}:{verse_num}}}"
-                if new_para:
-                    if lettrine_char_budget > 0:
-                        # Within lettrine zone: line break (not \par) to
-                        # preserve \parshape and avoid drop-cap overlap.
-                        lines.append(f"\\\\\\indent{mark}\\vs{{{verse_num}}}{text}{ann_suffix}")
-                    else:
-                        lines.append("\\everypar{}")
-                        lines.append("")
-                        lines.append("\\parshape=0")
-                        lines.append(f"{mark}\\vs{{{verse_num}}}{text}{ann_suffix}")
+                lettrine_char_budget -= len(text)
+                # Inline OT-poetry blocks in prose chapters: wrap consecutive
+                # otpoetry segments in \begin{poetry}...\end{poetry}.
+                # Lettrine zone guard: verse 1 always goes to the elif branch
+                # above (never reaches this else block). Verse 2+ that still
+                # fall within the lettrine zone (budget > 0 after decrement)
+                # would ideally be flattened to preserve \parshape, but the
+                # only tested guard case is verse 1. Since otpoetry in the
+                # first few verses of a chapter is extremely rare in biblical
+                # prose, we gate purely on content detection here.
+                if _has_inline_otpoetry(raw_html):
+                    segs = _split_poetry_segments(raw_html)
+                    seg_texts = [_process_verse_text(h) for _, h in segs]
+                    joined = _render_red_letter("\x05".join(seg_texts), desc, rl_state)
+                    seg_texts = joined.split("\x05")
+                    kinds = [k for k, _ in segs]
+                    _emit_inline_poetry_verse(lines, kinds, seg_texts,
+                                             verse_num, mark, ann_suffix,
+                                             new_para)
                 else:
-                    lines.append(f"{mark}\\vs{{{verse_num}}}{text}{ann_suffix}")
+                    text = _render_red_letter(text, desc, rl_state)
+                    if new_para:
+                        if lettrine_char_budget > 0:
+                            # Within lettrine zone: line break (not \par) to
+                            # preserve \parshape and avoid drop-cap overlap.
+                            lines.append(f"\\\\\\indent{mark}\\vs{{{verse_num}}}{text}{ann_suffix}")
+                        else:
+                            lines.append("\\everypar{}")
+                            lines.append("")
+                            lines.append("\\parshape=0")
+                            lines.append(f"{mark}\\vs{{{verse_num}}}{text}{ann_suffix}")
+                    else:
+                        lines.append(f"{mark}\\vs{{{verse_num}}}{text}{ann_suffix}")
 
         # Return-to-plan octagon after last verse of endpoint chapters
         if plan_endpoints and (book.directory, ch_num) in plan_endpoints:

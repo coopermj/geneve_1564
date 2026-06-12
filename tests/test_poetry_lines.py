@@ -298,6 +298,148 @@ def test_ann_suffix_not_appended_to_extraskip():
 
 
 # ---------------------------------------------------------------------------
+# Inline poetry blocks in PROSE chapters (NET generator)
+# ---------------------------------------------------------------------------
+
+# 1 Cor 15:54 — prose text then one otpoetry line
+COR_15_54 = (
+    '<st data-num="1161" class="">Now</st> when this perishable puts on the '
+    'imperishable, then the saying that is written will happen,'
+    '<p class="otpoetry">"Death has been swallowed up in victory."</p>'
+)
+
+# 1 Cor 15:55 — entire verse is two otpoetry lines (no leading prose)
+COR_15_55 = (
+    '<p class="otpoetry">"Where, O death, is your victory?'
+    '<p class="otpoetry">Where, O death, is your sting?"</p>'
+)
+
+
+def _gen_prose(chapters, book="1corinthians"):
+    """Generate for a non-poetry chapter (1corinthians is not in poetry_sections)."""
+    from bible_config import get_book_by_name
+    return generate_book_tex(get_book_by_name(book), chapters)
+
+
+def test_inline_prose_then_otpoetry_wrapped_in_poetry_env():
+    """1 Cor 15:54 pattern: prose intro + one otpoetry line →
+    prose before \begin{poetry}, quote line inside, \end{poetry} after.
+    """
+    chapters = {15: [
+        {"verse": "1", "text": '<p class="bodytext">Paul opens the chapter. </p>'},
+        {"verse": "54", "text": COR_15_54},
+    ]}
+    tex = _gen_prose(chapters)
+    # Must contain exactly one poetry env (verse 54 block)
+    assert tex.count("\\begin{poetry}") == 1
+    assert tex.count("\\end{poetry}") == 1
+    # The prose part must carry the verse number before the env
+    assert "\\vs{54}" in tex
+    idx_vs = tex.index("\\vs{54}")
+    idx_begin = tex.index("\\begin{poetry}")
+    assert idx_vs < idx_begin, "\\vs{54} must appear before \\begin{poetry}"
+    # The quote line must be inside the env
+    idx_end = tex.index("\\end{poetry}")
+    body = tex[idx_begin:idx_end]
+    assert "swallowed up" in body, "otpoetry line must be inside the poetry env"
+
+
+def test_inline_verse_entirely_otpoetry_vs_inside_env():
+    """1 Cor 15:55 — whole verse is two otpoetry lines.
+    \\vs{55} must be the first token of the first poetry line (inside the env).
+    """
+    chapters = {15: [
+        {"verse": "1", "text": '<p class="bodytext">Paul opens the chapter. </p>'},
+        {"verse": "55", "text": COR_15_55},
+    ]}
+    tex = _gen_prose(chapters)
+    assert tex.count("\\begin{poetry}") == 1
+    idx_begin = tex.index("\\begin{poetry}")
+    idx_end = tex.index("\\end{poetry}")
+    body = tex[idx_begin:idx_end]
+    # \vs{55} must be inside the env
+    assert "\\vs{55}" in body, "\\vs{55} must be inside the poetry env"
+    # Two lines: "Where, O death, is your victory?" and "Where, O death, is your sting?"
+    assert "victory" in body
+    assert "sting" in body
+    # Second line directly follows first (no blank) for 1em indent
+    lines = tex.split("\n")
+    vic_idx = next(i for i, l in enumerate(lines) if "victory" in l)
+    sting_idx = next(i for i, l in enumerate(lines) if "sting" in l)
+    assert sting_idx == vic_idx + 1, (
+        f"Second poetry line must directly follow first (couplet indent); "
+        f"got {lines[vic_idx:sting_idx + 1]}"
+    )
+
+
+def test_inline_lettrine_zone_guard_no_poetry_env():
+    """OT-poetry in lettrine zone (verse 1 or verse 2 within budget) must NOT
+    produce a \\begin{poetry} env — keep flattened behavior to avoid breaking
+    the drop-cap \\parshape.
+    """
+    chapters = {15: [
+        # verse 1 is always in the lettrine zone
+        {"verse": "1", "text": (
+            '<p class="bodytext">Prologue prose. '
+            '<p class="otpoetry">"A quote line within verse 1." </p>'
+        )},
+    ]}
+    tex = _gen_prose(chapters)
+    # No poetry env should be emitted anywhere
+    assert "\\begin{poetry}" not in tex, (
+        "Must NOT emit \\begin{poetry} when in lettrine zone"
+    )
+    # The text must still appear (flattened)
+    assert "A quote line" in tex
+
+
+def test_inline_noindent_before_prose_after_block():
+    """When prose follows an inline poetry block in the same verse,
+    the continuation prose paragraph must begin with \\noindent.
+    """
+    # A verse with: prose, otpoetry line, then prose (trailing bodytext)
+    verse_html = (
+        'Before the quote, '
+        '<p class="otpoetry">"the quoted line." '
+        '<p class="bodyblock">After the quote. </p>'
+    )
+    chapters = {15: [
+        {"verse": "1", "text": '<p class="bodytext">Opening. </p>'},
+        {"verse": "3", "text": verse_html},
+    ]}
+    tex = _gen_prose(chapters)
+    idx_end = tex.index("\\end{poetry}")
+    after = tex[idx_end:]
+    assert "\\noindent" in after.split("\n")[1], (
+        "Prose continuation after \\end{poetry} must start with \\noindent"
+    )
+
+
+def test_inline_ann_suffix_on_last_line_of_verse():
+    """ann_suffix (geneva annotation) must be appended to the last emitted
+    line of the verse — inside the block if the verse ends in a poetry env,
+    or on the prose line if the verse ends with prose.
+
+    Use a fake annotations dict so we don't depend on data/ files.
+    """
+    chapters = {15: [
+        {"verse": "1", "text": '<p class="bodytext">Opening. </p>'},
+        {"verse": "55", "text": COR_15_55},
+    ]}
+    fake_annotations = {"1corinthians": {"15": {"55": [{"letter": "a", "text": "A note."}]}}}
+    from bible_config import get_book_by_name
+    tex = generate_book_tex(get_book_by_name("1corinthians"), chapters,
+                            annotations=fake_annotations)
+    idx_begin = tex.index("\\begin{poetry}")
+    idx_end = tex.index("\\end{poetry}")
+    # ann_suffix must be inside the poetry env (on the last line of the block)
+    body = tex[idx_begin:idx_end]
+    assert "\\gva{a}" in body or "\\marginnote" in body, (
+        "ann_suffix must be on the last line INSIDE the poetry env"
+    )
+
+
+# ---------------------------------------------------------------------------
 # Minor 2 — 'pre' piece kind treated uniformly as 'flush' in ESV
 # ---------------------------------------------------------------------------
 def test_pre_kind_normalized_to_flush_in_esv():

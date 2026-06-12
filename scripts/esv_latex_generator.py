@@ -319,6 +319,21 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
             block,
         )
 
+        # Detect whether this block contains line spans (for both poetry and
+        # prose chapters). Used to decide sentinel injection and env emission.
+        # A block "has lines" if it contains spans with class containing "line".
+        block_has_lines = bool(re.search(
+            r'<span[^>]*class="[^"]*\bline\b[^"]*"[^>]*>', block))
+
+        # Guard: in a PROSE chapter, if the block-indent's chapter-start also
+        # contains line spans (i.e. verse 1 IS a poetry line), we must NOT
+        # emit an inline poetry env — that would collide with the \ch + lettrine
+        # emission. Flatten such blocks (today's behavior: no sentinel injection).
+        # This occurs in ~12 prose chapters where verse 1 is an OT-poetry line,
+        # e.g. Song of Solomon 2-8, Isaiah 16/18, Deuteronomy 32, Zechariah 11,
+        # Jeremiah 12. Poetry chapters are unaffected (ch_match + is_poetry is fine).
+        prose_chapter_line_start = (block_has_lines and ch_match and not is_poetry)
+
         para_text = block
         # Remove <p> and </p>
         para_text = re.sub(r'</?p[^>]*>', '', para_text)
@@ -348,11 +363,14 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
             return ''.join(result)
         para_text = _close_woc(para_text)
 
-        # In poetry chapters, mark line boundaries with sentinels BEFORE
-        # tag stripping. \x05 = flush line start; \x06 = indented line start.
+        # Mark line boundaries with sentinels BEFORE tag stripping.
+        # \x05 = flush line start; \x06 = indented line start.
+        # Apply for: poetry chapters (always) AND prose chapters with
+        # block-indent line spans that are NOT chapter-start blocks
+        # (prose_chapter_line_start guard excludes those).
         # Must come after woc sentinel conversion (woc uses </span> tracking)
         # and before the generic tag strip.
-        if is_poetry:
+        if (is_poetry or block_has_lines) and not prose_chapter_line_start:
             # Strip begin/end-line-group markers (they carry no text)
             para_text = re.sub(
                 r'<span[^>]*class="(?:begin|end)-line-group"[^>]*>\s*</span>',
@@ -384,15 +402,18 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
         para_text = _apply_divine_names(para_text)
 
         # Restore verse-number sentinels -> running header + \vs.
-        # In poetry: \vs{N} FIRST so it is the first token on the source line
-        # (scripture's obeylines peek handler requires this for the flush+hung
-        # verse-number layout). In prose: markboth first (current behavior).
+        # In poetry chapters OR prose-chapter blocks with line sentinels:
+        # \vs{N} FIRST so it is the first token on the source line
+        # (scripture's obeylines peek handler requires this for flush+hung
+        # verse-number layout). In plain prose: markboth first (current behavior).
+        _vs_first = is_poetry or (block_has_lines and not prose_chapter_line_start)
+
         def _restore_verse(m: re.Match) -> str:
             v = m.group(1)
             mark = f"\\markboth{{{book.name} {ch_num}:{v}}}{{{book.name} {ch_num}:{v}}}"
             # No trailing space: the gap is carried entirely by scripture's
             # fixed verse/sep kern, so it can't stretch with justification.
-            if is_poetry:
+            if _vs_first:
                 return f"\\vs{{{v}}}{mark}"
             return f"{mark}\\vs{{{v}}}"
         para_text = re.sub('\x03(\\d+)\x04', _restore_verse, para_text)
@@ -400,11 +421,10 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
         para_text = para_text.replace('\x01', '\\redletteron{}')
         para_text = para_text.replace('\x02', '\\redletteroff{}')
 
-        # In poetry chapters split on line sentinels now (before whitespace
-        # collapse, so that \s+ doesn't eat the sentinel chars — though
-        # Python \s does not match \x05/\x06, collapsing is still fine to
-        # do per-piece after splitting).
-        has_line_sentinels = is_poetry and ('\x05' in para_text or '\x06' in para_text)
+        # Split on line sentinels now (before whitespace collapse, so that \s+
+        # doesn't eat the sentinel chars — though Python \s does not match
+        # \x05/\x06, collapsing is still fine per-piece after splitting).
+        has_line_sentinels = ('\x05' in para_text or '\x06' in para_text)
 
         if has_line_sentinels:
             # Split into (kind, text) pairs: \x05 = flush, \x06 = indent.
@@ -505,8 +525,8 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                 if not emit_pieces and margin_note:
                     lines[-1] = (lines[-1] + margin_note).strip()
                 first_verse_seen = True
-            else:
-                # Non-chapter-start block inside poetry with line sentinels.
+            elif is_poetry:
+                # Non-chapter-start block inside a poetry chapter with line sentinels.
                 # Flush/indent structure replaces the \everypar{}/\parshape=0 prelude.
                 for idx, (kind, txt) in enumerate(pieces):
                     if kind == 'flush':
@@ -515,6 +535,34 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                     if idx == len(pieces) - 1:
                         txt = (txt + margin_note).strip()
                     lines.append(txt)
+                first_verse_seen = True
+            else:
+                # Non-chapter-start block in a PROSE chapter with line sentinels.
+                # Emit as an inline \begin{poetry}...\end{poetry} block so the
+                # scripture env renders each line as a hemistich.
+                # Prelude: same as normal prose block (everypar / parshape reset).
+                if first_verse_seen:
+                    lines.append("\\everypar{}")
+                    lines.append("")
+                    lines.append("\\parshape=0")
+                lines.append("\\begin{poetry}")
+                for idx, (kind, txt) in enumerate(pieces):
+                    # flush → blank line (resets poetry indent back to flush)
+                    # indent → no blank (consecutive line → 1em indent)
+                    # FIRST piece: no blank before it (goes right after \begin{poetry})
+                    if kind == 'flush' and idx > 0:
+                        lines.append("")
+                    # Last piece gets the margin note
+                    if idx == len(pieces) - 1:
+                        txt = (txt + margin_note).strip()
+                    lines.append(txt)
+                # If pieces was empty the margin note was never consumed.
+                if not pieces and margin_note:
+                    if lines and lines[-1] == "\\begin{poetry}":
+                        lines.append(margin_note.strip())
+                    else:
+                        lines[-1] = (lines[-1] + margin_note).strip()
+                lines.append("\\end{poetry}")
                 first_verse_seen = True
         else:
             # No line sentinels: collapse whitespace and emit as a single block.
