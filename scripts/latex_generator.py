@@ -434,9 +434,7 @@ def _emit_poetry_verse(out: list, kinds: list, texts: list,
     source line.  If that segment is itself a poetry line, the next line
     follows consecutively (couplet indent, mirroring the ESV no-title
     chapter start); if it is a superscription, the first poetry line below
-    starts flush.  The colored initial uses ``\\textcolor{...}{...}`` (a
-    control-sequence-first form) rather than a bare ``{`` at line start,
-    which would crash the scripture obeylines peek handler.
+    starts flush.
 
     IMPORTANT: decorated segments (psasuper, sosspeaker, lamhebrew) start
     with ``{...}`` and MUST NOT appear as the first token of a new blank-line-
@@ -563,7 +561,7 @@ def _emit_inline_poetry_verse(
     ann_suffix: str,
     new_para: bool,
 ) -> None:
-    r"""Emit a prose-chapter verse that contains inline otpoetry blocks.
+    r"""Emit a prose-chapter verse that contains inline poetry-line blocks.
 
     Layout rules:
     - Runs of consecutive "line" segments are wrapped in
@@ -646,6 +644,10 @@ def _emit_inline_poetry_verse(
                 if is_last_group and l_idx == last_nonempty:
                     line_out += group_suffix
                 out.append(line_out)
+            if is_last_group and group_suffix and last_nonempty == -1:
+                # Defensive: an all-empty run never hits the suffix branch
+                # above — don't silently drop the annotation suffix.
+                out[-1] += group_suffix
             out.append("\\end{poetry}")
 
 

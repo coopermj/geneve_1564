@@ -121,7 +121,9 @@ def _convert_romans(html, ch=1):
 
 
 def test_non_poetry_line_spans_flattened_no_sentinels():
-    """Non-poetry chapter: line spans produce no sentinels, prose is intact."""
+    """Chapter-START line block in a prose chapter: the prose_chapter_line_start
+    guard suppresses sentinels (would collide with the \\ch+lettrine emission),
+    so the block is flattened and prose is intact."""
     tex = _convert_romans(ROMANS_PROSE_HTML)
     # No sentinel bytes must appear
     assert "\x05" not in tex and "\x06" not in tex

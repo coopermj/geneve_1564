@@ -354,6 +354,7 @@ def test_inline_verse_entirely_otpoetry_vs_inside_env():
     ]}
     tex = _gen_prose(chapters)
     assert tex.count("\\begin{poetry}") == 1
+    assert tex.count("\\end{poetry}") == 1
     idx_begin = tex.index("\\begin{poetry}")
     idx_end = tex.index("\\end{poetry}")
     body = tex[idx_begin:idx_end]
@@ -488,7 +489,9 @@ def test_inline_poetry_class_in_prose_chapter():
     zech_11_2 = ('<p class="poetry">Howl, fir tree,'
                  '<p class="poetry">for the cedar has fallen! </p>')
     chapters = {11: [
-        {"verse": "1", "text": '<p class="bodytext">A long opening verse of plain prose narrative, easily exceeding any lettrine budget when repeated. ' + 'More prose text here. ' * 30 + '</p>'},
+        {"verse": "1", "text": '<p class="bodytext">A long opening verse of plain prose narrative, easily exceeding any lettrine budget when repeated. '
+                       # 30 repeats * 22 chars comfortably exceeds the 5*80 lettrine budget
+                       + 'More prose text here. ' * 30 + '</p>'},
         {"verse": "2", "text": zech_11_2},
     ]}
     from bible_config import get_book_by_name
