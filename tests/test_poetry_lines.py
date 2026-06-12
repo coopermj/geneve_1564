@@ -326,7 +326,9 @@ def test_inline_prose_then_otpoetry_wrapped_in_poetry_env():
     prose before \begin{poetry}, quote line inside, \end{poetry} after.
     """
     chapters = {15: [
-        {"verse": "1", "text": '<p class="bodytext">Paul opens the chapter. </p>'},
+        {"verse": "1", "text": '<p class="bodytext">Paul opens the chapter with a long stretch of prose. '
+                       # exhaust the 5*80-char lettrine budget so later verses are out of zone
+                       + 'More opening prose here. ' * 20 + '</p>'},
         {"verse": "54", "text": COR_15_54},
     ]}
     tex = _gen_prose(chapters)
@@ -349,7 +351,9 @@ def test_inline_verse_entirely_otpoetry_vs_inside_env():
     \\vs{55} must be the first token of the first poetry line (inside the env).
     """
     chapters = {15: [
-        {"verse": "1", "text": '<p class="bodytext">Paul opens the chapter. </p>'},
+        {"verse": "1", "text": '<p class="bodytext">Paul opens the chapter with a long stretch of prose. '
+                       # exhaust the 5*80-char lettrine budget so later verses are out of zone
+                       + 'More opening prose here. ' * 20 + '</p>'},
         {"verse": "55", "text": COR_15_55},
     ]}
     tex = _gen_prose(chapters)
@@ -405,7 +409,9 @@ def test_inline_noindent_before_prose_after_block():
         '<p class="bodyblock">After the quote. </p>'
     )
     chapters = {15: [
-        {"verse": "1", "text": '<p class="bodytext">Opening. </p>'},
+        {"verse": "1", "text": '<p class="bodytext">Paul opens the chapter with a long stretch of prose. '
+                       # exhaust the 5*80-char lettrine budget so later verses are out of zone
+                       + 'More opening prose here. ' * 20 + '</p>'},
         {"verse": "3", "text": verse_html},
     ]}
     tex = _gen_prose(chapters)
@@ -424,7 +430,9 @@ def test_inline_ann_suffix_on_last_line_of_verse():
     Use a fake annotations dict so we don't depend on data/ files.
     """
     chapters = {15: [
-        {"verse": "1", "text": '<p class="bodytext">Opening. </p>'},
+        {"verse": "1", "text": '<p class="bodytext">Paul opens the chapter with a long stretch of prose. '
+                       # exhaust the 5*80-char lettrine budget so later verses are out of zone
+                       + 'More opening prose here. ' * 20 + '</p>'},
         {"verse": "55", "text": COR_15_55},
     ]}
     fake_annotations = {"1corinthians": {"15": {"55": [{"letter": "a", "text": "A note."}]}}}
@@ -502,3 +510,27 @@ def test_inline_poetry_class_in_prose_chapter():
     lines = tex.split("\n")
     howl = next(i for i, l in enumerate(lines) if "Howl, fir tree," in l)
     assert "cedar has fallen!" in lines[howl + 1]   # consecutive → indent
+
+
+def test_inline_lettrine_zone_verse2_flattened_and_v3_linebreak_safe():
+    """Ezekiel 18 regression: verse 2 sits inside the lettrine budget zone and
+    contains a poetry segment.  It must be FLATTENED (no inline env) so the
+    drop-cap \\parshape survives, and verse 3's in-zone new-para line break
+    (\\\\\\indent) must not follow an \\end{poetry} (vertical mode crash:
+    "There's no line here to end")."""
+    chapters = {18: [
+        {"verse": "1", "text": '<p class="bodytext">The Lord’s message came to me: </p>'},
+        {"verse": "2", "text": ('<p class="bodytext">“What do you mean by quoting this proverb:'
+                                '<p class="poetry">‘The fathers eat sour grapes,'
+                                '<p class="poetry">And the children’s teeth become numb?’ </p>')},
+        {"verse": "3", "text": '<p class="bodytext">“As surely as I live, you will not quote this proverb anymore! </p>'},
+    ]}
+    from bible_config import get_book_by_name
+    tex = generate_book_tex(get_book_by_name("ezekiel"), chapters)
+    # Verse 2 is in-zone: no inline poetry env anywhere in this chapter
+    assert "\\begin{poetry}" not in tex
+    # Its poetry text still appears, flattened
+    assert "sour grapes" in tex
+    # Verse 3 keeps the parshape-preserving line-break form
+    assert any(l.startswith("\\\\\\indent\\markboth{Ezekiel 18:3}")
+               for l in tex.split("\n"))

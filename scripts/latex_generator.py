@@ -866,14 +866,12 @@ def generate_book_tex(
                 lettrine_char_budget -= len(text)
                 # Inline OT-poetry blocks in prose chapters: wrap consecutive
                 # otpoetry segments in \begin{poetry}...\end{poetry}.
-                # Lettrine zone guard: verse 1 always goes to the elif branch
-                # above (never reaches this else block). Verse 2+ that still
-                # fall within the lettrine zone (budget > 0 after decrement)
-                # would ideally be flattened to preserve \parshape, but the
-                # only tested guard case is verse 1. Since otpoetry in the
-                # first few verses of a chapter is extremely rare in biblical
-                # prose, we gate purely on content detection here.
-                if _has_inline_otpoetry(raw_html):
+                # Lettrine zone guard: a verse still inside the drop-cap
+                # budget (e.g. Ezekiel 18:2's proverb) must be FLATTENED —
+                # an inner env there destroys the lettrine \parshape, and a
+                # following in-zone verse's \\ line break then crashes in
+                # vertical mode ("There's no line here to end").
+                if _has_inline_otpoetry(raw_html) and lettrine_char_budget <= 0:
                     segs = _split_poetry_segments(raw_html)
                     seg_texts = [_process_verse_text(h) for _, h in segs]
                     joined = _render_red_letter("\x05".join(seg_texts), desc, rl_state)
