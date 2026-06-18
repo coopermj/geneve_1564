@@ -534,3 +534,47 @@ def test_inline_lettrine_zone_verse2_flattened_and_v3_linebreak_safe():
     # Verse 3 keeps the parshape-preserving line-break form
     assert any(l.startswith("\\\\\\indent\\markboth{Ezekiel 18:3}")
                for l in tex.split("\n"))
+
+
+def test_poetry_chapter_prose_verse_then_cont_verse_no_floating_vs():
+    """Jeremiah 15 regression: in a POETRY chapter, verse 1 is prose
+    (bodytext) and verse 2 begins with a prose lead-in (kind 'cont') followed
+    by poetry lines.  The 'cont' must NOT glue \\vs{2} mid-line onto verse 1's
+    justified-prose line (which makes the verse number float).  Instead \\vs{2}
+    must start a fresh source line so the number hangs in the margin."""
+    jer = {15: [
+        {"verse": "1", "text": '<p class="bodytext">Then the Lord said to me, even if Moses and Samuel stood before me I would not feel pity. Tell them to go away! </p>'},
+        {"verse": "2", "text": ("If they ask you, 'Where should we go?' tell them the Lord says this:"
+                                 '<p class="poetry">Those destined to die of disease, to death by disease.'
+                                 '<p class="poetry">Those destined for war, to death in war. </p>')},
+    ]}
+    from bible_config import get_book_by_name
+    tex = generate_book_tex(get_book_by_name("jeremiah"), jer)
+    body = tex.split("\\begin{poetry}")[1].split("\\end{poetry}")[0]
+    src = body.split("\n")
+    # \vs{2} must begin a source line, not be glued mid-line onto another.
+    vs2 = [l for l in src if "\\vs{2}" in l]
+    assert vs2, "\\vs{2} missing"
+    assert all(l.lstrip().startswith("\\vs{2}") for l in vs2), (
+        f"\\vs{{2}} is glued mid-line (floats): {vs2}")
+    # The chapter-opener line (verse 1) must NOT contain \vs{2}
+    ch_line = next(l for l in src if "\\ch{15}" in l)
+    assert "\\vs{2}" not in ch_line, "verse 2 glued onto the \\ch prose line"
+
+
+def test_poetry_true_continuation_still_glues_midline():
+    """A genuine continuation — previous verse ENDS on a poetry line and the
+    next verse begins with bare 'cont' text — must still glue mid-line (that is
+    the correct ragged-poetry behavior; only prose-glue floats)."""
+    chapters = {5: [
+        {"verse": "1", "text": '<p class="poetry">An open poetic line that does not close, </p>'},
+        {"verse": "2", "text": 'continuing the same poetic line here. </p>'},
+    ]}
+    from bible_config import get_book_by_name
+    tex = generate_book_tex(get_book_by_name("amos"), chapters)
+    body = tex.split("\\begin{poetry}")[1].split("\\end{poetry}")[0]
+    src = body.split("\n")
+    # verse 2 must NOT begin its own source line — it continues verse 1's line.
+    assert not any(l.lstrip().startswith("\\vs{2}") for l in src), (
+        f"true continuation should glue mid-line: {src}")
+    assert "\\vs{2}" in body

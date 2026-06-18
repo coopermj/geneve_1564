@@ -420,8 +420,8 @@ def _style_poetry_segment(kind: str, text: str) -> str:
 
 def _emit_poetry_verse(out: list, kinds: list, texts: list,
                        verse_num: int, mark: str, ann_suffix: str,
-                       ch_open) -> None:
-    """Append the poetic lines of one verse to *out*.
+                       ch_open, prev_in_poetry_line: bool = False) -> bool:
+    """Append the poetic lines of one verse to *out*; return open-line state.
 
     Layout (ESV-style two-level): a segment that STARTS a unit — the verse's
     first segment, any prose interlude, or the first line after a label or
@@ -436,6 +436,15 @@ def _emit_poetry_verse(out: list, kinds: list, texts: list,
     chapter start); if it is a superscription, the first poetry line below
     starts flush.
 
+    prev_in_poetry_line: True when the PREVIOUS verse ended mid-poetic-line,
+    so a leading "cont" segment here is a genuine continuation and may glue
+    onto that ragged poetic line.  When False (e.g. the previous verse was
+    prose — a bodytext verse inside a poetry chapter, as in Jeremiah 15:1),
+    a leading "cont" must NOT glue: gluing ``\\vs{N}`` into justified prose
+    makes the verse number float (the inter-word space stretches).  Instead
+    it starts a fresh flush source line so the number hangs in the margin.
+    Returns whether this verse ended mid-poetic-line, for the next verse.
+
     IMPORTANT: decorated segments (psasuper, sosspeaker, lamhebrew) start
     with ``{...}`` and MUST NOT appear as the first token of a new blank-line-
     separated paragraph in the obeylines poetry environment — the scripture
@@ -444,7 +453,7 @@ def _emit_poetry_verse(out: list, kinds: list, texts: list,
     """
     first_emitted = False
     pending = ""         # decorated segments queued for next "line"
-    prev_line = False    # previous emitted segment was a poetry line
+    prev_line = prev_in_poetry_line  # carries open-poetic-line state across verses
 
     for kind, text in zip(kinds, texts):
         text = text.strip()
@@ -474,10 +483,20 @@ def _emit_poetry_verse(out: list, kinds: list, texts: list,
                 out.append(f"{ch_open}{styled}")
                 ch_open = None  # consumed; subsequent segments go on own lines
                 prev_line = (kind == "line")
-            elif kind == "cont":
+            elif kind == "cont" and prev_line:
+                # Genuine continuation of an open (ragged) poetic line: glue
+                # mid-line.  Safe because poetry lines are not justified.
                 out[-1] += f" \\vs{{{verse_num}}}{mark}{pending}{styled}"
                 pending = ""
                 prev_line = True
+            elif kind == "cont":
+                # Lead-in after a PROSE verse (or chapter opener): gluing
+                # \vs{N} into justified prose floats the number.  Start a
+                # fresh flush source line so the number hangs in the margin.
+                out.append("")
+                out.append(f"\\vs{{{verse_num}}}{mark}{pending}{styled}")
+                pending = ""
+                prev_line = False
             elif kind == "break":
                 # A verse that starts with a stanza break (unusual but possible)
                 out.append("\\extraskip")
@@ -533,6 +552,8 @@ def _emit_poetry_verse(out: list, kinds: list, texts: list,
             out[target] += ann_suffix
         else:
             out.append(ann_suffix)
+
+    return prev_line
 
 
 def _starts_paragraph(raw_html: str) -> bool:
@@ -805,6 +826,7 @@ def generate_book_tex(
         # which would reset the shape and let text overlap the drop cap.
         lettrine_char_budget = 0
         rl_state = _RLState()
+        poetry_open_line = False  # did the previous poetry verse end mid-line?
 
         for verse in verses:
             verse_num = int(verse["verse"])
@@ -838,8 +860,9 @@ def generate_book_tex(
                                  f"level=1]{{{book.name} {ch_num}}}")
                     ch_open = (f"\\ch{{{ch_num}}} \\allowchapbreak"
                                f"\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}")
-                _emit_poetry_verse(lines, kinds, seg_texts, verse_num, mark,
-                                   ann_suffix, ch_open)
+                poetry_open_line = _emit_poetry_verse(
+                    lines, kinds, seg_texts, verse_num, mark,
+                    ann_suffix, ch_open, poetry_open_line)
             elif verse_num == 1:
                 # Chapter start — use \ch{N} with lettrine drop cap.
                 if ch_num == 1:
