@@ -85,6 +85,41 @@ unbreakable; when it lands near a column foot TeX carries it whole to the
 next column, leaving a short column (raggedbottom absorbs it silently).
 This is the historically accepted trade — never stretch the grid to fill.
 
+**Lettrine-zone integrity (2026-07-18).** The lettrine `\everypar{}`/
+`\parshape=0` workaround erases the drop-cap indent for anything that
+starts a new paragraph inside the initial's zone. Three guard layers, both
+generators (`check_lettrines.py` in the session scratchpad scans PDFs for
+violations — all four editions now at 0 collisions / 0 ghosts):
+1. **In-zone merge/flatten** (ESV, ported from NET): while the zone budget
+   (~50 visible chars/line ESV, 100 NET) is unspent, paragraph breaks are
+   suppressed (the paragraph continues under the \parshape) and inline
+   poetry is flattened to prose. Budgets measure VISIBLE chars (LaTeX
+   markup stripped) or they overestimate and under-shrink.
+2. **Ghost reserve**: `\Needspace*{(zone+2)\gridunit}` before every
+   lettrine chapter INCLUDING ch 1 (net_notes' inline opener can leave too
+   few lines) so the zone never splits across a column/page (drop cap at
+   the bottom, orphaned indent at the next top — was Genesis 19/20 ESV,
+   Genesis 1 net_notes). When a section heading directly precedes, the
+   HEADING's `\needspace` is widened to (zone+4) instead — a separate
+   reserve would break between them and re-orphan the heading.
+3. **Retro-shrink**: when a heading arrives while the zone is unspent
+   (Malachi 1, James 1 — one-verse openings), the already-emitted
+   `[lines=N]` is rewritten down to the lines the paragraph actually
+   filled, so the heading clears the initial.
+
+**Interior initials suppressed in poetry-dominant books** (user decision):
+prose chapters inside books >4/5 poetry (Hosea 3, Job 2/42) skip their
+drop cap; book openings keep theirs. 4/5 (not 2/3) so Isaiah's consecutive
+prose-narrative chapters keep initials. `_poetry_dominant` in
+latex_generator.py, shared by both generators.
+
+**ESV API single-chapter truncation (data defect, fixed)**: `q=Jude 1` is
+parsed as VERSE 1 for single-chapter books — Obadiah, Philemon, 2/3 John,
+Jude had shipped with ONLY verse 1 since the original fetch (near-empty
+pages with towering initials were the visible symptom). `esv_fetcher.py`
+now requests `Book 1:1-1:999`; audit = cache chapter with zero `verse-num`
+tags.
+
 ## 1. Baseline grid (IMPLEMENTED 2026-07-15)
 
 The single biggest upgrade for two-column scripture: line-for-line register

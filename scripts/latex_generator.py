@@ -142,6 +142,26 @@ def _is_poetry_chapter(book_dir: str, chapter: int) -> bool:
     return False
 
 
+def _poetry_dominant(book_dir: str, total_chapters: int) -> bool:
+    """True when more than 4/5 of a book's chapters are poetry.
+
+    Interior prose chapters in such books (Hosea 3, Job 2/42) skip their
+    drop cap: poetry neighbours cannot carry lettrines, so a lone initial
+    mid-book reads as an inconsistency. Book openings (ch 1) keep theirs.
+    4/5 (not 2/3) so that Isaiah (51/66 poetry) keeps initials on its
+    consecutive prose-narrative chapters (6-8, 15-22, 36-39), which read
+    as intentional prose sections rather than lone outliers.
+    """
+    config = _load_poetry_config()
+    entry = config.get(book_dir)
+    if not entry:
+        return False
+    if entry.get("full_book"):
+        return True
+    n = sum(e - s + 1 for s, e in entry.get("chapters", []))
+    return 5 * n > 4 * total_chapters
+
+
 _arguments_cache: dict | None = None
 
 
@@ -868,10 +888,15 @@ def generate_book_tex(
                 if ch_num == 1:
                     lettrine_text = _make_lettrine(
                         text, lettrine_lines=8, color=book.group)
-                    lettrine_char_budget = 8 * 80
+                    lettrine_char_budget = 8 * 100
+                elif _poetry_dominant(book.directory, book.chapters):
+                    # Interior prose chapter in a poetry-dominant book:
+                    # no drop cap (see _poetry_dominant).
+                    lettrine_text = text
+                    lettrine_char_budget = 0
                 else:
                     lettrine_text = _make_lettrine(text, lettrine_lines=5, color=book.group)
-                    lettrine_char_budget = 5 * 80
+                    lettrine_char_budget = 5 * 100
                 lettrine_char_budget -= len(text)
                 lettrine_text = _render_red_letter(lettrine_text, desc, rl_state)
                 lines.append(f"\\markboth{{{book.name} {ch_num}:1}}{{{book.name} {ch_num}:1}}")
@@ -880,8 +905,14 @@ def generate_book_tex(
                 # package's \nobreak glues heading to verse 1, and when the
                 # lettrine is too tall for the remaining column TeX pushes
                 # the whole block out, leaving large blank gaps.
-                if ch_num > 1:
-                    lines.append("\\Needspace*{8\\baselineskip}")
+                # Ghost-lettrine guard: reserve room for the chapter heading
+                # + the FULL drop-cap zone (incl. ch 1 — in net_notes the
+                # inline book opener can leave too few lines and the 8-line
+                # zone splits across the page: drop cap at the bottom,
+                # orphaned \parshape indent at the next page top).
+                _zone_lines = 8 if ch_num == 1 else (
+                    5 if "\\lettrine" in lettrine_text else 0)
+                lines.append(f"\\Needspace*{{{_zone_lines + 2}\\baselineskip}}")
                 lines.append(f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}")
                 lines.append(f"\\ch{{{ch_num}}} \\allowchapbreak\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{lettrine_text}{ann_suffix}\\everypar{{}}")
             else:

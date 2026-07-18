@@ -6,7 +6,7 @@ import re
 from html import unescape
 
 from bible_config import BookInfo, BOOKS
-from latex_generator import _chapter_table
+from latex_generator import _chapter_table, _poetry_dominant
 
 
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -264,6 +264,35 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
     # be legal breakpoints after the heading; \headingkeepoff restores them
     # after the next content block. MUST live outside the block loop.
     guard = {"open": False}
+    # Lettrine-zone state: while budget > 0 we are still beside the drop
+    # cap. Paragraph breaks there must NOT emit the \everypar/\parshape=0
+    # prelude (it kills the lettrine \parshape and text slides under the
+    # initial — user-visible collisions, e.g. Genesis 3 "He said to the
+    # woman"); instead the paragraph simply continues. Inline poetry in the
+    # zone is flattened to prose, matching the NET generator's guard.
+    # ~50 chars per 11pt two-column line.
+    zone = {"budget": 0, "idx": None, "req": 0, "consumed": 0}
+
+    def _visible_len(s: str) -> int:
+        """Approximate on-page character count: LaTeX commands and braces
+        take no width, so strip them before estimating filled lines."""
+        return len(re.sub(r"\\[a-zA-Z]+\s*|[{}]", "", s))
+
+    def _shrink_lettrine_for_heading() -> None:
+        r"""A section heading arrived while still beside the drop cap.
+
+        A heading paragraph cannot inherit the lettrine \parshape, so it
+        would slide under the initial (Malachi 1, James 1). Retroactively
+        shrink the drop cap to the number of (narrow, ~35-char) lines its
+        own paragraph actually filled — the heading then starts below it.
+        """
+        if zone["idx"] is not None and zone["budget"] > 0:
+            fit = max(2, min(zone["req"], -(-zone["consumed"] // 35)))
+            if fit < zone["req"]:
+                lines[zone["idx"]] = lines[zone["idx"]].replace(
+                    f"[lines={zone['req']}]", f"[lines={fit}]", 1)
+        zone["budget"] = 0
+        zone["idx"] = None
 
     def _close_heading_guard() -> None:
         if guard["open"]:
@@ -280,6 +309,7 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
 
         def _emit_section_heading(heading_text: str) -> None:
             """Append a section-heading block (h3 / acrostic h4) to ``lines``."""
+            _shrink_lettrine_for_heading()
             lines.append("")
             # Grid discipline: the \par must close OUTSIDE the \small group
             # (with a body-size \strut) so the heading line is set with the
@@ -566,6 +596,20 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                     lines.append(txt)
                 _close_heading_guard()
                 first_verse_seen = True
+            elif zone["budget"] > 0:
+                # Inline poetry while still beside the drop cap: an inner env
+                # would destroy the lettrine \parshape and the lines would
+                # slide under the initial (Exodus 15, 1 Samuel 2). FLATTEN to
+                # prose continuing the lettrine paragraph, exactly like the
+                # NET generator's lettrine-zone guard.
+                flat = " ".join(txt for _kind, txt in pieces)
+                flat = (flat + margin_note).strip()
+                zone["budget"] -= len(flat)
+                zone["consumed"] += _visible_len(flat)
+                if flat:
+                    lines.append(flat)
+                _close_heading_guard()
+                first_verse_seen = True
             else:
                 # Non-chapter-start block in a PROSE chapter with line sentinels.
                 # Emit as an inline \begin{poetry}...\end{poetry} block so the
@@ -618,6 +662,7 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                 if lettrine_src.startswith("\\redletteron{}"):
                     rl_prefix = "\\redletteron{}"
                     lettrine_src = lettrine_src[len("\\redletteron{}"):]
+                this_req = 0
                 if is_poetry:
                     # Poetry: NO drop cap. The first poetic line is short and is
                     # immediately followed by a stanza break / mid-psalm section
@@ -629,14 +674,39 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                 elif is_first_chapter and ch_num == 1:
                     lettrine_text = _make_lettrine(
                         lettrine_src, lettrine_lines=8, color=book.group)
+                    zone["budget"] = 8 * 50 - len(lettrine_src)
+                    zone.update(req=8, consumed=_visible_len(lettrine_src))
+                    this_req = 8
+                elif _poetry_dominant(book.directory, book.chapters):
+                    # Interior prose chapter in a poetry-dominant book
+                    # (Hosea 3, Job 2/42): no drop cap (see _poetry_dominant).
+                    lettrine_text = lettrine_src
                 else:
                     lettrine_text = _make_lettrine(lettrine_src, lettrine_lines=5, color=book.group)
+                    zone["budget"] = 5 * 50 - len(lettrine_src)
+                    zone.update(req=5, consumed=_visible_len(lettrine_src))
+                    this_req = 5
                 # Same heading-orphan guard as the poetry-line path above.
                 nobreak = ("\\nobreak"
                            if lines and lines[-1].endswith("\\headingkeep")
                            else "")
+                # Ghost-lettrine guard (Genesis 19/20): if the chapter opens
+                # too near the column foot, the drop-cap paragraph splits
+                # mid-zone — initial at the bottom, orphaned \parshape indent
+                # at the next column top. Reserve aboveskip + chapter line +
+                # the full zone. When a heading directly precedes, widen the
+                # HEADING's reserve instead: a separate reserve here would
+                # break between them and re-orphan the heading.
+                if this_req:
+                    if nobreak:
+                        lines[-1] = lines[-1].replace(
+                            "\\needspace{5\\gridunit}",
+                            f"\\needspace{{{zone['req'] + 4}\\gridunit}}", 1)
+                    else:
+                        lines.append(f"\\Needspace*{{{zone['req'] + 2}\\gridunit}}")
                 lines.append(f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}{nobreak}")
                 lines.append(f"\\ch{{{ch_num}}} \\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{rl_prefix}{lettrine_text}\\everypar{{}}")
+                zone["idx"] = len(lines) - 1
                 # Psalm superscription: emit after \ch line if pending
                 if pending_psalm_title:
                     lines.append("")
@@ -652,11 +722,18 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                 # after the mark. (A paragraph with no leading \markboth is
                 # already safe: glue after a penalty is unbreakable.)
                 after_heading = bool(lines) and lines[-1].endswith(
-                    "\\nobreak\\endgroup")
+                    "\\headingkeep")
                 if first_verse_seen:
-                    lines.append("\\everypar{}")
-                    lines.append("")
-                    lines.append("\\parshape=0")
+                    if zone["budget"] > 0:
+                        # Still beside the drop cap: no paragraph break, no
+                        # \parshape reset — the paragraph continues and the
+                        # lettrine indent keeps applying.
+                        zone["budget"] -= len(para_text)
+                        zone["consumed"] += _visible_len(para_text)
+                    else:
+                        lines.append("\\everypar{}")
+                        lines.append("")
+                        lines.append("\\parshape=0")
                 if after_heading:
                     m = re.match(r'(\\markboth\{[^}]*\}\{[^}]*\})(.*)',
                                  para_text, re.DOTALL)
