@@ -27,7 +27,14 @@ def fetch_chapter(
         with open(cache_file) as f:
             return json.load(f)["html"]
 
-    passage = f"{book_name} {chapter}"
+    # Single-chapter books: the ESV API reads "Jude 1" as VERSE 1, not
+    # chapter 1, silently truncating the book. Request "Jude 1:1-1:25"-style
+    # full-chapter form via "Book 1:1-999" (the API clamps to the real end).
+    _SINGLE_CHAPTER = {"Obadiah", "Philemon", "2 John", "3 John", "Jude"}
+    if book_name in _SINGLE_CHAPTER:
+        passage = f"{book_name} 1:1-1:999"
+    else:
+        passage = f"{book_name} {chapter}"
 
     for attempt in range(retries):
         try:
