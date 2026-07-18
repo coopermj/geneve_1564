@@ -1,5 +1,18 @@
 \documentclass[twocolumn,paper=179mm:239mm,pagesize=auto,11pt,headinclude=on,openany,oneside]{scrbook}
+% Baseline grid unit: 11pt body with \linespread{0.9} gives 12.23991pt leading.
+% 0.9\dimexpr13.6pt uses the same factor*dimen truncation LaTeX applies when
+% computing \baselineskip, so \gridunit and \baselineskip are sp-identical.
+% Every vertical interval in the body (heading blocks, poetry skips, chapter
+% paras, book-opener padding) must be a whole multiple of \gridunit so both
+% columns stay in line-for-line register.
+\newlength{\gridunit}
+\setlength{\gridunit}{0.9\dimexpr13.6pt\relax}
 \areaset[8mm]{130mm}{210mm}
+% areaset+headinclude yields \textheight=561.16pt = 45 grid lines + 11.6pt of
+% slack that \flushbottom stretched into the interline glue on every page.
+% Pin the text height to exactly 46 baselines (\topskip + 45\gridunit =
+% 561.80pt, +0.64pt into the bottom margin) so flushbottom never stretches.
+\setlength{\textheight}{\dimexpr\topskip+45\gridunit\relax}
 
 \usepackage{ragged2e}
 
@@ -54,6 +67,12 @@
   final
 ]{microtype}
 
+% Widow/orphan removal that preserves the baseline grid: lua-widow-control
+% lengthens or shortens the offending paragraph via LuaTeX callbacks instead
+% of stretching vertical space. Do NOT set \widowpenalty/\clubpenalty=10000 —
+% in this narrow two-column measure that forces page stretching off the grid.
+\usepackage{lua-widow-control}
+
 \usepackage{graphicx}
 \usepackage{lettrine}
 
@@ -83,8 +102,10 @@
   chapter/para=true,
   chapter/font=\booktitlefont\scshape,
   chapter/format=Chapter~#1,
-  chapter/para/aboveskip=\baselineskip,
+  chapter/para/aboveskip=\gridunit,
   chapter/para/belowskip=0pt,
+  poetry/aboveskip=\gridunit,
+  poetry/belowskip=\gridunit,
   verse/format=\verseprotrudenum{#1},
   verse/sep=0.3em,
   poetry/verse/sep=0.3em,
@@ -93,6 +114,13 @@
   indent=true,
   redletter=true,
 }
+
+% Heading-orphan guard, catch-all leg: \needspace{3\gridunit} before each
+% section heading moves it to the next column when fewer than 3 grid lines
+% remain — robust against every breakpoint species (whatsit/mark/list
+% penalties). Net-zero glue: grid-safe; the occasional short column is the
+% same accepted artifact as an unbreakable lettrine block displacing.
+\usepackage{needspace}
 
 % Environments
 \usepackage{setspace}
@@ -114,6 +142,20 @@
 \gdef\bbookchaptable{}
 % Current book tracking for chapter-table header link
 \makeatletter
+% Heading-orphan guard, list-penalty leg: scripture sets
+% \@endparpenalty=\@lowpenalty (51) and \@beginparpenalty=-51 for its inner
+% list environments; the list END/BEGIN at a poetry chapter boundary inserts
+% those penalty nodes AFTER any \nobreak we emit (consecutive penalties do
+% not merge — each one is its own breakpoint), so a heading could still be
+% orphaned at a column foot. \headingkeep neutralizes them (globally — the
+% insertion happens inside \ch, deeper in grouping) right after a heading;
+% \headingkeepoff restores scripture's values after the following content.
+\newcommand{\headingkeep}{%
+  \global\@beginparpenalty\@M
+  \global\@endparpenalty\@M}
+\newcommand{\headingkeepoff}{%
+  \global\@beginparpenalty-\@lowpenalty
+  \global\@endparpenalty\@lowpenalty}
 \gdef\currentbookdir{}
 \newcommand{\chaptertablelink}{%
   \ifx\currentbookdir\@empty\else
@@ -121,6 +163,11 @@
   \fi}
 \makeatother
 % \bbook[image]{Main Title}{Subtitle}{Argument text}{book-dir}
+% The opener (image, title, argument, chapter table) is built in a box and its
+% height padded up to the next whole multiple of \gridunit, so the two columns
+% under it start on the baseline grid and \flushbottom has no slack to stretch.
+\newsavebox{\bbookheadbox}
+\newlength{\bbookheadnat}
 \NewDocumentCommand{\bbook}{O{} m m m m}{%
   \clearpage
   \gdef\currentbookdir{#5}%
@@ -131,7 +178,7 @@
   }{%
     \savebox{\bbookimgbox}{\makebox[\textwidth][c]{\includegraphics[width=\textwidth]{#1}}}%
   }%
-  \twocolumn[%
+  \begin{lrbox}{\bbookheadbox}\parbox{\textwidth}{%
     \usebox{\bbookimgbox}\par\nobreak
     \vspace*{-10pt}%
     {\centering\huge\booktitlefont\scshape #2%
@@ -145,7 +192,13 @@
     }%
     \bbookchaptable
     \vspace{5pt}%
-  ]%
+  }\end{lrbox}%
+  \setlength{\bbookheadnat}{\dimexpr\ht\bbookheadbox+\dp\bbookheadbox\relax}%
+  \twocolumn[{%
+    \usebox{\bbookheadbox}\par
+    % pad to ceil(natural/\gridunit) grid lines (ceil via rounding division)
+    \vspace{\dimexpr\numexpr(2*\bbookheadnat+\gridunit-2)/(2*\gridunit)\relax\gridunit-\bbookheadnat\relax}%
+  }]%
   \gdef\bbookchaptable{}
 }
 \titleformat{\chapter}[hang]%
@@ -175,6 +228,13 @@
 
 \linespread{0.9}
 \setlength{\columnsep}{6mm}
+% Grid enforcement: opening quotes and superior verse figures have METRIC
+% heights (~8.58pt) that can graze the 12.24pt baseline distance after a
+% deep previous line (12.26 > 12.24), making TeX abandon \baselineskip for
+% \lineskip on that one line (+1pt, off grid). Ink height is only ~7.9pt, so
+% allow up to 1pt of metric-box overlap before falling back — ink never
+% touches, and every line stays on the grid.
+\lineskiplimit=-1pt
 
 % Language
 \usepackage[english]{babel}

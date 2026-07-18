@@ -4,6 +4,14 @@
 
 % Layout: left 18mm | text 106mm (~59%) | right 55mm note gutter
 \usepackage[left=18mm,right=55mm,top=15mm,bottom=15mm,includeheadfoot]{geometry}
+% Baseline grid unit: body is \netnotesbodyfontsize = 11.4pt on an exact 14pt
+% leading (set at \begin{document}), so the grid unit is exactly 14pt.
+\newlength{\gridunit}
+\setlength{\gridunit}{14pt}
+% geometry computed \textheight=504.04pt = 35 grid lines + 2.04pt of slack
+% that would stretch on every page; pin to exactly 36 baselines
+% (\topskip + 35\gridunit = 502pt).
+\setlength{\textheight}{\dimexpr\topskip+35\gridunit\relax}
 
 \usepackage{ragged2e}
 
@@ -58,6 +66,11 @@
   final
 ]{microtype}
 
+% Grid-safe widow/orphan removal via LuaTeX callbacks (uses the project-local
+% patched lua-widow-control.lua in the repo root; do NOT set
+% \widowpenalty/\clubpenalty=10000 — that stretches pages off the grid).
+\usepackage{lua-widow-control}
+
 \usepackage{graphicx}
 \usepackage{lettrine}
 
@@ -84,8 +97,10 @@
   chapter/para=true,
   chapter/font=\booktitlefont\scshape,
   chapter/format=Chapter~#1,
-  chapter/para/aboveskip=\baselineskip,
+  chapter/para/aboveskip=\gridunit,
   chapter/para/belowskip=0pt,
+  poetry/aboveskip=\gridunit,
+  poetry/belowskip=\gridunit,
   verse/format=\verseprotrudenum{#1},
   verse/sep=0.3em,
   poetry/verse/sep=0.3em,
@@ -121,7 +136,12 @@
   \fi}
 \makeatother
 
-% \bbook — single-column variant: outputs title block inline, no \twocolumn
+% \bbook — single-column variant: outputs title block inline, no \twocolumn.
+% The opener is boxed and its height padded to a whole multiple of \gridunit
+% so the text below starts near the grid phase and flushbottom slack on
+% opener pages stays small and constant.
+\newsavebox{\bbookheadbox}
+\newlength{\bbookheadnat}
 \NewDocumentCommand{\bbook}{O{} m m m m}{%
   \clearpage
   \gdef\currentbookdir{#5}%
@@ -132,19 +152,24 @@
   }{%
     \savebox{\bbookimgbox}{\makebox[\textwidth][c]{\includegraphics[width=\textwidth]{#1}}}%
   }%
-  \usebox{\bbookimgbox}\par\nobreak
-  \vspace*{-10pt}%
-  {\centering\huge\booktitlefont\scshape #2%
-    \IfBlankF{#3}{,\\\large #3}%
-    \\\char"2766\par}%
-  \IfBlankF{#4}{%
-    {\centering\booktitlefont\textsc{the argument.}\par}%
-    \vspace{2pt}%
-    {\centering\parbox{\dimexpr\textwidth-2em}{\itshape\scriptsize #4\par}\par}%
+  \begin{lrbox}{\bbookheadbox}\parbox{\textwidth}{%
+    \usebox{\bbookimgbox}\par\nobreak
+    \vspace*{-10pt}%
+    {\centering\huge\booktitlefont\scshape #2%
+      \IfBlankF{#3}{,\\\large #3}%
+      \\\char"2766\par}%
+    \IfBlankF{#4}{%
+      {\centering\booktitlefont\textsc{the argument.}\par}%
+      \vspace{2pt}%
+      {\centering\parbox{\dimexpr\textwidth-2em}{\itshape\scriptsize #4\par}\par}%
+      \vspace{5pt}%
+    }%
+    \bbookchaptable
     \vspace{5pt}%
-  }%
-  \bbookchaptable
-  \vspace{5pt}%
+  }\end{lrbox}%
+  \setlength{\bbookheadnat}{\dimexpr\ht\bbookheadbox+\dp\bbookheadbox\relax}%
+  \noindent\usebox{\bbookheadbox}\par\nobreak
+  \vspace{\dimexpr\numexpr(2*\bbookheadnat+\gridunit-2)/(2*\gridunit)\relax\gridunit-\bbookheadnat\relax}%
   \gdef\bbookchaptable{}%
 }
 
@@ -173,6 +198,9 @@
 \setlength{\parskip}{0pt}
 \linespread{1.0}
 \newcommand{\netnotesbodyfontsize}{\fontsize{11.4pt}{14pt}\selectfont}
+% Grid enforcement: allow 1pt of metric-box overlap before TeX abandons
+% \baselineskip for \lineskip (ink never touches; see esv_bible.tex).
+\lineskiplimit=-1pt
 
 % Language
 \usepackage[english]{babel}

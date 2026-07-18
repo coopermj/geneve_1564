@@ -1,5 +1,14 @@
 \documentclass[twocolumn,paper=179mm:239mm,pagesize=auto,fontsize=13pt,headinclude=on,openany,oneside]{scrbook}
+% Baseline grid unit: 13pt body with \linespread{0.9} gives \baselineskip =
+% 920116sp (14.03986pt) — probed exactly; KOMA's fontsize=13pt derivation has
+% its own rounding, so the sp value is pinned rather than recomputed.
+\newlength{\gridunit}
+\setlength{\gridunit}{920116sp}
 \areaset[8mm]{125mm}{210mm}
+% areaset+headinclude yields \textheight=556.11pt = 38 grid lines + 9.6pt of
+% flushbottom slack; pin to exactly 40 baselines (\topskip + 39\gridunit =
+% 560.55pt, +4.45pt into the bottom margin) so flushbottom never stretches.
+\setlength{\textheight}{\dimexpr\topskip+39\gridunit\relax}
 
 \usepackage{marginnote}
 \renewcommand{\marginfont}{\fontsize{9}{10.5}\selectfont\itshape}
@@ -142,6 +151,11 @@
   final
 ]{microtype}
 
+% Grid-safe widow/orphan removal via LuaTeX callbacks (uses the project-local
+% patched lua-widow-control.lua in the repo root; do NOT set
+% \widowpenalty/\clubpenalty=10000 — that stretches pages off the grid).
+\usepackage{lua-widow-control}
+
 \usepackage{graphicx}
 \usepackage{lettrine}
 
@@ -168,8 +182,10 @@
   chapter/para=true,
   chapter/font=\booktitlefont\scshape,
   chapter/format=Chapter~#1,
-  chapter/para/aboveskip=\baselineskip,
+  chapter/para/aboveskip=\gridunit,
   chapter/para/belowskip=0pt,
+  poetry/aboveskip=\gridunit,
+  poetry/belowskip=\gridunit,
   verse/format=\verseprotrudenum{#1},
   verse/sep=0.3em,
   poetry/verse/sep=0.3em,
@@ -214,6 +230,10 @@
 \makeatother
 % \bbook[image]{Main Title}{Subtitle}{Argument text}{book-dir}
 % Chapter table (if any) must be set via \gdef\bbookchaptable{...} BEFORE calling \bbook.
+% The opener is boxed and its height padded to a whole multiple of \gridunit
+% so the columns under it start on the baseline grid (see esv_bible.tex).
+\newsavebox{\bbookheadbox}
+\newlength{\bbookheadnat}
 \NewDocumentCommand{\bbook}{O{} m m m m}{%
   \clearpage
   \gdef\currentbookdir{#5}%
@@ -224,7 +244,7 @@
   }{%
     \savebox{\bbookimgbox}{\makebox[\textwidth][c]{\includegraphics[width=\textwidth]{#1}}}%
   }%
-  \twocolumn[%
+  \begin{lrbox}{\bbookheadbox}\parbox{\textwidth}{%
     \usebox{\bbookimgbox}\par\nobreak
     \vspace*{-10pt}%
     {\centering\huge\booktitlefont\scshape #2%
@@ -238,7 +258,12 @@
     }%
     \bbookchaptable
     \vspace{5pt}%
-  ]%
+  }\end{lrbox}%
+  \setlength{\bbookheadnat}{\dimexpr\ht\bbookheadbox+\dp\bbookheadbox\relax}%
+  \twocolumn[{%
+    \usebox{\bbookheadbox}\par
+    \vspace{\dimexpr\numexpr(2*\bbookheadnat+\gridunit-2)/(2*\gridunit)\relax\gridunit-\bbookheadnat\relax}%
+  }]%
   \gdef\bbookchaptable{}
 }
 \titleformat{\chapter}[hang]%
@@ -269,6 +294,9 @@
 
 \linespread{0.9}
 \setlength{\columnsep}{6mm}
+% Grid enforcement: allow 1pt of metric-box overlap before TeX abandons
+% \baselineskip for \lineskip (ink never touches; see esv_bible.tex).
+\lineskiplimit=-1pt
 
 % Language
 \usepackage[english]{babel}

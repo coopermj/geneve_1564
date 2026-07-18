@@ -1,5 +1,11 @@
 \documentclass[twocolumn,paper=179mm:239mm,pagesize=auto,11pt,headinclude=on,openany,oneside]{scrbook}
+% Baseline grid unit: 11pt body with \linespread{0.9} gives 12.23991pt leading
+% (same arithmetic as \baselineskip — see esv_bible.tex for the full notes).
+\newlength{\gridunit}
+\setlength{\gridunit}{0.9\dimexpr13.6pt\relax}
 \areaset[8mm]{130mm}{210mm}
+% Pin the text height to exactly 46 baselines so \flushbottom never stretches.
+\setlength{\textheight}{\dimexpr\topskip+45\gridunit\relax}
 
 \usepackage{bigfoot}
 \usepackage{ragged2e}
@@ -55,6 +61,11 @@
   final
 ]{microtype}
 
+% Grid-safe widow/orphan removal via LuaTeX callbacks (uses the project-local
+% patched lua-widow-control.lua in the repo root; do NOT set
+% \widowpenalty/\clubpenalty=10000 — that stretches pages off the grid).
+\usepackage{lua-widow-control}
+
 \usepackage{graphicx}
 \usepackage{lettrine}
 
@@ -81,8 +92,10 @@
   chapter/para=true,
   chapter/font=\booktitlefont\scshape,
   chapter/format=Chapter~#1,
-  chapter/para/aboveskip=\baselineskip,
+  chapter/para/aboveskip=\gridunit,
   chapter/para/belowskip=0pt,
+  poetry/aboveskip=\gridunit,
+  poetry/belowskip=\gridunit,
   verse/format=\verseprotrudenum{#1},
   verse/sep=0.3em,
   poetry/verse/sep=0.3em,
@@ -128,6 +141,10 @@
 \makeatother
 % \bbook[image]{Main Title}{Subtitle}{Argument text}{book-dir}
 % Chapter table (if any) must be set via \gdef\bbookchaptable{...} BEFORE calling \bbook.
+% The opener is boxed and its height padded to a whole multiple of \gridunit
+% so the columns under it start on the baseline grid (see esv_bible.tex).
+\newsavebox{\bbookheadbox}
+\newlength{\bbookheadnat}
 \NewDocumentCommand{\bbook}{O{} m m m m}{%
   \clearpage
   \gdef\currentbookdir{#5}%
@@ -138,7 +155,7 @@
   }{%
     \savebox{\bbookimgbox}{\makebox[\textwidth][c]{\includegraphics[width=\textwidth]{#1}}}%
   }%
-  \twocolumn[%
+  \begin{lrbox}{\bbookheadbox}\parbox{\textwidth}{%
     \usebox{\bbookimgbox}\par\nobreak
     \vspace*{-10pt}%
     {\centering\huge\booktitlefont\scshape #2%
@@ -152,7 +169,12 @@
     }%
     \bbookchaptable
     \vspace{5pt}%
-  ]%
+  }\end{lrbox}%
+  \setlength{\bbookheadnat}{\dimexpr\ht\bbookheadbox+\dp\bbookheadbox\relax}%
+  \twocolumn[{%
+    \usebox{\bbookheadbox}\par
+    \vspace{\dimexpr\numexpr(2*\bbookheadnat+\gridunit-2)/(2*\gridunit)\relax\gridunit-\bbookheadnat\relax}%
+  }]%
   \gdef\bbookchaptable{}
 }
 \titleformat{\chapter}[hang]%
@@ -183,6 +205,10 @@
 
 \linespread{0.9}
 \setlength{\columnsep}{6mm}
+% Grid enforcement: metric-tall glyphs (opening quotes, superior figures) can
+% graze the baseline distance and knock a line onto \lineskip (+1pt). Allow
+% 1pt of metric overlap — ink never touches (see esv_bible.tex).
+\lineskiplimit=-1pt
 
 % Language
 \usepackage[english]{babel}
