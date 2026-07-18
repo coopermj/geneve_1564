@@ -681,6 +681,15 @@
               { \scripturecurrentchapter }
               { \scripturecurrentverse }
           }
+        % LOCAL PATCH (geneve_1564, 2026-07-17, not upstream): a mark node
+        % inserted in VERTICAL mode (chapter start) is non-discardable, so
+        % the glue after it becomes a legal page/column breakpoint even when
+        % a \nobreak precedes the mark -- a section heading before \ch could
+        % be orphaned at a column foot (and a break there would mislabel the
+        % running heads, since the mark would sit on the previous column).
+        % Bind the mark to the material it labels. Horizontal-mode
+        % insertions (\vs mid-paragraph) are untouched.
+        \mode_if_vertical:T { \penalty 10000 }
       }
   }
 \hook_gput_code:nnn { insertmark } { scripture }

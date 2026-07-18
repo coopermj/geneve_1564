@@ -130,7 +130,10 @@ def _make_lettrine(text: str, lettrine_lines: int | None = None,
     if not text:
         return prefix + text
 
-    first_letter = text[0]
+    # Drop caps are majuscules by definition (and EB Garamond Initials has
+    # only capitals — a lowercase letter renders as NOTHING). John 8:1 begins
+    # lowercase in the ESV source ("but Jesus went...", continuing 7:53).
+    first_letter = text[0].upper()
     after_first = text[1:]
     match = re.match(r'([A-Za-z]*)(.*)', after_first, re.DOTALL)
     if match:
@@ -256,6 +259,17 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
     # Psalm superscription (h4.psalm-title) found before the chapter's first p block.
     pending_psalm_title = ""
 
+    # Heading-orphan guard state: \headingkeep (emitted with each heading)
+    # neutralizes scripture's list end/begin penalties which would otherwise
+    # be legal breakpoints after the heading; \headingkeepoff restores them
+    # after the next content block. MUST live outside the block loop.
+    guard = {"open": False}
+
+    def _close_heading_guard() -> None:
+        if guard["open"]:
+            lines.append("\\headingkeepoff")
+            guard["open"] = False
+
     for block in blocks:
         block = block.strip()
         if not block:
@@ -267,12 +281,19 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
         def _emit_section_heading(heading_text: str) -> None:
             """Append a section-heading block (h3 / acrostic h4) to ``lines``."""
             lines.append("")
+            # Grid discipline: the \par must close OUTSIDE the \small group
+            # (with a body-size \strut) so the heading line is set with the
+            # body \baselineskip and occupies exactly one grid line; a \par
+            # inside {\small ...} would use \small's shorter baselineskip and
+            # knock the columns out of line-for-line register.
             lines.append(
+                f"\\needspace{{5\\gridunit}}"
                 f"\\begingroup\\parshape=0\\everypar{{}}"
-                f"\\vspace{{\\baselineskip}}\\noindent"
-                f"{{\\small\\itshape {heading_text}\\par}}"
-                f"\\nobreak\\endgroup"
+                f"\\vspace{{\\gridunit}}\\noindent"
+                f"{{\\small\\itshape {heading_text}}}\\strut\\par"
+                f"\\nobreak\\endgroup\\headingkeep"
             )
+            guard["open"] = True
 
         # Section heading
         h3 = re.match(r'<h3[^>]*>(.*?)</h3>', block)
@@ -484,7 +505,14 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
             pieces = [(kind, txt) for kind, txt in pieces if txt]
 
             if ch_match:
-                lines.append(f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}")
+                # A section heading's \nobreak is defeated by the \bookmark
+                # whatsit (glue after a non-discardable node is a legal
+                # breakpoint again), orphaning the heading at a column foot.
+                # Re-arm \nobreak after the whatsit when a heading precedes.
+                nobreak = ("\\nobreak"
+                           if lines and lines[-1].endswith("\\headingkeep")
+                           else "")
+                lines.append(f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}{nobreak}")
                 if pending_psalm_title:
                     # When a psalm title is pending: the title rides the \ch line
                     # and ALL verse-text pieces are emitted as normal flush/indent
@@ -524,6 +552,7 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                 # (the only piece rode the \ch line). Append it to that line now.
                 if not emit_pieces and margin_note:
                     lines[-1] = (lines[-1] + margin_note).strip()
+                _close_heading_guard()
                 first_verse_seen = True
             elif is_poetry:
                 # Non-chapter-start block inside a poetry chapter with line sentinels.
@@ -535,6 +564,7 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                     if idx == len(pieces) - 1:
                         txt = (txt + margin_note).strip()
                     lines.append(txt)
+                _close_heading_guard()
                 first_verse_seen = True
             else:
                 # Non-chapter-start block in a PROSE chapter with line sentinels.
@@ -563,6 +593,7 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                     else:
                         lines[-1] = (lines[-1] + margin_note).strip()
                 lines.append("\\end{poetry}")
+                _close_heading_guard()
                 first_verse_seen = True
         else:
             # No line sentinels: collapse whitespace and emit as a single block.
@@ -600,20 +631,39 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                         lettrine_src, lettrine_lines=8, color=book.group)
                 else:
                     lettrine_text = _make_lettrine(lettrine_src, lettrine_lines=5, color=book.group)
-                lines.append(f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}")
+                # Same heading-orphan guard as the poetry-line path above.
+                nobreak = ("\\nobreak"
+                           if lines and lines[-1].endswith("\\headingkeep")
+                           else "")
+                lines.append(f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}{nobreak}")
                 lines.append(f"\\ch{{{ch_num}}} \\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{rl_prefix}{lettrine_text}\\everypar{{}}")
                 # Psalm superscription: emit after \ch line if pending
                 if pending_psalm_title:
                     lines.append("")
                     lines.append(pending_psalm_title)
                     pending_psalm_title = ""
+                _close_heading_guard()
                 first_verse_seen = True
             else:
+                # Heading-orphan guard, mid-chapter case: a paragraph-initial
+                # \markboth puts a mark node (non-discardable) in the vertical
+                # list between the heading's \nobreak and the paragraph, making
+                # the following glue a legal breakpoint again. Inject \nobreak
+                # after the mark. (A paragraph with no leading \markboth is
+                # already safe: glue after a penalty is unbreakable.)
+                after_heading = bool(lines) and lines[-1].endswith(
+                    "\\nobreak\\endgroup")
                 if first_verse_seen:
                     lines.append("\\everypar{}")
                     lines.append("")
                     lines.append("\\parshape=0")
+                if after_heading:
+                    m = re.match(r'(\\markboth\{[^}]*\}\{[^}]*\})(.*)',
+                                 para_text, re.DOTALL)
+                    if m:
+                        para_text = m.group(1) + "\\nobreak" + m.group(2)
                 lines.append(para_text)
+                _close_heading_guard()
                 first_verse_seen = True
 
     if is_poetry:
