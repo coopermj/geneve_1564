@@ -9,6 +9,11 @@
 % flushbottom slack; pin to exactly 40 baselines (\topskip + 39\gridunit =
 % 560.55pt, +4.45pt into the bottom margin) so flushbottom never stretches.
 \setlength{\textheight}{\dimexpr\topskip+39\gridunit\relax}
+% The deeper text block pushed the footer (nav icons) 1.7bp past the page
+% edge — KOMA derives the foot position from \textheight. Pull \footskip in
+% by 12pt to restore ~10bp of bottom clearance (footskip does not affect
+% the text block: no reflow, margin-note corrections stay valid).
+\setlength{\footskip}{\dimexpr\footskip-12pt\relax}
 
 \usepackage{marginnote}
 \renewcommand{\marginfont}{\fontsize{9}{10.5}\selectfont\itshape}
