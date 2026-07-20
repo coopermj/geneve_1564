@@ -830,7 +830,7 @@ def generate_book_tex(
     # PDF outline: top-level bookmark for the book (points to the \bbook anchor)
     lines.append(f"\\bookmark[dest={{book-{book.directory}}},level=0]{{{book.name}}}")
     lines.append("")
-    lines.append("\\begin{scripture}")
+    lines.append(f"\\begin{{scripture}}[][book={{{book.name}}}]")
 
     for ch_num in sorted_chapters:
         verses = chapters_data[ch_num]
@@ -868,15 +868,13 @@ def generate_book_tex(
                 joined = _render_red_letter("\x05".join(seg_texts), desc, rl_state)
                 seg_texts = joined.split("\x05")
                 kinds = [k for k, _ in segs]
-                mark = (f"\\markboth{{{book.name} {ch_num}:{verse_num}}}"
-                        f"{{{book.name} {ch_num}:{verse_num}}}")
+                mark = ""  # running-head marks come from scripture's ltmarks class
                 ch_open = None
                 if verse_num == 1:
-                    lines.append(f"\\markboth{{{book.name} {ch_num}:1}}"
-                                 f"{{{book.name} {ch_num}:1}}")
                     if ch_num > 1:
                         lines.append("\\Needspace*{8\\baselineskip}")
-                    lines.append(f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},"
+                    lines.append(f"\\InsertMark{{scripture/verse}}{{{book.name} {ch_num}:1}}\\nobreak"
+                                 f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},"
                                  f"level=1]{{{book.name} {ch_num}}}")
                     ch_open = (f"\\ch{{{ch_num}}} \\allowchapbreak"
                                f"\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}")
@@ -899,7 +897,7 @@ def generate_book_tex(
                     lettrine_char_budget = 5 * 100
                 lettrine_char_budget -= len(text)
                 lettrine_text = _render_red_letter(lettrine_text, desc, rl_state)
-                lines.append(f"\\markboth{{{book.name} {ch_num}:1}}{{{book.name} {ch_num}:1}}")
+
                 # Ensure enough vertical space for the chapter heading +
                 # lettrine before starting.  Without this, the scripture
                 # package's \nobreak glues heading to verse 1, and when the
@@ -912,11 +910,15 @@ def generate_book_tex(
                 # orphaned \parshape indent at the next page top).
                 _zone_lines = 8 if ch_num == 1 else (
                     5 if "\\lettrine" in lettrine_text else 0)
-                lines.append(f"\\Needspace*{{{_zone_lines + 2}\\baselineskip}}")
-                lines.append(f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}")
+                # +3 not +2: \Needspace* measures to \pagegoal without the
+                # final line's depth — an exact-fit reserve can still leave
+                # the zone one line short (seen at Zechariah 11).
+                lines.append(f"\\Needspace*{{{_zone_lines + 3}\\baselineskip}}")
+                lines.append(f"\\InsertMark{{scripture/verse}}{{{book.name} {ch_num}:1}}\\nobreak"
+                             f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}")
                 lines.append(f"\\ch{{{ch_num}}} \\allowchapbreak\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{lettrine_text}{ann_suffix}\\everypar{{}}")
             else:
-                mark = f"\\markboth{{{book.name} {ch_num}:{verse_num}}}{{{book.name} {ch_num}:{verse_num}}}"
+                mark = ""  # running-head marks come from scripture's ltmarks class
                 lettrine_char_budget -= len(text)
                 # Inline OT-poetry blocks in prose chapters: wrap consecutive
                 # otpoetry segments in \begin{poetry}...\end{poetry}.
@@ -1130,7 +1132,7 @@ def generate_reading_plan_tex(scheduled_entries: list[dict]) -> str:
             if first_month:
                 # Clear the running-header marks: without this the plan pages
                 # inherit the last scripture reference (Revelation 22:21).
-                lines.append("\\markboth{}{}")
+                lines.append("\\InsertMark{scripture/verse}{}")
                 lines.append("\\hypertarget{readingplan}{}")
                 first_month = False
             lines.append("\\twocolumn[%")

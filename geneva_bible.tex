@@ -283,8 +283,11 @@
 % Headings — running book+chapter headers, home-icon footer
 \usepackage{scrlayer-scrpage}
 \clearpairofpagestyles
-\ihead[\headerfont\small\upshape\rightmark]{\headerfont\small\upshape\rightmark}
-\ohead[\headerfont\small\upshape\leftmark]{\headerfont\small\upshape\leftmark}
+% Running heads from scripture v2.3's native ltmarks class (book= set on
+% each scripture env; one \InsertMark per chapter keeps N:1 exact at
+% chapter-opening pages). Replaces the old per-verse \markboth stream.
+\ihead[\headerfont\small\upshape\FirstMark{scripture/verse}]{\headerfont\small\upshape\FirstMark{scripture/verse}}
+\ohead[\headerfont\small\upshape\LastMark{scripture/verse}]{\headerfont\small\upshape\LastMark{scripture/verse}}
 \chead[\chaptertablelink]{\chaptertablelink}
 \cfoot[\hyperlink{toc}{\faHome}\hspace{0.8em}\hyperlink{readingplan}{\faBook}]%
       {\hyperlink{toc}{\faHome}\hspace{0.8em}\hyperlink{readingplan}{\faBook}}

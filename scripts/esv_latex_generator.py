@@ -213,8 +213,6 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
     lines: list[str] = []
     is_poetry = _is_poetry_chapter(book.directory, ch_num)
 
-    # Mark for running headers (verse 1 set here; subsequent verses inline)
-    lines.append(f"\\markboth{{{book.name} {ch_num}:1}}{{{book.name} {ch_num}:1}}")
 
     if is_poetry:
         lines.append("\\begin{poetry}")
@@ -461,12 +459,10 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
 
         def _restore_verse(m: re.Match) -> str:
             v = m.group(1)
-            mark = f"\\markboth{{{book.name} {ch_num}:{v}}}{{{book.name} {ch_num}:{v}}}"
-            # No trailing space: the gap is carried entirely by scripture's
-            # fixed verse/sep kern, so it can't stretch with justification.
-            if _vs_first:
-                return f"\\vs{{{v}}}{mark}"
-            return f"{mark}\\vs{{{v}}}"
+            # Running-head marks come from scripture's own ltmarks class
+            # (book= is set on the env); nothing to inject here. No trailing
+            # space: the gap is carried by scripture's fixed verse/sep kern.
+            return f"\\vs{{{v}}}"
         para_text = re.sub('\x03(\\d+)\x04', _restore_verse, para_text)
         # Restore woc sentinels as redletter commands
         para_text = para_text.replace('\x01', '\\redletteron{}')
@@ -542,7 +538,8 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                 nobreak = ("\\nobreak"
                            if lines and lines[-1].endswith("\\headingkeep")
                            else "")
-                lines.append(f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}{nobreak}")
+                lines.append(f"\\InsertMark{{scripture/verse}}{{{book.name} {ch_num}:1}}\\nobreak"
+                             f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}{nobreak}")
                 if pending_psalm_title:
                     # When a psalm title is pending: the title rides the \ch line
                     # and ALL verse-text pieces are emitted as normal flush/indent
@@ -701,10 +698,11 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                     if nobreak:
                         lines[-1] = lines[-1].replace(
                             "\\needspace{5\\gridunit}",
-                            f"\\needspace{{{zone['req'] + 4}\\gridunit}}", 1)
+                            f"\\needspace{{{zone['req'] + 5}\\gridunit}}", 1)
                     else:
-                        lines.append(f"\\Needspace*{{{zone['req'] + 2}\\gridunit}}")
-                lines.append(f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}{nobreak}")
+                        lines.append(f"\\Needspace*{{{zone['req'] + 3}\\gridunit}}")
+                lines.append(f"\\InsertMark{{scripture/verse}}{{{book.name} {ch_num}:1}}\\nobreak"
+                             f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}{nobreak}")
                 lines.append(f"\\ch{{{ch_num}}} \\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{rl_prefix}{lettrine_text}\\everypar{{}}")
                 zone["idx"] = len(lines) - 1
                 # Psalm superscription: emit after \ch line if pending
@@ -715,14 +713,6 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                 _close_heading_guard()
                 first_verse_seen = True
             else:
-                # Heading-orphan guard, mid-chapter case: a paragraph-initial
-                # \markboth puts a mark node (non-discardable) in the vertical
-                # list between the heading's \nobreak and the paragraph, making
-                # the following glue a legal breakpoint again. Inject \nobreak
-                # after the mark. (A paragraph with no leading \markboth is
-                # already safe: glue after a penalty is unbreakable.)
-                after_heading = bool(lines) and lines[-1].endswith(
-                    "\\headingkeep")
                 if first_verse_seen:
                     if zone["budget"] > 0:
                         # Still beside the drop cap: no paragraph break, no
@@ -734,11 +724,6 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
                         lines.append("\\everypar{}")
                         lines.append("")
                         lines.append("\\parshape=0")
-                if after_heading:
-                    m = re.match(r'(\\markboth\{[^}]*\}\{[^}]*\})(.*)',
-                                 para_text, re.DOTALL)
-                    if m:
-                        para_text = m.group(1) + "\\nobreak" + m.group(2)
                 lines.append(para_text)
                 _close_heading_guard()
                 first_verse_seen = True
@@ -780,7 +765,7 @@ def generate_book_tex(
     # PDF outline: top-level bookmark for the book (points to the \bbook anchor)
     lines.append(f"\\bookmark[dest={{book-{book.directory}}},level=0]{{{book.name}}}")
     lines.append("")
-    lines.append("\\begin{scripture}")
+    lines.append(f"\\begin{{scripture}}[][book={{{book.name}}}]")
 
     for ch_num in sorted_chapters:
         html = chapters_html[ch_num]
