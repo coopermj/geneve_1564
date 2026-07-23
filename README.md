@@ -49,6 +49,50 @@ Text is fetched from external APIs, cached locally as JSON, converted to
 Shared assets: hand-crafted per-edition `editions/<name>/cover.tex` and
 `color_index.tex`; fonts in `fonts/`; a locally vendored `scripture.sty`.
 
+## Daily Bible reading plan
+
+The NET editions (**NET reading**, **NET notes**, and **Geneva**) embed a
+**2-year, weekday-paced reading plan**, parsed from
+`2-Year-Bible-Reading-Plan_LisaNotes.com_.pdf`
+([LisaNotes.com](https://lisanotes.com/)) by `scripts/reading_plan_parser.py`.
+Each reading is assigned to a calendar date, automatically skipping **weekends**
+and **US federal holidays** (including the day after Thanksgiving).
+
+It surfaces in two places:
+
+- A dated **schedule table** (`reading_plan.tex`, generated per edition),
+  reachable from the 📖 icon in the page footer.
+- In the reading/notes editions, **inline day markers** — each day's reading
+  ends at an `rp-<date>` anchor in the text, so you can jump from the schedule
+  to exactly where a day's reading stops.
+
+### Setting personal parameters
+
+Two things are meant to be personalized before you generate:
+
+- **Start date** — day 1 of the plan. Default `2026-03-02`. Set it with the
+  standalone NET generator:
+
+  ```sh
+  python3 scripts/generate_bible.py --start-date 2026-09-01 --output-dir livres_net
+  ```
+
+  (The unified `scripts/generate.py` uses the default start date; change the
+  `run_net(...)` call there, or use `generate_bible.py` directly, to override
+  it.)
+
+- **Personal skip dates** — recurring days to leave unscheduled (birthdays,
+  anniversaries, travel). Edit the `_PERSONAL_SKIPS` set in
+  `scripts/reading_plan_parser.py`; entries are `(month, day)` tuples applied
+  every year:
+
+  ```python
+  _PERSONAL_SKIPS = {(2, 24), (2, 27), (3, 6), (6, 23)}
+  ```
+
+After changing either, regenerate the edition and recompile (`make net-reading`,
+etc.) so the new dates flow into both the schedule table and the inline markers.
+
 ## Building
 
 Requirements:
