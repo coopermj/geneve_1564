@@ -1,0 +1,71 @@
+%% line_breaking.tex — narrow-measure line breaking (shared by all editions)
+%%
+%% Section 3 of docs/typography-recommendations.md. The two-column measure runs
+%% ~40–45 characters; TeX's defaults there produce loose lines and hyphen
+%% ladders. Input this AFTER \usepackage[english]{babel} (so hyphenation
+%% patterns and the current language are established) and before \begin{document}.
+
+% --- Breaking parameters -----------------------------------------------------
+% Slightly looser badness tolerance + a small emergency stretch lets TeX solve
+% tight lines without overfull boxes; the demerit bumps discourage stacked and
+% final-line hyphens (Oxford/Cambridge house practice in a narrow column).
+% \LBbaseline (define before input) disables the whole Section-3 change for
+% A/B measurement against the lua-typo diagnostic; production leaves it unset.
+\ifdefined\LBbaseline\else
+  \tolerance=400
+  \emergencystretch=.5em
+  \doublehyphendemerits=7500
+  \finalhyphendemerits=7500
+\fi
+
+% --- lua-typo diagnostic (opt-in) -------------------------------------------
+% Colours widows/orphans/hyphen ladders/short lines and logs them. NOT loaded
+% in normal builds. Enable with:
+%   lualatex "\def\enabletypocheck{}\input{esv_bible.tex}"
+% Focused checks (NOT [All]): in a ~40-char justified column, ShortLines /
+% ShortPages / EOLShortWords fire on nearly every page and drown the signal.
+% Keep the ones Section 3 actually targets — hyphen ladders, paragraph-final
+% and end-of-page hyphens — plus widows/orphans (residuals lua-widow-control
+% couldn't resolve).
+\ifdefined\enabletypocheck
+  \IfFileExists{lua-typo.sty}
+    {\usepackage[Widows,Orphans,EOPHyphens,RepeatedHyphens,ParLastHyphen]{lua-typo}}
+    {\PackageWarning{line_breaking}{\string\enabletypocheck\space set but
+       lua-typo is not installed; skipping diagnostic}}
+\fi
+
+% --- Hyphenation exceptions for biblical proper names ------------------------
+% TeX will break these words ONLY at the points marked here, so every division
+% is a standard Bible-dictionary syllabification. This is a vetted core, not an
+% exhaustive list — grow it from lua-typo's hyphenation reports. Names best left
+% unbroken (Zion, Sinai, …) are intentionally omitted rather than forced.
+\ifdefined\LBbaseline\else
+\hyphenation{
+  A-bed-ne-go A-bim-e-lech A-bin-a-dab A-bi-a-thar Ab-sa-lom
+  A-hasu-e-rus A-hith-o-phel A-mal-ek-ites Am-mon-ites Ar-ta-xerx-es
+  An-ti-och Ar-ma-ged-don As-syr-i-a
+  Bar-thol-o-mew Bath-she-ba Be-el-ze-bub Bel-shaz-zar Be-na-iah
+  Bab-y-lon Bab-y-lo-ni-ans Beth-le-hem Beth-sa-i-da
+  Cai-a-phas Ca-per-na-um Cap-pa-do-cia Caes-a-re-a Chal-de-ans
+  Co-rin-thi-ans
+  Da-mas-cus
+  Eb-en-e-zer El-e-a-zar E-li-a-kim E-li-e-zer E-lim-e-lech
+  E-liz-a-beth Ep-a-phras E-paph-ro-di-tus Eph-ra-im E-phe-sians
+  Eph-e-sus Eu-phra-tes
+  Ga-ma-li-el Ga-la-tians Gal-i-lee Geth-sem-a-ne Go-mor-rah Gol-go-tha
+  Ha-bak-kuk Hez-e-ki-ah He-ro-di-as
+  Is-car-i-ot Ish-ma-el Ish-ma-el-ites Is-ra-el-ites
+  Je-ho-a-haz Je-hoi-a-chin Je-hoi-a-kim Je-hosh-a-phat Je-ho-vah
+  Jer-o-bo-am Je-ru-sa-lem Jez-e-bel Jon-a-than Jer-i-cho
+  Ma-nas-seh Mel-chiz-e-dek Me-phib-o-sheth Me-thu-se-lah Me-shach
+  Mac-e-do-nia Mes-o-po-ta-mia
+  Neb-u-chad-nez-zar Neb-u-zar-a-dan Ne-he-mi-ah Nic-o-de-mus
+  Naz-a-reth Nin-e-veh
+  O-nes-i-mus
+  Phi-lis-tines Phi-lip-pi-ans Phi-lip-pi Pot-i-phar
+  Re-ho-bo-am
+  Sen-nach-er-ib Sha-drach Shealti-el Sar-gon Sa-mar-i-a
+  Thes-sa-lo-ni-ans
+  Ze-rub-ba-bel Zech-a-ri-ah Zed-e-ki-ah Zeph-a-ni-ah Zip-po-rah Zeb-e-dee
+}
+\fi
