@@ -12,6 +12,13 @@ print-ready editions — while preserving the Geneva aesthetic: centered chapter
 headings, decorative drop-cap initials, running heads, and marginal/footnote
 apparatus.
 
+The direct inspiration for this project was David Purton's
+[`scripture`](https://github.com/dcpurton/scripture) LaTeX package
+([CTAN](https://ctan.org/pkg/scripture)). Discovering a package purpose-built
+for typesetting scripture — chapter/verse markup, poetry, running-head marks,
+footnotes — is what prompted building these editions around it; `scripture`
+does all of the biblical text layout here.
+
 ## Editions
 
 Each edition is a top-level `<name>.tex` document that `\input`s generated
@@ -129,7 +136,12 @@ distribute. EB Garamond is under the SIL Open Font License.
 
 ## Credits
 
-Original project and French Geneva 1564 reproduction by
-[Raphaël Pinson](https://github.com/raphink); typeset with Georg Duffner's
-[EB Garamond](http://www.georgduffner.at/ebgaramond/) and David Purton's
-[`scripture`](https://github.com/dcpurton/scripture) LaTeX package.
+- **David Purton's [`scripture`](https://github.com/dcpurton/scripture) LaTeX
+  package** ([CTAN](https://ctan.org/pkg/scripture)) — the inspiration for this
+  project and the engine behind all scripture typesetting (chapters, verses,
+  poetry, running-head marks, footnotes).
+- **[Raphaël Pinson](https://github.com/raphink)** — the original
+  [geneve_1564](https://github.com/raphink/geneve_1564) project and the French
+  Geneva 1564 reproduction this repository forks.
+- **Georg Duffner's [EB Garamond](http://www.georgduffner.at/ebgaramond/)** —
+  the typeface (SIL Open Font License).
