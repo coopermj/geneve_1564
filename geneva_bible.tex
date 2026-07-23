@@ -186,7 +186,7 @@
   chapter/drop=false,
   chapter/para=true,
   chapter/font=\booktitlefont\scshape,
-  chapter/format=Chapter~#1,
+  chapter/format=Chap.~\uppercase\expandafter{\romannumeral#1}., % Geneva-authentic: CHAP. I.
   chapter/para/aboveskip=\gridunit,
   chapter/para/belowskip=0pt,
   poetry/aboveskip=\gridunit,
@@ -198,6 +198,7 @@
   verse/first=false,
   indent=true,
   redletter=true,
+  redletter/colour=red!68!black, % brick/vermilion #AD0000 — historic + eInk-friendly
 }
 % Allow column/page breaks between chapter heading and first verse.
 % The scripture package puts \nobreak + \@afterheading after the heading
@@ -286,8 +287,12 @@
 % Running heads from scripture v2.3's native ltmarks class (book= set on
 % each scripture env; one \InsertMark per chapter keeps N:1 exact at
 % chapter-opening pages). Replaces the old per-verse \markboth stream.
-\ihead[\headerfont\small\upshape\FirstMark{scripture/verse}]{\headerfont\small\upshape\FirstMark{scripture/verse}}
-\ohead[\headerfont\small\upshape\LastMark{scripture/verse}]{\headerfont\small\upshape\LastMark{scripture/verse}}
+% Spaced small-cap running heads (historic content-range convention).
+% \textls is wrapped in \ghead so it is NOT expanded eagerly inside the \ihead
+% argument at preamble time (that raised "Missing \begin{document}").
+\newcommand{\ghead}[1]{\headerfont\small\textls[80]{\scshape#1}}
+\ihead[\ghead{\FirstMark{scripture/verse}}]{\ghead{\FirstMark{scripture/verse}}}
+\ohead[\ghead{\LastMark{scripture/verse}}]{\ghead{\LastMark{scripture/verse}}}
 \chead[\chaptertablelink]{\chaptertablelink}
 \cfoot[\hyperlink{toc}{\faHome}\hspace{0.8em}\hyperlink{readingplan}{\faBook}]%
       {\hyperlink{toc}{\faHome}\hspace{0.8em}\hyperlink{readingplan}{\faBook}}
