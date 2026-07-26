@@ -12,6 +12,13 @@
 *.ps
 texput.log
 
+# Artwork working files (period scans, potrace/vectorization intermediates) — not tracked
+artwork_src/
+
+# ...but final vector artwork under images/ IS tracked (overrides *.pdf above)
+!images/*.pdf
+!images/**/*.pdf
+
 # API caches
 data/
 
