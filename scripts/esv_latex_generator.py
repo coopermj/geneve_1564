@@ -98,8 +98,35 @@ def _apply_divine_names(text: str) -> str:
 
 # ── Heading images ──────────────────────────────────────────────────────
 
+_SECTION_HEADINGS = {
+    "law":        "images/headings/law",         # Tetragrammaton woodcut band
+    "history":    "images/headings/history",     # 16th-c. Rabelais strapwork
+    "wisdom":     "images/headings/wisdom",       # foliate scroll, central mask
+    "prophets":   "images/headings/prophets",    # grotesque foliate with birds
+    "gospels":    "images/headings/gospels",     # Field c.1590s putto
+    "epistles":   "images/headings/epistles",    # grotesque-mask scroll
+    "revelation": "images/headings/revelation",  # Elizabethan arabesque
+}
+_SECTION_BOOKS = {
+    "law": ["genesis", "exodus", "leviticus", "numbers", "deuteronomy"],
+    "history": ["joshua", "judges", "ruth", "1samuel", "2samuel", "1kings",
+                "2kings", "1chronicles", "2chronicles", "ezra", "nehemiah", "esther"],
+    "wisdom": ["job", "psalms", "proverbs", "ecclesiastes", "songofsolomon"],
+    "prophets": ["isaiah", "jeremiah", "lamentations", "ezekiel", "daniel", "hosea",
+                 "joel", "amos", "obadiah", "jonah", "micah", "nahum", "habakkuk",
+                 "zephaniah", "haggai", "zechariah", "malachi"],
+    "gospels": ["matthew", "mark", "luke", "john", "acts"],
+    "epistles": ["romans", "1corinthians", "2corinthians", "galatians", "ephesians",
+                 "philippians", "colossians", "1thessalonians", "2thessalonians",
+                 "1timothy", "2timothy", "titus", "philemon", "hebrews", "james",
+                 "1peter", "2peter", "1john", "2john", "3john", "jude"],
+    "revelation": ["revelation"],
+}
+# Per-book heading assigned by canonical division: books in a section share a
+# period headpiece, as early Bibles reused a section-level stock of woodcut bands.
 _HEADING_IMAGES = {
-    "genesis": "images/genese_heading",
+    book: _SECTION_HEADINGS[sec]
+    for sec, books in _SECTION_BOOKS.items() for book in books
 }
 
 
