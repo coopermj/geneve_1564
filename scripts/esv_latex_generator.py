@@ -245,7 +245,7 @@ def _process_chapter_html(html: str, ch_num: int, book: BookInfo,
         note = ""
         if fn_texts:
             combined = " \\\\[1pt] ".join(fn_texts)
-            note = f" \\marginnote{{\\tiny {combined}}}"
+            note = f" \\marginnote{{\\fontsize{{7}}{{8.4}}\\selectfont {combined}}}"
         return result, note
 
     # Apply per-block footnote grouping, then split
