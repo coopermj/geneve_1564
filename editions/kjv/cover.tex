@@ -1,0 +1,32 @@
+% Cover — King James Version
+\clearpage
+\thispagestyle{empty}%
+\begin{tikzpicture}[remember picture,overlay]
+  % Outer border
+  \draw[color=gospels!40,line width=1.2pt]
+    ([xshift=12mm,yshift=-12mm]current page.north west) rectangle
+    ([xshift=-12mm,yshift=12mm]current page.south east);
+  % Inner border
+  \draw[color=gospels!20,line width=0.4pt]
+    ([xshift=15.5mm,yshift=-15.5mm]current page.north west) rectangle
+    ([xshift=-15.5mm,yshift=15.5mm]current page.south east);
+  % Corner diamonds
+  \foreach \cx/\cy in {
+    {12mm}/{-12mm},{-12mm}/{-12mm},{12mm}/{12mm},{-12mm}/{12mm}
+  }{
+    \fill[gospels!50]
+      ([xshift=\cx,yshift=\cy]current page.north west) +(-1.5mm,0) -- +(0,1.5mm) -- +(1.5mm,0) -- +(0,-1.5mm) -- cycle;
+  }
+\end{tikzpicture}%
+\null\vspace*{72mm}
+\begin{center}
+  {\large\booktitlefont\scshape the holy bible\par}
+  \vspace{5pt}
+  {\color{gospels}\rule{26mm}{0.4pt}\enspace{\large\char"2766}\enspace\rule{26mm}{0.4pt}\par}
+  \vspace{14pt}
+  {\fontsize{38}{44}\selectfont\allurafont\color{gospels}King James Version\par}
+  \vspace{16pt}
+  {\color{gospels!40}\rule{55mm}{0.3pt}\par}
+\end{center}
+\vfill
+\clearpage

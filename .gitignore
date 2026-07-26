@@ -19,6 +19,10 @@ artwork_src/
 !images/*.pdf
 !images/**/*.pdf
 
+# Committed example render: the full KJV edition PDF (so others can see the
+# output without rendering). Other edition PDFs stay ignored (build them).
+!output/kjv_bible.pdf
+
 # API caches
 data/
 
@@ -94,6 +98,7 @@ livres/new_testament.tex
 livres_esv/
 livres_net/
 livres_geneva/
+livres_kjv/
 
 # Environment / secrets
 .env

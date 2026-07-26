@@ -1,0 +1,276 @@
+\documentclass[twocolumn,paper=179mm:239mm,pagesize=auto,11pt,headinclude=on,openany,oneside]{scrbook}
+% Baseline grid unit: 11pt body with \linespread{0.9} gives 12.23991pt leading.
+% 0.9\dimexpr13.6pt uses the same factor*dimen truncation LaTeX applies when
+% computing \baselineskip, so \gridunit and \baselineskip are sp-identical.
+% Every vertical interval in the body (heading blocks, poetry skips, chapter
+% paras, book-opener padding) must be a whole multiple of \gridunit so both
+% columns stay in line-for-line register.
+\newlength{\gridunit}
+\setlength{\gridunit}{0.9\dimexpr13.6pt\relax}
+\areaset[8mm]{130mm}{210mm}
+% areaset+headinclude yields \textheight=561.16pt = 45 grid lines + 11.6pt of
+% slack that \flushbottom stretched into the interline glue on every page.
+% Pin the text height to exactly 46 baselines (\topskip + 45\gridunit =
+% 561.80pt, +0.64pt into the bottom margin) so flushbottom never stretches.
+\setlength{\textheight}{\dimexpr\topskip+45\gridunit\relax}
+
+\usepackage{ragged2e}
+
+\usepackage{fontspec}
+\setmainfont[
+  Path=fonts/,
+  Extension=.otf,
+  UprightFont=EBGaramond-Regular,
+  ItalicFont=EBGaramond-Italic,
+  BoldFont=EBGaramond-Bold,
+  BoldItalicFont=EBGaramond-BoldItalic,
+  Numbers=OldStyle,
+  RawFeature={+dlig},
+]{EB Garamond}
+\newfontfamily\booktitlefont[
+  Path=fonts/,
+  Extension=.otf,
+  UprightFont=EBGaramond-Regular,
+  ItalicFont=EBGaramond-Italic,
+  BoldFont=EBGaramond-Bold,
+  BoldItalicFont=EBGaramond-BoldItalic,
+  RawFeature={-ss02},
+  LetterSpace=40,
+  WordSpace=6,
+]{EB Garamond}
+\newfontfamily\spacedfont[
+  Path=fonts/,
+  Extension=.otf,
+  UprightFont=EBGaramond-Regular,
+  ItalicFont=EBGaramond-Italic,
+  BoldFont=EBGaramond-Bold,
+  BoldItalicFont=EBGaramond-BoldItalic,
+  RawFeature={-ss02},
+  LetterSpace=20,
+  WordSpace=3,
+]{EB Garamond}
+\newfontfamily\lettrinefont[Path=fonts/,Extension=.otf,UprightFont=EBGaramond-Initials]{EB Garamond Initials}
+\newfontfamily\headerfont[
+  Path=fonts/,
+  Extension=.otf,
+  UprightFont=EBGaramond-Regular,
+  ItalicFont=EBGaramond-Italic,
+  BoldFont=EBGaramond-Bold,
+  BoldItalicFont=EBGaramond-BoldItalic,
+]{EB Garamond}
+\newfontfamily\allurafont[Path=fonts/,Extension=.ttf,UprightFont=Allura-Regular]{Allura}
+
+\usepackage[
+  protrusion=true,
+  expansion=true,
+  tracking=true,
+  final
+]{microtype}
+
+% Widow/orphan removal that preserves the baseline grid: lua-widow-control
+% lengthens or shortens the offending paragraph via LuaTeX callbacks instead
+% of stretching vertical space. Do NOT set \widowpenalty/\clubpenalty=10000 —
+% in this narrow two-column measure that forces page stretching off the grid.
+\usepackage{lua-widow-control}
+
+\usepackage{graphicx}
+\usepackage{lettrine}
+
+\renewcommand{\LettrineFontHook}{\lettrinefont}
+
+% Colors — eInk-optimized palette for Remarkable Paper Pro (Gallery 3)
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric}
+\usepackage{eso-pic}
+\definecolor{pentateuch}{HTML}{8B4513}
+\definecolor{historical}{HTML}{B22222}
+\definecolor{wisdom}{HTML}{2E8B57}
+\definecolor{majorprophets}{HTML}{4B0082}
+\definecolor{minorprophets}{HTML}{8B0000}
+\definecolor{gospels}{HTML}{00008B}
+\definecolor{acts}{HTML}{006400}
+\definecolor{pauline}{HTML}{4169E1}
+\definecolor{general}{HTML}{800080}
+\definecolor{revelation}{HTML}{DC143C}
+
+% Scripture package for verse/chapter markup
+\usepackage{scripture}
+\input{verse_protrusion}
+\scripturesetup{
+  chapter/drop=false,
+  chapter/para=true,
+  chapter/font=\booktitlefont\scshape,
+  chapter/format=Chapter~#1,
+  chapter/para/aboveskip=\gridunit,
+  chapter/para/belowskip=0pt,
+  poetry/aboveskip=\gridunit,
+  poetry/belowskip=\gridunit,
+  verse/format=\verseprotrudenum{#1},
+  verse/sep=0.3em,
+  poetry/verse/sep=0.3em,
+  poetry/bigindent=2em,
+  verse/first=false,
+  indent=true,
+  redletter=false, % KJV carries no quotation marks (17th-c. typography) — no red-letter
+}
+
+% Allow a column/page break between a chapter heading and its first verse.
+% The shared (NET) generator emits \allowchapbreak after every \ch{N}; it
+% cancels scripture's \nobreak + \@afterheading so a large lettrine block does
+% not force the whole opening to the next column.
+\makeatletter
+\newcommand{\allowchapbreak}{\penalty\z@\@nobreakfalse}
+\makeatother
+
+% Heading-orphan guard, catch-all leg: \needspace{3\gridunit} before each
+% section heading moves it to the next column when fewer than 3 grid lines
+% remain — robust against every breakpoint species (whatsit/mark/list
+% penalties). Net-zero glue: grid-safe; the occasional short column is the
+% same accepted artifact as an unbreakable lettrine block displacing.
+\usepackage{needspace}
+
+% Environments
+\usepackage{setspace}
+\newenvironment{bookcomment}
+  {\begin{spacing}{0.8}\itshape\scriptsize\hspace{-1em}}
+  {\end{spacing}}
+
+% Margin notes (like Geneva 1564 original)
+\usepackage{marginnote}
+\setlength{\marginparwidth}{4em}% widened for 7pt margin footnotes (was 3.5em)
+\setlength{\marginparsep}{0.3em}
+
+% Bible books
+\usepackage{titlesec}
+\usepackage{fourier-orns}
+
+\newsavebox{\bbookimgbox}
+% Chapter table helper — set with \gdef\bbookchaptable{...} before \bbook, auto-reset after.
+\gdef\bbookchaptable{}
+% Current book tracking for chapter-table header link
+\makeatletter
+% Heading-orphan guard, list-penalty leg: scripture sets
+% \@endparpenalty=\@lowpenalty (51) and \@beginparpenalty=-51 for its inner
+% list environments; the list END/BEGIN at a poetry chapter boundary inserts
+% those penalty nodes AFTER any \nobreak we emit (consecutive penalties do
+% not merge — each one is its own breakpoint), so a heading could still be
+% orphaned at a column foot. \headingkeep neutralizes them (globally — the
+% insertion happens inside \ch, deeper in grouping) right after a heading;
+% \headingkeepoff restores scripture's values after the following content.
+\newcommand{\headingkeep}{%
+  \global\@beginparpenalty\@M
+  \global\@endparpenalty\@M}
+\newcommand{\headingkeepoff}{%
+  \global\@beginparpenalty-\@lowpenalty
+  \global\@endparpenalty\@lowpenalty}
+\gdef\currentbookdir{}
+\newcommand{\chaptertablelink}{%
+  \ifx\currentbookdir\@empty\else
+    \hyperlink{book-\currentbookdir}{\headerfont\small\faBookmark}%
+  \fi}
+\makeatother
+% \bbook[image]{Main Title}{Subtitle}{Argument text}{book-dir}
+% The opener (image, title, argument, chapter table) is built in a box and its
+% height padded up to the next whole multiple of \gridunit, so the two columns
+% under it start on the baseline grid and \flushbottom has no slack to stretch.
+\newsavebox{\bbookheadbox}
+\newlength{\bbookheadnat}
+\NewDocumentCommand{\bbook}{O{} m m m m}{%
+  \clearpage
+  \gdef\currentbookdir{#5}%
+  \thispagestyle{scrheadings}%
+  \hypertarget{book-#5}{}%
+  \IfBlankTF{#1}{%
+    \savebox{\bbookimgbox}{}%
+  }{%
+    \savebox{\bbookimgbox}{\makebox[\textwidth][c]{\includegraphics[width=\textwidth]{#1}}}%
+  }%
+  \begin{lrbox}{\bbookheadbox}\parbox{\textwidth}{%
+    \usebox{\bbookimgbox}\par\nobreak
+    \vspace*{-10pt}%
+    {\centering\huge\booktitlefont\scshape #2%
+      \IfBlankF{#3}{,\\\large #3}%
+      \\\char"2766\par}%
+    \IfBlankF{#4}{%
+      {\centering\booktitlefont\textsc{the argument.}\par}%
+      \vspace{2pt}%
+      {\centering\parbox{\dimexpr\textwidth-2em}{\itshape\scriptsize #4\par}\par}%
+      \vspace{5pt}%
+    }%
+    \bbookchaptable
+    \vspace{5pt}%
+  }\end{lrbox}%
+  \setlength{\bbookheadnat}{\dimexpr\ht\bbookheadbox+\dp\bbookheadbox\relax}%
+  \twocolumn[{%
+    \usebox{\bbookheadbox}\par
+    % pad to ceil(natural/\gridunit) grid lines (ceil via rounding division)
+    \vspace{\dimexpr\numexpr(2*\bbookheadnat+\gridunit-2)/(2*\gridunit)\relax\gridunit-\bbookheadnat\relax}%
+  }]%
+  \gdef\bbookchaptable{}
+}
+\titleformat{\chapter}[hang]%
+   {\centering\huge\booktitlefont\scshape}%
+   {}%
+   {0pt}%
+   {}
+\titlespacing*{\chapter}
+  {0pt}{0pt}{5pt}
+
+
+% Headings — running book+chapter headers, home-icon footer
+\usepackage{scrlayer-scrpage}
+\clearpairofpagestyles
+% Running heads from scripture v2.3's native ltmarks class (book= set on
+% each scripture env; one \InsertMark per chapter keeps N:1 exact at
+% chapter-opening pages). Replaces the old per-verse \markboth stream.
+\ihead[\headerfont\small\upshape\FirstMark{scripture/verse}]{\headerfont\small\upshape\FirstMark{scripture/verse}}
+\ohead[\headerfont\small\upshape\LastMark{scripture/verse}]{\headerfont\small\upshape\LastMark{scripture/verse}}
+\chead[\chaptertablelink]{\chaptertablelink}
+\cfoot[\hyperlink{toc}{\faHome}]{\hyperlink{toc}{\faHome}}
+
+\pagestyle{scrheadings}
+\renewcommand*{\chapterpagestyle}{scrheadings}
+
+
+% Paragraphs
+\setlength{\parindent}{1em}
+\setlength{\parskip}{0pt}
+
+\linespread{0.9}
+\setlength{\columnsep}{6mm}
+% Grid enforcement: opening quotes and superior verse figures have METRIC
+% heights (~8.58pt) that can graze the 12.24pt baseline distance after a
+% deep previous line (12.26 > 12.24), making TeX abandon \baselineskip for
+% \lineskip on that one line (+1pt, off grid). Ink height is only ~7.9pt, so
+% allow up to 1pt of metric-box overlap before falling back — ink never
+% touches, and every line stays on the grid.
+\lineskiplimit=-1pt
+
+% Language
+\usepackage[english]{babel}
+\input{line_breaking}
+
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\usepackage[hidelinks]{hyperref}
+\usepackage{bookmark}
+
+
+\begin{document}
+\onecolumn
+\input{editions/kjv/cover}
+\input{editions/kjv/color_index}
+\input{livres_kjv/old_testament}
+\input{livres_kjv/new_testament}
+
+\vfill
+\begin{center}
+\small
+The Holy Bible, King James Version (Authorized Version, 1611).\\
+Public domain in the United States and most of the world.\\
+In the United Kingdom, rights are vested in the Crown\\
+and administered by the Cambridge University Press.
+\end{center}
+
+\end{document}

@@ -23,11 +23,13 @@ esv_bible.pdf: esv_bible.tex
 generate-esv:
 	python3 scripts/generate_esv.py --output-dir livres_esv
 
+# Remove transient build artifacts from the project root. Does NOT touch source
+# PDFs (the reading-plan data source) or the curated finals under output/.
 clean:
-	rm -f *.pdf *.ps *.aux *.log *.out *.lol
-	rm -f *.idx *.ind *.ilg *.toc *.dvi
+	rm -f *.aux *.log *.out *.lol *.idx *.ind *.ilg *.toc *.dvi *.ps
 
 # ---- Consolidated edition build targets ----
+# Final PDFs land in output/ (the curated deliverable dir); the root stays clean.
 LL = OSFONTDIR=fonts TEXINPUTS=microtype: lualatex -shell-escape -interaction=nonstopmode
 GEN = python3 scripts/generate.py --edition
 
@@ -35,9 +37,11 @@ define build_edition
 	$(GEN) $(2)
 	$(LL) $(1).tex
 	$(LL) $(1).tex
+	@mkdir -p output && mv -f $(1).pdf output/
+	@echo "  -> output/$(1).pdf"
 endef
 
-.PHONY: esv net-reading net-notes geneva geneve-1564 all-editions
+.PHONY: esv net-reading net-notes geneva kjv geneve-1564 all-editions
 esv:
 	$(call build_edition,esv_bible,esv)
 net-reading:
@@ -46,8 +50,11 @@ net-notes:
 	$(call build_edition,net_notes,net)
 geneva:
 	$(call build_edition,geneva_bible,geneva)
+kjv:
+	$(call build_edition,kjv_bible,kjv)
 geneve-1564:
 	$(LL) geneve_1564.tex
 	$(LL) geneve_1564.tex
-all-editions: esv net-reading net-notes geneva geneve-1564
+	@mkdir -p output && mv -f geneve_1564.pdf output/
+all-editions: esv net-reading net-notes geneva kjv geneve-1564
 
