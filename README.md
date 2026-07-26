@@ -23,18 +23,22 @@ does all of the biblical text layout here.
 
 Each edition is a top-level `<name>.tex` document that `\input`s generated
 per-book files. All are two-column KOMA `scrbook` on a 179 × 239 mm page unless
-noted.
+noted. Every book opens with a period **woodcut headpiece** assigned by
+canonical division (Law/History/Wisdom/Prophets/Gospels/Epistles/Revelation);
+see [`images/headings/SOURCES.md`](images/headings/SOURCES.md).
 
 | Edition | Build target | Text | Distinctive layout | Pages |
 |---|---|---|---|---|
-| **ESV** | `make esv` → `esv_bible.tex` | ESV | Red-letter (Words of Christ), drop-cap lettrines, footnotes in the outer margin | ~1340 |
-| **NET reading** | `make net-reading` → `net_reading.tex` | NET | Clean two-column reading layout | ~1370 |
-| **NET notes** | `make net-notes` → `net_notes.tex` | NET | Single column with a wide (55 mm) right gutter ruled for handwritten/digital notes | ~2250 |
-| **Geneva** | `make geneva` → `geneva_bible.tex` | NET | NET text + the **1599 Geneva Study Bible** marginal annotations (~15.5k notes; overflow rendered as lettered footnotes), 13 pt | ~2410 |
+| **ESV** | `make esv` → `esv_bible.tex` | ESV | Red-letter (Words of Christ), drop-cap lettrines, footnotes in the outer margin | ~1350 |
+| **KJV** | `make kjv` → `kjv_bible.tex` | KJV (public domain) | Same reading layout as ESV; `LORD` in small caps; no red-letter (KJV has no quotation marks). **A rendered example is committed: [`output/kjv_bible.pdf`](output/kjv_bible.pdf)** | ~1280 |
+| **NET reading** | `make net-reading` → `net_reading.tex` | NET | Clean two-column reading layout | ~1375 |
+| **NET notes** | `make net-notes` → `net_notes.tex` | NET | Single column with a wide (55 mm) right gutter ruled for handwritten/digital notes | ~2265 |
+| **Geneva** | `make geneva` → `geneva_bible.tex` | NET | NET text + the **1599 Geneva Study Bible** marginal annotations (~15.5k notes; overflow rendered as lettered footnotes), 13 pt | ~2436 |
 | **Geneva 1564** | `make geneve-1564` → `geneve_1564.tex` | French (original) | The upstream French facsimile reproduction | — |
 
 `geneve_1564_modern.tex` is a compact A6 modern-French variant carried over from
-upstream.
+upstream. Compiled PDFs are written to **`output/`** (the KJV example is the only
+one committed; build the rest with `make <edition>`).
 
 ## How it works
 
@@ -42,15 +46,16 @@ Text is fetched from external APIs, cached locally as JSON, converted to
 `scripture`-package LaTeX, then compiled with LuaLaTeX.
 
 - **Fetchers** — `esv_fetcher.py` (api.esv.org, token auth), `bible_fetcher.py`
-  (labs.bible.org, for NET), `annotation_fetcher.py` (Geneva Study Bible notes
-  from StudyLight), `build_red_letter_data.py` (Words-of-Christ spans derived
-  from WEB USFM `\wj` markup, since NET has none).
+  (labs.bible.org, for NET), `kjv_fetcher.py` (aruljohn/Bible-kjv, public-domain
+  KJV), `annotation_fetcher.py` (Geneva Study Bible notes from StudyLight),
+  `build_red_letter_data.py` (Words-of-Christ spans derived from WEB USFM `\wj`
+  markup, since NET has none).
 - **Generators** — `esv_latex_generator.py` and `latex_generator.py` turn cached
   HTML/JSON into per-book `.tex`. `build_annotated.py` injects Geneva
   annotations and runs `overlap_detector.py`, an anchor-based pass that demotes
   margin notes to footnotes when the margin can't hold them (the Geneva density
   needs it — see `docs/plans/`).
-- **Unified entry point** — `scripts/generate.py --edition esv|net|geneva|all`
+- **Unified entry point** — `scripts/generate.py --edition esv|net|geneva|kjv|all`
   regenerates an edition's book files from the existing caches (offline).
 
 Shared assets: hand-crafted per-edition `editions/<name>/cover.tex` and
@@ -127,12 +132,20 @@ build artifacts.
 
 ## Text sources & licensing
 
-The ESV and NET translations are copyrighted; this repository contains tooling,
-not the licensed text (generated `livres_*/` book files and the API caches carry
-their respective publishers' terms). Respect the [ESV API](https://api.esv.org/)
-and [labs.bible.org](https://labs.bible.org/) terms of use, and the Crossway /
-NET Bible copyright and quotation limits, for any PDFs you produce or
-distribute. EB Garamond is under the SIL Open Font License.
+The **ESV** and **NET** translations are copyrighted; this repository contains
+tooling, not the licensed text (generated `livres_*/` book files and the API
+caches carry their respective publishers' terms). Respect the
+[ESV API](https://api.esv.org/) and [labs.bible.org](https://labs.bible.org/)
+terms of use, and the Crossway / NET Bible copyright and quotation limits, for
+any PDFs you produce or distribute — which is why only the KJV example PDF is
+committed here.
+
+The **KJV** (Authorized Version, 1611) is public domain in the United States and
+most of the world; in the United Kingdom rights are vested in the Crown
+(administered by Cambridge University Press). Its example render is committed as
+`output/kjv_bible.pdf`. The headpiece artwork is public domain (see
+[`images/headings/SOURCES.md`](images/headings/SOURCES.md)); EB Garamond is under
+the SIL Open Font License.
 
 ## Credits
 
