@@ -10,7 +10,23 @@ import time
 import urllib.request
 
 _RAW = "https://raw.githubusercontent.com/aruljohn/Bible-kjv/master/{file}.json"
-DEFAULT_CACHE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "kjv_cache")
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DEFAULT_CACHE_DIR = os.path.join(_ROOT, "data", "kjv_cache")
+
+# Paragraph boundaries derived from the WEB USFM (scripts/build_paragraph_data.py):
+# the aruljohn KJV text carries no paragraph structure, so we tag paragraph-start
+# verses with a <p> so the shared generator emits paragraph breaks and fires the
+# lettrine \parshape/\everypar reset (otherwise chapters run together and the
+# centred chapter markers drift right by the leaked drop-cap indent).
+_PARA_STARTS = None
+
+
+def _para_starts() -> dict:
+    global _PARA_STARTS
+    if _PARA_STARTS is None:
+        path = os.path.join(_ROOT, "data", "paragraph_starts.json")
+        _PARA_STARTS = json.load(open(path, encoding="utf-8")) if os.path.isfile(path) else {}
+    return _PARA_STARTS
 
 
 def _aruljohn_file(book_name: str) -> str:
@@ -43,11 +59,22 @@ def _fetch_raw(book_name: str, cache_dir: str) -> dict:
 def fetch_book(book_name: str, num_chapters: int, cache_dir: str = DEFAULT_CACHE_DIR) -> dict[int, list[dict]]:
     """Return {chapter_num: [{'verse': int, 'text': str}, ...]} for a KJV book."""
     raw = _fetch_raw(book_name, cache_dir)
+    book_dir = book_name.lower().replace(" ", "")
+    starts = _para_starts().get(book_dir, {})
     chapters: dict[int, list[dict]] = {}
     for ch in raw.get("chapters", []):
         n = int(ch["chapter"])
-        chapters[n] = [{"verse": int(v["verse"]), "text": v["text"].strip()}
-                       for v in ch.get("verses", [])]
+        ch_starts = set(starts.get(str(n), []))
+        verses = []
+        for v in ch.get("verses", []):
+            vn = int(v["verse"])
+            text = v["text"].strip()
+            # Tag paragraph-start verses (never verse 1 — the chapter opener is
+            # handled by the lettrine path, which must not see a <p>).
+            if vn != 1 and vn in ch_starts:
+                text = '<p class="bodytext">' + text
+            verses.append({"verse": vn, "text": text})
+        chapters[n] = verses
     if len(chapters) != num_chapters:
         print(f"  warning: {book_name} expected {num_chapters} chapters, got {len(chapters)}")
     return chapters

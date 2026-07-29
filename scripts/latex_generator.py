@@ -918,6 +918,8 @@ def generate_book_tex(
         lettrine_char_budget = 0
         rl_state = _RLState()
         poetry_open_line = False  # did the previous poetry verse end mid-line?
+        lettrine_this_chapter = False   # did this chapter emit a drop-cap lettrine?
+        parshape_reset_done = False      # ...and did a post-zone \parshape=0 fire?
 
         for verse in verses:
             verse_num = int(verse["verse"])
@@ -988,6 +990,7 @@ def generate_book_tex(
                 lines.append(f"\\InsertMark{{scripture/verse}}{{{book.name} {ch_num}:1}}\\nobreak"
                              f"\\bookmark[dest={{ch-{book.directory}-{ch_num}}},level=1]{{{book.name} {ch_num}}}")
                 lines.append(f"\\ch{{{ch_num}}} \\allowchapbreak\\hypertarget{{ch-{book.directory}-{ch_num}}}{{}}{lettrine_text}{ann_suffix}\\everypar{{}}")
+                lettrine_this_chapter = "\\lettrine" in lettrine_text
             else:
                 mark = ""  # running-head marks come from scripture's ltmarks class
                 lettrine_char_budget -= len(text)
@@ -1019,8 +1022,19 @@ def generate_book_tex(
                             lines.append("")
                             lines.append("\\parshape=0")
                             lines.append(f"{mark}\\vs{{{verse_num}}}{text}{ann_suffix}")
+                            parshape_reset_done = True
                     else:
                         lines.append(f"{mark}\\vs{{{verse_num}}}{text}{ann_suffix}")
+
+        # Harden the lettrine cleanup: if the chapter used a drop-cap lettrine
+        # but never emitted a post-zone \parshape=0 (all its paragraph breaks
+        # fell WITHIN the lettrine zone as \\ line-breaks, or it had none), the
+        # lettrine's \parshape/\everypar leaks into the NEXT chapter and shoves
+        # its centred marker off to the right. Reset explicitly at chapter end.
+        if lettrine_this_chapter and not parshape_reset_done and not is_poetry:
+            lines.append("\\everypar{}")
+            lines.append("")
+            lines.append("\\parshape=0")
 
         # Return-to-plan octagon after last verse of endpoint chapters
         if plan_endpoints and (book.directory, ch_num) in plan_endpoints:
