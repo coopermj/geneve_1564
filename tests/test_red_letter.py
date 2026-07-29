@@ -134,6 +134,35 @@ leak = lg._render_red_letter("crowd ``A'' jesus ``B''", D([False, True], False),
 check("no depth leak after non-jesus verse", "\\redletteron{}``B''" in leak, leak)
 check("depth reset to 0 on None verse", st.depth == 0, st.depth)
 
+# Multi-paragraph discourse (Matthew 18 shape): NET REOPENS `` at each paragraph
+# WITHOUT closing (English continuation convention), while WEB re-segments the
+# discourse so some verses arrive as opens=[True], starts_in_jesus=False. Every
+# verse of the still-open discourse must render red, and the counter must not
+# leak so later opens are still recognised.
+disc = render_chapter([
+    ("``I tell you the truth, you must change.", D([True], False)),   # opens, no close
+    ("Humble yourself like a child.", D([], True)),                   # continuation, no quote
+    ("Woe to the world because of stumbling blocks!", D([True], False)),  # WEB re-segments, NET no quote
+    ("``If your hand causes you to sin, cut it off.", D([], True)),   # paragraph reopen ``
+    ("``What do you think? If a man has a hundred sheep,", D([True], False)),  # reopen ``, WEB re-segments
+    ("he will go and look for the one that strayed.''", D([], True)), # closes the discourse
+    ("Then the disciples came to him.", None),                        # narrator -> black
+])
+check("Mt18: opening verse red", disc[0].startswith("\\redletteron{}"), disc[0])
+check("Mt18: no-quote continuation red (v4)", disc[1].startswith("\\redletteron{}"), disc[1])
+check("Mt18: WEB-resegmented no-quote verse red (v7)", disc[2].startswith("\\redletteron{}"), disc[2])
+check("Mt18: paragraph-reopen verse red (v6)", disc[3].startswith("\\redletteron{}"), disc[3])
+check("Mt18: WEB-resegmented reopen verse red (v15)", disc[4].startswith("\\redletteron{}"), disc[4])
+check("Mt18: closing verse red then off", disc[5].startswith("\\redletteron{}") and disc[5].rstrip().endswith("\\redletteroff{}"), disc[5])
+check("Mt18: narrator after close is black", "redletter" not in disc[6], disc[6])
+
+# A crowd-only verse (descriptor None) mid-discourse still resyncs to black even
+# if a Jesus quotation was left open.
+st2 = lg._RLState()
+lg._render_red_letter("``Stay awake and watch,", D([True], False), st2)  # open, no close
+crowd = lg._render_red_letter("the soldiers mocked him.", None, st2)
+check("open discourse then None verse is black", "redletter" not in crowd, crowd)
+
 print("latex_generator._get_red_letter_desc")
 # Inject a fake v2 dataset and confirm lookup returns descriptors / None.
 lg._red_letter_verses = {

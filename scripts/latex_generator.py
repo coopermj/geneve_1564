@@ -48,19 +48,37 @@ class _RLState:
     """Red-letter state carried across the verses of one chapter."""
 
     def __init__(self) -> None:
-        self.in_jesus = False
-        self.depth = 0           # double-quote nesting depth
+        self.in_jesus = False    # currently emitting red (reset each verse for the number)
+        self.depth = 0           # genuine double-quote nesting depth
         self.open_depth = None   # depth at which the active Jesus quote opened
+        self.jesus_open = False  # a Jesus quotation is open ACROSS paragraphs
+                                 # (English continuation convention: NET reopens
+                                 # `` at each paragraph without a closing '')
 
 
 def _render_red_letter(text: str, desc, state: "_RLState") -> str:
     r"""Insert \redletteron/\redletteroff into one verse's TeX text.
 
     desc is {"opens": [bool...], "starts_in_jesus": bool} or None (no Words of
-    Christ in this verse). Mutates `state`. Red turns off only when double-quote
-    depth returns to the level where Jesus' quote opened, so nested quotes
-    (single, or 3rd-level double) stay red. Each verse's trailing \redletteroff
-    keeps the next verse number black; carried `in_jesus` reopens it.
+    Christ in this verse). Mutates `state`.
+
+    Two facts about the data must be reconciled: the descriptors come from the
+    WEB (which closes and re-opens each saying, so it emits opens=[True] at each
+    restart), but the text is the NET, which renders a long discourse as ONE
+    quotation --- reopening `` at each paragraph WITHOUT a closing '' (the
+    English multi-paragraph convention). So:
+
+    * A verse is red at its start when EITHER WEB says ``starts_in_jesus`` OR a
+      Jesus quotation opened in an earlier paragraph is still open in the NET
+      (``jesus_open``). The first handles quotes NET closes each verse
+      (Beatitudes); the second handles discourses NET never closes (Matthew 18),
+      where WEB's per-verse ``starts_in_jesus`` is False.
+    * A paragraph-initial `` while a quotation is already open is a
+      continuation-reopen: it does NOT open a new nesting level (else depth
+      leaks monotonically and later top-level opens stop being recognised).
+    * ``jesus_open`` persists across verse boundaries and is cleared only by a
+      genuine closing '' or a non-Jesus verse (desc is None); ``in_jesus`` is
+      per-verse so the next verse NUMBER stays black.
     """
     OPEN, CLOSE = "``", "''"
     out: list[str] = []
@@ -69,54 +87,81 @@ def _render_red_letter(text: str, desc, state: "_RLState") -> str:
         if state.in_jesus:
             out.append("\\redletteroff{}")
         # A non-Jesus verse is a safe resync point: clear all quote state so a
-        # stray unclosed quote in earlier text cannot leak depth into later verses.
+        # stray unclosed quote in earlier text cannot leak into later verses.
         state.in_jesus = False
+        state.jesus_open = False
         state.open_depth = None
         state.depth = 0
         out.append(text)
         return "".join(out)
 
-    if state.in_jesus or desc.get("starts_in_jesus"):
+    if desc.get("starts_in_jesus") or state.jesus_open:
         if not state.in_jesus:
+            out.append("\\redletteron{}")
             state.in_jesus = True
-            state.open_depth = 0
-        out.append("\\redletteron{}")
 
     opens = desc.get("opens", [])
     k = 0
     i = 0
     n = len(text)
+    seen_text = False
     while i < n:
         two = text[i:i + 2]
         if two == OPEN:
-            if state.depth == 0:  # top-level open
-                if not state.in_jesus:
+            if not seen_text and state.depth > 0:
+                # Paragraph-initial `` while a quotation is already open: the
+                # same quote continues (NET reopens without closing), so this is
+                # NOT a new nesting level. Keying on depth>0 (not jesus_open) is
+                # what prevents the counter leaking when the running Jesus flag
+                # was dropped at an interior close (e.g. an editorial aside).
+                out.append(OPEN)
+                i += 2
+                seen_text = True
+                continue
+            if state.depth == 0:  # genuine top-level open
+                if state.in_jesus:
+                    # Already inside Jesus' speech (via starts_in_jesus or a
+                    # still-open discourse): a quote opening here is part of it
+                    # (continuation or Jesus quoting Scripture), so keep it red.
+                    is_j = True
+                else:
                     is_j = opens[k] if k < len(opens) else False
-                    if is_j:
+                    k += 1
+                if is_j:
+                    if not state.in_jesus:
                         out.append("\\redletteron{}")
                         state.in_jesus = True
-                        state.open_depth = state.depth
-                k += 1
+                    state.jesus_open = True
+                    state.open_depth = state.depth
             state.depth += 1
             out.append(OPEN)
             i += 2
+            seen_text = True
             continue
         if two == CLOSE:
             state.depth = max(0, state.depth - 1)
             out.append(CLOSE)
             i += 2
-            if state.in_jesus and state.depth == state.open_depth:
-                out.append("\\redletteroff{}")
-                state.in_jesus = False
+            seen_text = True
+            if state.jesus_open and state.open_depth is not None \
+                    and state.depth == state.open_depth:
+                if state.in_jesus:
+                    out.append("\\redletteroff{}")
+                    state.in_jesus = False
+                state.jesus_open = False
                 state.open_depth = None
             continue
-        out.append(text[i])
+        ch = text[i]
+        if not ch.isspace():
+            seen_text = True
+        out.append(ch)
         i += 1
 
+    # Verse boundary: close red so the next verse number is black, but keep
+    # jesus_open (the quotation may continue into the next paragraph).
     if state.in_jesus:
         out.append("\\redletteroff{}")
         state.in_jesus = False
-        state.open_depth = None
     return "".join(out)
 
 
