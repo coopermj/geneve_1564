@@ -13,7 +13,9 @@
 % A/B measurement against the lua-typo diagnostic; production leaves it unset.
 \ifdefined\LBbaseline\else
   \tolerance=400
-  \emergencystretch=.5em
+  \emergencystretch=1em   % was .5em; 1em clears large protrusions (e.g. Matt 19:2
+                          % "Large") — cut net_reading overfulls 284->33 — at the
+                          % cost of slightly looser lines on the few hard paragraphs
   \doublehyphendemerits=7500
   \finalhyphendemerits=7500
 \fi
